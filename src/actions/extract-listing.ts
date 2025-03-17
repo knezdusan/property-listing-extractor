@@ -3,6 +3,8 @@
 import { fetchRandomProxies } from "@/utils/proxy";
 import { sampleListingUrls, shuffleArray } from "@/utils/helpers";
 import { scrp } from "@/utils/scrp";
+import { writeFile } from "fs/promises";
+import path from "path";
 
 export async function extractListing(previousData: string, formData: FormData): Promise<string> {
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");
@@ -31,7 +33,12 @@ export async function extractListing(previousData: string, formData: FormData): 
     if (!html) {
       throw new Error("✘ Failed to extract listing data");
     }
-    console.log(html);
+
+    // Save the property listing main page HTML to src/data/data.html
+    const filePath = path.join(process.cwd(), "src/data/data.html");
+    await writeFile(filePath, html);
+    console.log(`✔ Saved HTML content to ${filePath}`);
+
     console.log("✔ Succesfully extracted data from the listing");
   } catch (error) {
     console.error("✘ Failed to extract listing data:", error);
