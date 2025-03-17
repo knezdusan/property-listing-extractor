@@ -6,16 +6,43 @@
  * ]
  */
 
-import { shuffleArray } from "@/utils/helpers";
+import { euCountriesData, shuffleArray } from "@/utils/helpers";
 
 export async function fetchRandomProxies() {
-  console.log("Fetching proxies...");
-  const usProxyPool = await fetchProxyPool(6, "_country-us");
-  const euProxyPool = await fetchProxyPool(4, "_region-europe");
+  console.log("➜➜➜➜ Fetching proxy pool...");
+
+  // fetch 4 random EU country proxies
+  const euProxyPool: string[] = [];
+  const euCountries = shuffleArray(euCountriesData).slice(0, 4);
+  const euLocations = euCountries.map((country) => country.split("|")[0]); // like gb, de, fr, it, es, nl, sv, no, ie
+
+  // Try to fetch at least some proxies, continue even if some fail
+  for (const location of euLocations) {
+    try {
+      const locationProxies = await fetchProxyPool(1, `_country-${location}`);
+      if (locationProxies.length > 0) {
+        euProxyPool.push(...locationProxies);
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`✘ Failed to fetch proxies for ${location}, skipping: ${errorMessage}`);
+      // Continue with other locations even if one fails
+    }
+  }
+
+  // fetch 6 US proxies
+  let usProxyPool: string[] = [];
+  try {
+    usProxyPool = await fetchProxyPool(6, "_country-us");
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`✘ Failed to fetch US proxies, skipping: ${errorMessage}`);
+  }
+
   const combinedPool = [...usProxyPool, ...euProxyPool];
 
   if (!combinedPool.length) {
-    console.error("Failed to fetch proxies");
+    console.error("✘Failed to fetch any proxies");
     return [];
   }
 
@@ -28,71 +55,86 @@ export async function fetchRandomProxies() {
  * @param location Location of the proxies (e.g., "_region-europe" or "_country-us")
  * @returns Array of proxy configurations
  */
-async function fetchProxyPool(
-  count: number = 10,
-  location: string = "_country-us"
-): Promise<string[]> {
-  try {
-    const hostname = process.env.PROXY_HOSTNAME;
-    const username = process.env.PROXY_USERNAME;
-    const password = process.env.PROXY_PASSWORD;
-    const API_TOKEN = process.env.PROXY_API_TOKEN;
+async function fetchProxyPool(count: number = 10, location: string = "_country-us"): Promise<string[]> {
+  // Simple retry mechanism
+  const maxRetries = 3;
+  let attempt = 0;
 
-    if (!API_TOKEN) {
-      console.error("Missing PROXY_API_TOKEN environment variable");
-      return [];
+  while (attempt <= maxRetries) {
+    try {
+      const hostname = process.env.PROXY_HOSTNAME;
+      const username = process.env.PROXY_USERNAME;
+      const password = process.env.PROXY_PASSWORD;
+      const API_TOKEN = process.env.PROXY_API_TOKEN;
+
+      if (!API_TOKEN) {
+        console.error("✘ Missing PROXY_API_TOKEN environment variable");
+        return [];
+      }
+
+      if (!hostname || !username || !password) {
+        console.error("✘ Missing proxy configuration in environment variables");
+        return [];
+      }
+
+      const url = "https://resi-api.iproyal.com/v1/access/generate-proxy-list";
+
+      const data = {
+        format: "{hostname}:{port}:{username}:{password}",
+        hostname: hostname,
+        port: "http|https",
+        rotation: "random",
+        location: location,
+        proxy_count: count,
+        username: username,
+        password: password,
+      };
+
+      try {
+        console.log(`➜ Fetching proxies for ${location}... (Attempt ${attempt + 1}/${maxRetries + 1})`);
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_TOKEN}`,
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error(`✘ API returned ${response.status}: ${response.statusText}`);
+        }
+
+        const proxyStrings = await response.json();
+        if (!proxyStrings || !Array.isArray(proxyStrings) || proxyStrings.length === 0) {
+          throw new Error("✘ API returned empty or invalid proxy list");
+        }
+
+        const proxyList = proxyStrings.map((proxyString: string) => {
+          const [hostname, port, username, password] = proxyString.split(":");
+          return `https://${hostname}:${port}|${username}|${password}`;
+        });
+
+        return proxyList;
+      } catch (fetchError) {
+        console.error("✘ Request timed out after 5 seconds" + fetchError);
+        return [];
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`✘ Error fetching proxy pool for ${location}: ${errorMessage}`);
+
+      // If we have retries left, try again
+      if (attempt < maxRetries) {
+        attempt++;
+        console.log(`Retrying (${attempt}/${maxRetries})...`);
+        // Wait 2 seconds before retrying
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } else {
+        return [];
+      }
     }
-
-    if (!hostname || !username || !password) {
-      console.error("Missing proxy configuration in environment variables");
-      return [];
-    }
-
-    const url = "https://resi-api.iproyal.com/v1/access/generate-proxy-list";
-
-    const data = {
-      format: "{hostname}:{port}:{username}:{password}",
-      hostname: hostname,
-      port: "http|https",
-      rotation: "random",
-      location: location,
-      proxy_count: count,
-      username: username,
-      password: password,
-    };
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_TOKEN}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Response:", {
-        status: response.status,
-        statusText: response.statusText,
-        responseText: errorText,
-      });
-      return [];
-    }
-
-    const proxyStrings = await response.json();
-    if (!proxyStrings) {
-      return [];
-    }
-
-    const proxyList = proxyStrings.map((proxyString: string) => {
-      const [hostname, port, username, password] = proxyString.split(":");
-      return `https://${username}:${password}@${hostname}:${port}`;
-    });
-
-    return proxyList;
-  } catch (error) {
-    console.error(`Error fetching proxy pool for ${location}:`, error);
-    return [];
   }
+
+  return [];
 }

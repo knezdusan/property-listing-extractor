@@ -10,16 +10,13 @@
   },
   "dependencies": {
     "next": "15.2.2",
-    "puppeteer": "^24.4.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "playwright": "^1.51.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
-    "@types/puppeteer-core": "^5.4.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
