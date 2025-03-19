@@ -6,7 +6,8 @@
  * ]
  */
 
-import { proxyCountriesData, shuffleArray } from "@/utils/helpers";
+import { shuffleArray } from "@/utils/helpers";
+import { proxyCountriesData } from "./data/data";
 
 export async function fetchRandomProxies() {
   console.log("➜➜➜➜ Fetching proxy pool...");

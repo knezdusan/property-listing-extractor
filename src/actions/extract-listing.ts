@@ -1,8 +1,8 @@
 "use server";
 
-import { fetchRandomProxies } from "@/utils/proxy";
+import { fetchRandomProxies } from "@/extractor/proxy";
 import { shuffleArray } from "@/utils/helpers";
-import { scrp } from "@/utils/scrp";
+import { scrp } from "@/extractor/scrp";
 
 export async function extractListing(previousData: string, formData: FormData): Promise<string> {
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");

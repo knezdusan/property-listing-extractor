@@ -7,10 +7,11 @@
  */
 
 import { firefox } from "playwright"; // Use Firefox for better stealth
-import { proxyCountriesData, randomDelay } from "./helpers";
+import { randomDelay } from "../utils/helpers";
 import { extractMetaData } from "./xtrct";
 import { writeFile } from "fs/promises";
 import path from "path";
+import { proxyCountriesData } from "./data/data";
 
 export async function scrp(url: string, proxy: string): Promise<string> {
   console.log(`➜➜➜➜ Extracting listing data with proxy ${proxy} ...`);
@@ -167,8 +168,8 @@ export async function scrp(url: string, proxy: string): Promise<string> {
     console.log("➜ Extracting HTML content...");
     const html = await page.content();
 
-    // Save the property listing main page HTML to src/data/data.html
-    const filePath = path.join(process.cwd(), "src/data/data.html");
+    // Save the property listing main page HTML to src/data/listing.html
+    const filePath = path.join(process.cwd(), "src/extractor/data/listing.html");
     await writeFile(filePath, html);
     console.log(`✔ Saved HTML content to ${filePath}`);
 
