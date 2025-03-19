@@ -19,15 +19,12 @@ export async function scrp(url: string, proxy: string): Promise<string> {
 
   // Extract the server, username, and password from the proxy string -----------------------------
   const [server, username, password] = proxy.split("|");
-
-  // extract the country code from the password eg us, gb, de, fr, it, es, nl, sv, no, ie
+  // extract the country code from the password eg. us, gb, ie, za, ca, au, in
   const countryCode = password.split("-")[1];
-
   const proxyData =
     countryCode === "us"
       ? "us|en|en-US|America/New_York|en-US|USA"
       : proxyCountriesData.find((data) => data.includes(countryCode)); // eg. "gb|en|en-GB|Europe/London|(en-GB)|UK"
-
   if (!proxyData) {
     console.error("✘ Invalid proxy country data");
     return "";
