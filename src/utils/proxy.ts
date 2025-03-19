@@ -1,27 +1,27 @@
 /**
  * Fetches a pool of residential proxies from iProyal API
- * 6 US proxies and 4 UE proxies then shuffle them
+ * 6 US proxies and 4 non-US English speaking proxies then shuffle them
  * exmple output: [
  *   "https://username:password@hostname:port",
  * ]
  */
 
-import { euCountriesData, shuffleArray } from "@/utils/helpers";
+import { proxyCountriesData, shuffleArray } from "@/utils/helpers";
 
 export async function fetchRandomProxies() {
   console.log("➜➜➜➜ Fetching proxy pool...");
 
-  // fetch 4 random EU country proxies
-  const euProxyPool: string[] = [];
-  const euCountries = shuffleArray(euCountriesData).slice(0, 4);
-  const euLocations = euCountries.map((country) => country.split("|")[0]); // like gb, de, fr, it, es, nl, sv, no, ie
+  // fetch 4 random country proxies
+  const proxyPool: string[] = [];
+  const countries = shuffleArray(proxyCountriesData).slice(0, 4);
+  const locations = countries.map((country) => country.split("|")[0]); // like gb, de, fr, it, es, nl, sv, no, ie
 
   // Try to fetch at least some proxies, continue even if some fail
-  for (const location of euLocations) {
+  for (const location of locations) {
     try {
       const locationProxies = await fetchProxyPool(1, `_country-${location}`);
       if (locationProxies.length > 0) {
-        euProxyPool.push(...locationProxies);
+        proxyPool.push(...locationProxies);
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -39,7 +39,7 @@ export async function fetchRandomProxies() {
     console.warn(`✘ Failed to fetch US proxies, skipping: ${errorMessage}`);
   }
 
-  const combinedPool = [...usProxyPool, ...euProxyPool];
+  const combinedPool = [...usProxyPool, ...proxyPool];
 
   if (!combinedPool.length) {
     console.error("✘Failed to fetch any proxies");

@@ -1,12 +1,16 @@
 /**
+ * function function scrp(url: string, proxy: string): Promise<string>
  * Use Playwright to extract AirBnB property listing data
  * @param url URL of the listing
  * @param proxy Proxy configuration
- * @returns html string
+ * @returns  string for now
  */
 
 import { firefox } from "playwright"; // Use Firefox for better stealth
-import { euCountriesData, randomDelay } from "./helpers";
+import { proxyCountriesData, randomDelay } from "./helpers";
+import { extractMetaData } from "./xtrct";
+import { writeFile } from "fs/promises";
+import path from "path";
 
 export async function scrp(url: string, proxy: string): Promise<string> {
   console.log(`➜➜➜➜ Extracting listing data with proxy ${proxy} ...`);
@@ -22,7 +26,7 @@ export async function scrp(url: string, proxy: string): Promise<string> {
   const proxyData =
     countryCode === "us"
       ? "us|en|en-US|America/New_York|en-US|USA"
-      : euCountriesData.find((data) => data.includes(countryCode)); // eg. "gb|en|en-GB|Europe/London|(en-GB)|UK"
+      : proxyCountriesData.find((data) => data.includes(countryCode)); // eg. "gb|en|en-GB|Europe/London|(en-GB)|UK"
 
   if (!proxyData) {
     console.error("✘ Invalid proxy country data");
@@ -166,7 +170,19 @@ export async function scrp(url: string, proxy: string): Promise<string> {
     console.log("➜ Extracting HTML content...");
     const html = await page.content();
 
-    return html;
+    // Save the property listing main page HTML to src/data/data.html
+    const filePath = path.join(process.cwd(), "src/data/data.html");
+    await writeFile(filePath, html);
+    console.log(`✔ Saved HTML content to ${filePath}`);
+
+    // Extract listing data
+    console.log("➜ Extracting listing data...");
+    const listingData = await extractMetaData(page);
+    if (!listingData) {
+      throw new Error("✘ Failed to extract listing data");
+    }
+
+    return JSON.stringify(listingData);
   } catch (error) {
     console.error("✘ Error during extraction:", error);
     return "";
