@@ -1,6 +1,5 @@
 "use server";
 
-import { fetchRandomProxies } from "@/extractor/proxy";
 import { shuffleArray } from "@/utils/helpers";
 import { scrp } from "@/extractor/scrp";
 
@@ -24,22 +23,11 @@ export async function extractListing(previousData: string, formData: FormData): 
     listingUrl = shuffleArray(sampleListingUrls)[0];
   }
 
-  listingUrl = "https://www.airbnb.com/rooms/1089599548357132872";
-
-  // --------------------------------------------------- Fetch proxy pool for rotation
-  const proxyPool = await fetchRandomProxies();
-  if (!proxyPool.length) {
-    console.error("✘ Failed to fetch any proxies");
-    return "????????????????????????????? false";
-  } else if (proxyPool.length < 3) {
-    console.warn(`⚠️ Limited proxy pool: ${proxyPool.length} proxies available`, proxyPool);
-  } else {
-    console.log(`✔ Successfully fetched ${proxyPool.length} proxies for rotation`, proxyPool);
-  }
+  // listingUrl = "https://www.airbnb.com/rooms/1089599548357132872";
 
   // --------------------------------------------------- Use Scraper function
   try {
-    const listingData = await scrp(listingUrl, proxyPool[0]);
+    const listingData = await scrp(listingUrl);
 
     if (!listingData) {
       throw new Error("✘ Failed to extract listing data");

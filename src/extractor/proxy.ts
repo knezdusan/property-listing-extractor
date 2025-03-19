@@ -1,3 +1,66 @@
+import { shuffleArray } from "@/utils/helpers";
+
+// English speaking countries data for Playwright proxy setup
+const proxyCountriesData = [
+  "gb|en|en-GB|Europe/London|(en-GB)|UK",
+  "ie|en|en-IE|Europe/Dublin|(en-IE)|Ireland",
+  "mt|en|en-MT|Europe/Malta|(en-MT)|Malta",
+  "au|en|en-AU|Australia/Sydney|(en-AU)|Australia",
+  "in|en|en-IN|Asia/Kolkata|(en-IN)|India",
+  "za|en|en-ZA|Africa/Johannesburg|(en-ZA)|South Africa",
+  "ca|en|en-CA|America/Toronto|(en-CA)|Canada",
+];
+
+interface ProxyData {
+  server: string;
+  username: string;
+  password: string;
+  language: string;
+  locale: string;
+  timezone: string;
+  acceptLanguage: string;
+}
+
+/**
+ * Fetches a single residential Proxy from rendom proxy pool
+ * @returns ProxyData Object with proxy data formated for PlayWright
+ */
+export async function getProxyData(): Promise<ProxyData | null> {
+  const randomProxyPool = await fetchRandomProxies();
+  if (randomProxyPool.length === 0) return null;
+
+  console.log("➜➜➜➜ Fetching single proxy datat from random proxy pool...");
+
+  const singleProxy = randomProxyPool[0];
+
+  // Extract the server, username, and password from the proxy string -----------------------------
+  const [server, username, password] = singleProxy.split("|");
+
+  // extract the country code from the password eg. us, gb, ie, za, ca, au, in
+  const countryCode = password.split("-")[1];
+  const proxyData =
+    countryCode === "us"
+      ? "us|en|en-US|America/New_York|en-US|USA"
+      : proxyCountriesData.find((data) => data.includes(countryCode)); // eg. "gb|en|en-GB|Europe/London|(en-GB)|UK"
+  if (!proxyData) {
+    console.error("✘ Invalid proxy country data");
+    return null;
+  }
+
+  const [, language, locale, timezone] = proxyData.split("|");
+  const acceptLanguage = `${locale},${language};q=0.9`;
+
+  return {
+    server,
+    username,
+    password,
+    language,
+    locale,
+    timezone,
+    acceptLanguage,
+  };
+}
+
 /**
  * Fetches a pool of residential proxies from iProyal API
  * 6 US proxies and 4 non-US English speaking proxies then shuffle them
@@ -6,10 +69,7 @@
  * ]
  */
 
-import { shuffleArray } from "@/utils/helpers";
-import { proxyCountriesData } from "./data/data";
-
-export async function fetchRandomProxies() {
+async function fetchRandomProxies(): Promise<string[]> {
   console.log("➜➜➜➜ Fetching proxy pool...");
 
   // fetch 4 random country proxies
@@ -45,6 +105,12 @@ export async function fetchRandomProxies() {
   if (!combinedPool.length) {
     console.error("✘Failed to fetch any proxies");
     return [];
+  }
+
+  if (combinedPool.length < 3) {
+    console.warn(`⚠️ Limited proxy pool: ${combinedPool.length} proxies available`, combinedPool);
+  } else {
+    console.log(`✔ Successfully fetched ${combinedPool.length} proxies for rotation`, combinedPool);
   }
 
   return shuffleArray(combinedPool);

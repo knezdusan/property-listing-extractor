@@ -1,8 +1,7 @@
 /**
- * function function scrp(url: string, proxy: string): Promise<string>
+ * function function scrp(url: string): Promise<string>
  * Use Playwright to extract AirBnB property listing data
  * @param url URL of the listing
- * @param proxy Proxy configuration
  * @returns  string for now
  */
 
@@ -11,28 +10,17 @@ import { randomDelay } from "../utils/helpers";
 import { extractMetaData } from "./xtrct";
 import { writeFile } from "fs/promises";
 import path from "path";
-import { proxyCountriesData } from "./data/data";
+import { getProxyData } from "./proxy";
 
-export async function scrp(url: string, proxy: string): Promise<string> {
-  console.log(`➜➜➜➜ Extracting listing data with proxy ${proxy} ...`);
+export async function scrp(url: string): Promise<string> {
+  const proxyData = await getProxyData();
 
-  // Proxy ----------------------------------------------------------------------------------------
-
-  // Extract the server, username, and password from the proxy string -----------------------------
-  const [server, username, password] = proxy.split("|");
-  // extract the country code from the password eg. us, gb, ie, za, ca, au, in
-  const countryCode = password.split("-")[1];
-  const proxyData =
-    countryCode === "us"
-      ? "us|en|en-US|America/New_York|en-US|USA"
-      : proxyCountriesData.find((data) => data.includes(countryCode)); // eg. "gb|en|en-GB|Europe/London|(en-GB)|UK"
   if (!proxyData) {
-    console.error("✘ Invalid proxy country data");
+    console.warn("⚠️ No proxy data available, proceeding without proxy");
     return "";
   }
 
-  const [, language, locale, timezone] = proxyData.split("|");
-  const acceptLanguage = `${locale},${language};q=0.9`;
+  const { server, username, password, locale, timezone, acceptLanguage } = proxyData;
 
   // Playwright - Browser -----------------------------------------------------------------------------
 
