@@ -12,17 +12,14 @@ export default function Home() {
       <main className={styles.main}>
         <h1>Welcome to Airbnb Listing Extractor</h1>
         <form className={styles.form} action={formAction}>
-          <input
-            type="text"
-            className={styles.url}
-            placeholder="Enter AirBnb listing URL"
-            name="url"
-          />
+          <input type="text" className={styles.url} placeholder="Enter AirBnb listing URL" name="url" />
           <button className={styles.extract} type="submit" disabled={isPending}>
             {isPending ? "Extracting..." : "Extract"}
           </button>
 
           {isPending && <p>Extracting listing data...</p>}
+
+          {state && <p>{state}</p>}
         </form>
       </main>
     </div>
