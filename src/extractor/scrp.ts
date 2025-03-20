@@ -1,5 +1,6 @@
 import { extractMetaData } from "./xtrct";
 import { getPage } from "./plwrt";
+import { getWithRetry } from "@/utils/helpers";
 
 /**
  * function function scrp(url: string): Promise<string>
@@ -13,14 +14,14 @@ export async function scrp(url: string): Promise<string> {
   let contextInstance = null;
 
   try {
-    const result = await getPage(url);
+    const playwrightResult = await getWithRetry(() => getPage(url), 3, "Getting page");
 
-    if (!result) {
+    if (!playwrightResult) {
       console.error("✘ Failed to initialize browser");
       return "";
     }
 
-    const { browser, context, page } = result;
+    const { browser, context, page } = playwrightResult;
 
     // Save references for cleanup in finally block
     browserInstance = browser;

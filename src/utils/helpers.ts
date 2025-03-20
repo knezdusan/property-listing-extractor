@@ -16,3 +16,31 @@ export function shuffleArray<T>(array: T[]): T[] {
 
   return shuffled;
 }
+
+// Helper function getWithRetry
+export async function getWithRetry<T>(getFunction: () => Promise<T>, MAX_RETRIES = 3, getWhat: string) {
+  let result = null;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    console.log(`➜ ${getWhat} - (attempt ${attempt}/${MAX_RETRIES})...`);
+    result = await getFunction();
+
+    if (result) {
+      console.log(`✔ ${getWhat} succesfull - on attempt ${attempt}`);
+      break;
+    }
+
+    if (attempt < MAX_RETRIES) {
+      // Wait with increasing backoff between retries (1s, 2s, 4s...)
+      const delayMs = 1000 * Math.pow(2, attempt - 1);
+      console.log(`⏱️ Waiting ${delayMs}ms before retry ${attempt + 1}...`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  if (!result) {
+    console.error(`✘ ${getWhat} failed after ${MAX_RETRIES} attempts`);
+    return null;
+  }
+  return result;
+}

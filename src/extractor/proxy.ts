@@ -23,7 +23,7 @@ interface ProxyData {
 
 /**
  * Fetches a single residential Proxy from rendom proxy pool
- * @returns ProxyData Object with proxy data formated for PlayWright
+ * @returns Null or ProxyData Object with proxy data formated for PlayWright
  */
 export async function getProxyData(): Promise<ProxyData | null> {
   const randomProxyPool = await fetchRandomProxies();

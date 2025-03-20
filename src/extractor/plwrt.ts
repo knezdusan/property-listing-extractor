@@ -1,6 +1,6 @@
 import { firefox, type Browser, type BrowserContext, type Page } from "playwright";
 import { getProxyData } from "./proxy";
-import { randomDelay } from "@/utils/helpers";
+import { getWithRetry, randomDelay } from "@/utils/helpers";
 import path from "path";
 import { writeFile } from "fs/promises";
 
@@ -11,8 +11,8 @@ import { writeFile } from "fs/promises";
 export async function getPage(url: string): Promise<{ browser: Browser; context: BrowserContext; page: Page } | null> {
   console.log("➜➜➜➜ Setting up Playwright...");
 
-  // Get proxy data -----
-  const proxyData = await getProxyData();
+  // Get proxy data { server, username, password, language, locale, timezone, acceptLanguage } ---------
+  const proxyData = await getWithRetry(getProxyData, 3, "Getting proxy data");
 
   if (!proxyData) {
     console.error("✘ No proxy data available");
