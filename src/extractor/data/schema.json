@@ -1,0 +1,493 @@
+{
+  "listing": {
+    "id": { "type": "string", "description": "Unique identifier for the listing (e.g., '30397973')" },
+    "url": {
+      "type": "string",
+      "description": "Canonical URL of the listing (e.g., 'https://www.airbnb.com/rooms/30397973')"
+    },
+    "title": { "type": "string", "description": "Listing title (e.g., 'Eiffel Tower IN your living room')" },
+    "type": {
+      "type": "string",
+      "description": "Property type (e.g., 'Entire rental unit', 'Private room', 'Shared room')"
+    },
+    "tier": { "type": "integer", "description": "Home tier level (e.g., 1)", "optional": true },
+    "is_new": { "type": "boolean", "description": "Indicates if the listing is new (e.g., false)" },
+    "description": { "type": "string", "description": "Full text description of the listing" },
+    "house_rules": { "type": "string", "description": "Rules guests must follow", "optional": true },
+    "safety_features": {
+      "type": "array",
+      "description": "Safety-related amenities (e.g., ['Smoke alarm', 'First aid kit', 'Fire extinguisher'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "guest_favorite": {
+      "type": "boolean",
+      "description": "Indicates if the listing is marked as a Guest Favorite",
+      "optional": true
+    },
+    "tags": {
+      "type": "array",
+      "description": "Custom tags for categorization (e.g., ['Romantic', 'Family-friendly', 'Business'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "legal_disclaimer": {
+      "type": "string",
+      "description": "Legal disclaimers or requirements (e.g., 'Must provide ID upon check-in')",
+      "optional": true
+    }
+  },
+  "location": {
+    "city": { "type": "string", "description": "City of the listing (e.g., 'Paris')" },
+    "region": { "type": "string", "description": "Region or state (e.g., 'Île-de-France')" },
+    "country": { "type": "string", "description": "Country (e.g., 'France')" },
+    "zip_code": { "type": "string", "description": "Postal or ZIP code of the property", "optional": true },
+    "coordinates": {
+      "latitude": { "type": "number", "description": "Latitude of the property (e.g., 48.85068)" },
+      "longitude": { "type": "number", "description": "Longitude of the property (e.g., 2.29188)" }
+    },
+    "neighborhood": { "type": "string", "description": "Neighborhood name", "optional": true },
+    "transportation": {
+      "type": "array",
+      "description": "Nearby transportation options (e.g., ['Metro: 5 min walk', 'Bus stop: 2 min walk'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "landmarks": {
+      "type": "array",
+      "description": "Nearby landmarks or points of interest (e.g., ['Eiffel Tower: 1 km', 'Louvre Museum: 2 km'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "noise_level": {
+      "type": "string",
+      "description": "Noise level of the area (e.g., 'Quiet', 'Moderate', 'Busy')",
+      "optional": true
+    },
+    "proximity_to_airport": {
+      "type": "string",
+      "description": "Proximity to the nearest airport (e.g., '10 km from Charles de Gaulle Airport')",
+      "optional": true,
+      "source": "Airbnb’s 'Getting Around' or host-provided details"
+    },
+    "walk_score": {
+      "type": "number",
+      "description": "Walkability score of the area (e.g., 85)",
+      "optional": true,
+      "source": "Not directly in Airbnb but derived from third-party integrations or host input"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "Timezone of the property (e.g., 'Europe/Paris')",
+      "optional": true
+    },
+    "utc_offset": { "type": "integer", "description": "UTC offset in seconds (e.g., 3600)", "optional": true }
+  },
+  "host": {
+    "id": { "type": "string", "description": "Unique host identifier (e.g., '2855696')" },
+    "name": { "type": "string", "description": "Host’s first name (e.g., 'Vanessa')" },
+    "is_superhost": { "type": "boolean", "description": "Superhost status (e.g., true)" },
+    "verification_status": {
+      "type": "array",
+      "description": "Host verification methods (e.g., ['Email', 'Phone', 'Government ID'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "languages_spoken": {
+      "type": "array",
+      "description": "Languages spoken by the host (e.g., ['English', 'French'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "contact_methods": {
+      "type": "array",
+      "description": "Methods to contact the host (e.g., ['Airbnb messaging', 'Phone', 'Email'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "years_hosting": { "type": "integer", "description": "Number of years hosting (e.g., 13)", "optional": true },
+    "avatar": {
+      "url": { "type": "string", "description": "URL of host’s profile picture" },
+      "accessibility_label": { "type": "string", "description": "Alt text for avatar", "optional": true }
+    },
+    "bio": { "type": "string", "description": "Host biography", "optional": true },
+    "response_rate": {
+      "type": "number",
+      "description": "Percentage of inquiries responded to (e.g., 98)",
+      "optional": true
+    },
+    "response_time": {
+      "value": { "type": "number", "description": "Average response time value (e.g., 1)", "optional": true },
+      "unit": {
+        "type": "string",
+        "description": "Unit of response time (e.g., 'hours', 'days')",
+        "optional": true,
+        "default": "hours"
+      },
+      "note": "Added unit for clarity and flexibility"
+    },
+    "co_hosts": {
+      "type": "array",
+      "description": "List of co-hosts",
+      "items": {
+        "id": { "type": "string", "description": "Co-host ID" },
+        "name": { "type": "string", "description": "Co-host name" },
+        "rating": { "type": "number", "description": "Co-host average rating (e.g., 4.86)", "optional": true }
+      },
+      "optional": true
+    }
+  },
+  "capacity": {
+    "guests": { "type": "integer", "description": "Maximum number of guests (e.g., 2)" },
+    "bedrooms": { "type": "integer", "description": "Number of bedrooms (e.g., 0 for Studio, 1 for 1 bedroom)" },
+    "room_type": {
+      "type": "string",
+      "description": "Type of room (e.g., 'Master bedroom', 'Living room')",
+      "optional": true
+    },
+    "beds": { "type": "integer", "description": "Number of beds (e.g., 1)" },
+    "bed_types": {
+      "type": "array",
+      "description": "Types of beds (e.g., ['Queen bed', 'Sofa bed'])",
+      "items": { "type": "string" },
+      "optional": true,
+      "source": "Airbnb’s 'Sleeping Arrangements'"
+    },
+    "sleeping_arrangements": {
+      "type": "string",
+      "description": "Description of sleeping arrangements (e.g., '1 queen bed, 1 sofa bed')",
+      "optional": true,
+      "source": "Airbnb’s 'Sleeping Arrangements' section"
+    },
+    "bathrooms": {
+      "full_bathrooms": { "type": "integer", "description": "Number of full bathrooms (e.g., 1)", "optional": true },
+      "half_bathrooms": { "type": "integer", "description": "Number of half bathrooms (e.g., 0)", "optional": true }
+    },
+    "square_meters": {
+      "type": "number",
+      "description": "Size of the property in square meters or feet",
+      "optional": true
+    },
+    "occupancy_limit": {
+      "type": "integer",
+      "description": "Maximum occupants allowed by local regulations",
+      "optional": true
+    }
+  },
+  "pricing": {
+    "base_price": { "type": "number", "description": "Base price per night (e.g., 280)" },
+    "currency": { "type": "string", "description": "Currency code (e.g., 'USD')" },
+    "currency_symbol": {
+      "type": "string",
+      "description": "Currency symbol for display (e.g., '$')",
+      "note": "Made non-optional for display consistency"
+    },
+    "cleaning_fee": { "type": "number", "description": "Cleaning fee if applicable (e.g., 50)", "optional": true },
+    "service_fee": { "type": "number", "description": "Airbnb service fee", "optional": true },
+    "security_deposit": { "type": "number", "description": "Security deposit amount (e.g., 200)", "optional": true },
+    "taxes": {
+      "type": "object",
+      "description": "Breakdown of applicable taxes (e.g., { 'VAT': 10, 'City Tax': 5 })",
+      "additionalProperties": { "type": "number", "description": "Tax percentage or amount" },
+      "optional": true
+    },
+    "tax_breakdown": {
+      "type": "object",
+      "description": "Detailed breakdown of taxes (e.g., { 'VAT': 10, 'City Tax': 5 })",
+      "additionalProperties": { "type": "number", "description": "Tax percentage or amount" },
+      "optional": true,
+      "note": "Redundant with taxes; kept for clarity"
+    },
+    "additional_guest_fee": {
+      "type": "number",
+      "description": "Fee for extra guests beyond base capacity",
+      "optional": true
+    },
+    "discounts": {
+      "weekly": { "type": "number", "description": "Percentage discount for weekly stays", "optional": true },
+      "monthly": { "type": "number", "description": "Percentage discount for monthly stays", "optional": true }
+    },
+    "dynamic_pricing": {
+      "enabled": { "type": "boolean", "description": "Indicates if dynamic pricing is used", "optional": true },
+      "tool": { "type": "string", "description": "Name of pricing tool (e.g., 'PriceLabs')", "optional": true }
+    }
+  },
+  "availability": {
+    "can_instant_book": { "type": "boolean", "description": "Instant book availability (e.g., false)" },
+    "calendar": {
+      "type": "array",
+      "description": "Availability dates",
+      "items": {
+        "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+        "available": { "type": "boolean", "description": "Availability status" },
+        "price": { "type": "number", "description": "Price for that date", "optional": true },
+        "notes": {
+          "type": "string",
+          "description": "Additional context (e.g., 'Price adjusted for holiday season')",
+          "optional": true
+        }
+      },
+      "optional": true
+    },
+    "blocked_dates": {
+      "type": "array",
+      "description": "Dates unavailable for booking",
+      "items": { "type": "string", "description": "Date in YYYY-MM-DD format" },
+      "optional": true
+    },
+    "minimum_stay": { "type": "integer", "description": "Minimum nights required (e.g., 1)", "optional": true },
+    "maximum_stay": { "type": "integer", "description": "Maximum nights allowed", "optional": true },
+    "advance_notice": {
+      "type": "string",
+      "description": "Advance notice required for booking (e.g., '2 days')",
+      "optional": true
+    },
+    "booking_window": {
+      "type": "string",
+      "description": "How far in advance guests can book (e.g., '6 months')",
+      "optional": true,
+      "source": "Airbnb’s booking settings"
+    },
+    "last_minute_booking": {
+      "type": "boolean",
+      "description": "Indicates if last-minute bookings are allowed",
+      "optional": true,
+      "source": "Airbnb’s booking preferences"
+    },
+    "check_in_window": {
+      "type": "string",
+      "description": "Check-in time window (e.g., '3 PM - 9 PM')",
+      "optional": true
+    },
+    "check_out_window": {
+      "type": "string",
+      "description": "Check-out time window (e.g., '10 AM - 12 PM')",
+      "optional": true
+    }
+  },
+  "cancellation_policy": {
+    "type": { "type": "string", "description": "Cancellation policy type (e.g., 'Strict')" },
+    "policy_id": { "type": "string", "description": "Policy identifier (e.g., '44')", "optional": true },
+    "details": { "type": "string", "description": "Policy description", "optional": true },
+    "refund_percentage": {
+      "type": "object",
+      "description": "Refund percentages for different timeframes (e.g., { '7_days': 50, '14_days': 75 })",
+      "additionalProperties": { "type": "number", "description": "Percentage refundable" },
+      "optional": true
+    },
+    "grace_period": {
+      "type": "string",
+      "description": "Grace period for cancellations (e.g., '24 hours')",
+      "optional": true,
+      "source": "Airbnb’s cancellation policy options"
+    },
+    "link": {
+      "type": "string",
+      "description": "URL to full policy details (e.g., 'https://www.airbnb.com/help/article/2637')",
+      "optional": true
+    }
+  },
+  "amenities": {
+    "ids": {
+      "type": "array",
+      "description": "List of amenity IDs (e.g., [1, 2, 4, 8, 10])",
+      "items": { "type": "integer" }
+    },
+    "names": {
+      "type": "array",
+      "description": "Human-readable amenity names (e.g., ['Wifi', 'TV', 'Kitchen'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "amenity_categories": {
+      "type": "object",
+      "description": "Grouped amenities (e.g., { 'Bathroom': ['Hair dryer', 'Towels'], 'Kitchen': ['Oven', 'Microwave'] })",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } },
+      "optional": true,
+      "source": "Airbnb’s categorized amenity display"
+    },
+    "bathroom_amenities": {
+      "type": "array",
+      "description": "Specific bathroom amenities (e.g., ['Hair dryer', 'Towels', 'Shampoo'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "kitchen_amenities": {
+      "type": "array",
+      "description": "Specific kitchen amenities (e.g., ['Oven', 'Microwave', 'Dishwasher'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "entertainment": {
+      "type": "array",
+      "description": "Entertainment-related amenities (e.g., ['TV', 'Board games', 'Pool table'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "health_and_safety": {
+      "type": "array",
+      "description": "Health and safety amenities (e.g., ['Hand sanitizer', 'Disinfectant wipes'])",
+      "items": { "type": "string" },
+      "optional": true,
+      "source": "Airbnb’s 'Health & Safety' section"
+    },
+    "special_features": {
+      "type": "array",
+      "description": "Unique or highlighted amenities (e.g., ['Pet-friendly', 'Eco-friendly'])",
+      "items": { "type": "string" },
+      "optional": true
+    }
+  },
+  "ratings": {
+    "overall": { "type": "number", "description": "Overall star rating (e.g., 4.92)" },
+    "host_rating": { "type": "number", "description": "Separate rating for the host (e.g., 4.90)", "optional": true },
+    "review_count": { "type": "integer", "description": "Number of reviews (e.g., 251)" },
+    "categories": {
+      "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
+      "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
+      "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
+      "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
+      "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
+      "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true }
+    },
+    "reviews": {
+      "type": "array",
+      "description": "List of individual reviews",
+      "items": {
+        "id": { "type": "string", "description": "Review ID" },
+        "date": { "type": "string", "description": "Review date in YYYY-MM-DD format" },
+        "text": { "type": "string", "description": "Review content" },
+        "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
+        "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
+        "reviewer": {
+          "id": { "type": "string", "description": "Reviewer ID" },
+          "name": { "type": "string", "description": "Reviewer first name" }
+        }
+      },
+      "optional": true
+    }
+  },
+  "images": {
+    "count": { "type": "integer", "description": "Total number of images (e.g., 61)" },
+    "items": {
+      "type": "array",
+      "description": "List of image details",
+      "items": {
+        "url": { "type": "string", "description": "Image URL" },
+        "accessibility_label": { "type": "string", "description": "Alt text for the image", "optional": true },
+        "is_primary": { "type": "boolean", "description": "Indicates if this is the main image", "optional": true },
+        "caption": { "type": "string", "description": "Caption for the image", "optional": true }
+      }
+    },
+    "videos": {
+      "type": "array",
+      "description": "List of video details",
+      "items": {
+        "url": { "type": "string", "description": "Video URL" },
+        "thumbnail": { "type": "string", "description": "Thumbnail URL for the video", "optional": true }
+      },
+      "optional": true
+    }
+  },
+  "seo": {
+    "meta_description": { "type": "string", "description": "SEO meta description", "optional": true },
+    "og_tags": {
+      "title": { "type": "string", "description": "Open Graph title", "optional": true },
+      "description": { "type": "string", "description": "Open Graph description", "optional": true },
+      "image": { "type": "string", "description": "Open Graph image URL", "optional": true },
+      "type": {
+        "type": "string",
+        "description": "Open Graph type (e.g., 'airbedandbreakfast:listing')",
+        "optional": true
+      },
+      "url": { "type": "string", "description": "Open Graph URL", "optional": true }
+    },
+    "twitter_tags": {
+      "card": { "type": "string", "description": "Twitter card type (e.g., 'photo')", "optional": true },
+      "image": { "type": "string", "description": "Twitter image URL", "optional": true },
+      "url": { "type": "string", "description": "Twitter URL", "optional": true }
+    },
+    "breadcrumbs": {
+      "type": "array",
+      "description": "SEO breadcrumb navigation",
+      "items": {
+        "link_route": { "type": "string", "description": "URL route (e.g., '/paris-france/stays')" },
+        "text": { "type": "string", "description": "Display text (e.g., 'Paris')" },
+        "search_text": { "type": "string", "description": "Search term (e.g., 'Paris, France')", "optional": true }
+      },
+      "optional": true
+    }
+  },
+  "logging_context": {
+    "page": { "type": "string", "description": "Page type (e.g., 'p3')", "optional": true },
+    "pdp_page_type": { "type": "integer", "description": "PDP page type (e.g., 1)", "optional": true },
+    "impression_id": {
+      "type": "string",
+      "description": "PDP impression ID (e.g., 'p3_1742313065_P36QaVz7NVuACUde')",
+      "optional": true
+    },
+    "description_language": {
+      "type": "string",
+      "description": "Language of description (e.g., 'en')",
+      "optional": true
+    }
+  },
+  "additional_features": {
+    "sustainability": {
+      "type": "array",
+      "description": "Eco-friendly features (e.g., ['Solar power', 'Recycling'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "pet_friendly": { "type": "boolean", "description": "Indicates if pets are allowed", "optional": true },
+    "kid_friendly": {
+      "type": "boolean",
+      "description": "Indicates if the property is suitable for children",
+      "optional": true
+    },
+    "parking": {
+      "type": "array",
+      "description": "Parking options (e.g., ['Free street parking', 'Garage'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "accessibility": {
+      "type": "array",
+      "description": "Accessibility features (e.g., ['Wheelchair accessible', 'Step-free entry'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "smart_home": {
+      "type": "array",
+      "description": "Smart home features (e.g., ['Keyless entry', 'Smart thermostat'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "views": {
+      "type": "array",
+      "description": "Views from the property (e.g., ['City view', 'Mountain view'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "outdoor_space": {
+      "type": "array",
+      "description": "Outdoor spaces (e.g., ['Balcony', 'Garden', 'Patio'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "unique_experiences": {
+      "type": "array",
+      "description": "Unique experiences offered (e.g., ['Cooking class', 'Wine tasting'])",
+      "items": { "type": "string" },
+      "optional": true,
+      "source": "Airbnb’s 'Experiences' integration with stays"
+    },
+    "local_customs": {
+      "type": "array",
+      "description": "Local customs or traditions (e.g., ['Tea ceremony', 'Local festivals'])",
+      "items": { "type": "string" },
+      "optional": true,
+      "source": "Airbnb’s 'About This Space' or host-provided cultural notes"
+    }
+  }
+}
