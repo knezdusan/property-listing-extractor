@@ -1,6 +1,7 @@
 import { extractMetaData } from "./xtrct";
 import { getPage } from "./plwrt";
 import { getWithRetry } from "@/utils/helpers";
+import { clearHtml } from "./helpers";
 
 /**
  * function function scrp(url: string): Promise<string | null>
@@ -39,9 +40,22 @@ export async function scrp(url: string): Promise<string | null> {
       throw new Error("✘ Failed to extract property listing data");
     }
 
-    // ----- Extract property listing data using OpenAI LLM ---------------------------------
+    // ----- Extract property listing data using OpenAI LLM
 
-    // TODO: Implement OpenAI LLM extraction
+    // Extract only the <body> content
+    const bodyHTML = await page.evaluate(() => {
+      return document.body.outerHTML;
+    });
+
+    // Reduce HTML body content size with Cheerio (for LLM) to remove scripts, styles, and other non-content elements
+    const reducedHtml = clearHtml(bodyHTML);
+    console.log(`Reduced from ${bodyHTML.length} to ${reducedHtml.length} characters`);
+
+    // Use OpenAI LLM to extract property listing data
+    // const llmResult = await getWithRetry(() => extractListingData(reducedHtml), 3, "Extracting property listing data with LLM");
+    // if (!llmResult) {
+    //   throw new Error("✘ Failed to extract property listing data with LLM");
+    // }
 
     return JSON.stringify(listingData);
   } catch (error) {
