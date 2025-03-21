@@ -12,11 +12,11 @@ export async function extractListing(previousData: string, formData: FormData): 
   // Sample listing URLs for testing
   const sampleListingUrls = [
     "https://www.airbnb.com/rooms/54224514",
-    "https://www.airbnb.com/rooms/625479145439568235",
+    "https://www.airbnb.com/rooms/22382672",
     "https://www.airbnb.com/rooms/53478370",
-    "https://www.airbnb.com/rooms/704345975719106602",
+    "https://www.airbnb.com/rooms/1365865975375373285",
     "https://www.airbnb.com/rooms/48023999",
-    "https://www.airbnb.com/rooms/30397973",
+    "https://www.airbnb.com/rooms/17084120",
   ];
 
   if (!listingUrl) {

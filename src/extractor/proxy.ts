@@ -86,7 +86,7 @@ async function fetchRandomProxies(): Promise<string[]> {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn(`✘ Failed to fetch proxies for ${location}, skipping: ${errorMessage}`);
+      console.warn(`⚠️ Failed to fetch proxies for ${location}, skipping: ${errorMessage}`);
       // Continue with other locations even if one fails
     }
   }
@@ -97,7 +97,7 @@ async function fetchRandomProxies(): Promise<string[]> {
     usProxyPool = await fetchProxyPool(6, "_country-us");
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn(`✘ Failed to fetch US proxies, skipping: ${errorMessage}`);
+    console.warn(`⚠️ Failed to fetch US proxies, skipping: ${errorMessage}`);
   }
 
   const combinedPool = [...usProxyPool, ...proxyPool];

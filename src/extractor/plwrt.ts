@@ -1,8 +1,6 @@
 import { firefox, type Browser, type BrowserContext, type Page } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
-import path from "path";
-import { writeFile } from "fs/promises";
 
 /**
  * Setup Playwright with proxy
@@ -150,15 +148,6 @@ export async function getPage(url: string): Promise<{ browser: Browser; context:
 
     // Final wait for any triggered lazy-loaded content
     await randomDelay(2000, 3000);
-
-    // Extract the full HTML content
-    console.log("➜ Extracting HTML content...");
-    const html = await page.content();
-
-    // Save the property listing main page HTML to src/data/listing.html
-    const filePath = path.join(process.cwd(), "src/extractor/data/listing.html");
-    await writeFile(filePath, html);
-    console.log(`✔ Saved HTML content to ${filePath}`);
 
     return { browser, context, page };
   } catch (error) {

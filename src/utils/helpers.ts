@@ -1,3 +1,6 @@
+import path from "path";
+import { writeFile } from "fs/promises";
+
 // Helper function: Random delay to mimic human behavior
 export const randomDelay = (min = 500, max = 3000) => {
   const delay = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -43,4 +46,15 @@ export async function getWithRetry<T>(getFunction: () => Promise<T>, MAX_RETRIES
     return null;
   }
   return result;
+}
+
+// Helper function: Save string content to file
+export async function saveToFile(content: string, filePath: string) {
+  const filePathFull = path.join(process.cwd(), filePath);
+  try {
+    await writeFile(filePathFull, content, "utf-8");
+    console.log(`✔ Saved content to ${filePath}`);
+  } catch (error) {
+    console.error(`✘ Failed to save content to ${filePath}:`, error);
+  }
 }
