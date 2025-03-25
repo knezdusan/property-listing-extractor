@@ -1,12 +1,18 @@
 import { firefox, type Browser, type BrowserContext, type Page } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
+import { closePopups } from "./helpers";
 
 /**
  * Setup Playwright with proxy
- * @returns Browser, Context and Page instances
+ * @returns Browser, Context and Page instances with API data
  */
-export async function getPage(url: string): Promise<{ browser: Browser; context: BrowserContext; page: Page } | null> {
+export async function getPage(url: string): Promise<{
+  browser: Browser;
+  context: BrowserContext;
+  page: Page;
+  apiData: Record<string, unknown>;
+} | null> {
   console.log("➜➜➜➜ Setting up Playwright...");
 
   // Get proxy data { server, username, password, language, locale, timezone, acceptLanguage } ---------
@@ -64,6 +70,52 @@ export async function getPage(url: string): Promise<{ browser: Browser; context:
     console.log(`➜ Navigating to ${url}`);
     const page = await context.newPage();
 
+    // API Interception and Data Extraction
+    console.log("➜ Intercepting calls from API endpoints...");
+    const apiData: Record<string, unknown> = {};
+    const targetEndpoints = [
+      "/api/v2/get-data-layer-variables",
+      "/api/v3/StaysPdpSections",
+      "/api/v3/PdpAvailabilityCalendar",
+      "/api/v3/StaysPdpReviewsQuery",
+      "/api/v3/MapViewportInfoQuery",
+    ];
+
+    function mergeData(existing: unknown, incoming: unknown): unknown {
+      if (isObject(existing) && isObject(incoming)) {
+        const merged = { ...existing };
+        for (const key in incoming) {
+          if (Object.prototype.hasOwnProperty.call(incoming, key)) {
+            merged[key] = mergeData(existing[key], incoming[key]);
+          }
+        }
+        return merged;
+      }
+      if (Array.isArray(incoming)) {
+        return Array.isArray(existing) ? [...existing, ...incoming] : incoming;
+      }
+      return incoming;
+    }
+
+    function isObject(value: unknown): value is Record<string, unknown> {
+      return value !== null && typeof value === "object" && !Array.isArray(value);
+    }
+
+    page.on("response", async (response) => {
+      const url = response.url();
+
+      for (const endpoint of targetEndpoints) {
+        if (url.includes(endpoint)) {
+          const json = await response.json().catch(() => null);
+          if (json) {
+            apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
+          } else {
+            console.log(`Failed to parse JSON for ${endpoint}, response status: ${response.status()}`);
+          }
+        }
+      }
+    });
+
     // Set some basic evasion against bot detection
     await page.addInitScript(() => {
       // Mask webdriver property
@@ -108,6 +160,12 @@ export async function getPage(url: string): Promise<{ browser: Browser; context:
         console.log("➜ Content check timed out, continuing anyway...");
       });
 
+    // Add a small delay to wait for any popup or modal to appear
+    await randomDelay(3000, 5000);
+
+    // Close any popups or modals that might have appeared on page load
+    await closePopups(page);
+
     // Add a small delay to ensure dynamic content loads
     await randomDelay(2000, 3000);
 
@@ -149,7 +207,7 @@ export async function getPage(url: string): Promise<{ browser: Browser; context:
     // Final wait for any triggered lazy-loaded content
     await randomDelay(2000, 3000);
 
-    return { browser, context, page };
+    return { browser, context, page, apiData };
   } catch (error) {
     console.error("✘ Error during extraction:", error);
     // Close the browser to avoid resource leaks
