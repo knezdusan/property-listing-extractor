@@ -8,7 +8,7 @@
     "title": { "type": "string", "description": "Listing title (e.g., 'Eiffel Tower IN your living room')" },
     "type": {
       "type": "string",
-      "description": "Property type (e.g., 'Entire rental unit', 'Private room', 'Shared room')"
+      "description": "Type of building or structure the listing is. eg.( 'apartment', 'house', 'bungalow', 'chalet', 'cabin', 'cottage', 'farmhouse', 'guesthouse', 'guestroom', 'houseboat', 'hut', 'igloo', 'loft', 'mansion', 'pavilion', 'shack', 'studio', 'tent', 'townhouse', 'villa', 'yurt' )"
     },
     "tier": { "type": "integer", "description": "Home tier level (e.g., 1)", "optional": true },
     "is_new": { "type": "boolean", "description": "Indicates if the listing is new (e.g., false)" },
@@ -46,42 +46,31 @@
       "latitude": { "type": "number", "description": "Latitude of the property (e.g., 48.85068)" },
       "longitude": { "type": "number", "description": "Longitude of the property (e.g., 2.29188)" }
     },
-    "neighborhood": { "type": "string", "description": "Neighborhood name", "optional": true },
-    "transportation": {
-      "type": "array",
-      "description": "Nearby transportation options (e.g., ['Metro: 5 min walk', 'Bus stop: 2 min walk'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "landmarks": {
-      "type": "array",
-      "description": "Nearby landmarks or points of interest (e.g., ['Eiffel Tower: 1 km', 'Louvre Museum: 2 km'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "noise_level": {
-      "type": "string",
-      "description": "Noise level of the area (e.g., 'Quiet', 'Moderate', 'Busy')",
-      "optional": true
-    },
-    "proximity_to_airport": {
-      "type": "string",
-      "description": "Proximity to the nearest airport (e.g., '10 km from Charles de Gaulle Airport')",
+    "neighborhood": {
+      "description": "Detailed information about the neighborhood, including a preview and potentially extended sections like 'Getting Around'.",
       "optional": true,
-      "source": "Airbnb’s 'Getting Around' or host-provided details"
-    },
-    "walk_score": {
-      "type": "number",
-      "description": "Walkability score of the area (e.g., 85)",
-      "optional": true,
-      "source": "Not directly in Airbnb but derived from third-party integrations or host input"
-    },
-    "timezone": {
-      "type": "string",
-      "description": "Timezone of the property (e.g., 'Europe/Paris')",
-      "optional": true
-    },
-    "utc_offset": { "type": "integer", "description": "UTC offset in seconds (e.g., 3600)", "optional": true }
+      "properties": {
+        "preview": {
+          "type": "object",
+          "description": "A concise summary or preview of the neighborhood, often displayed prominently.",
+          "properties": {
+            "title": { "type": "string", "description": "Title for the preview section (often the city/area name)." },
+            "content": { "type": "string", "description": "Text content describing the neighborhood preview." }
+          }
+        },
+        "extended": {
+          "type": "array",
+          "description": "An array of additional sections providing more details about the neighborhood or related topics like transportation.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string", "description": "Title for this extended section (e.g., 'Getting around')." },
+              "content": { "type": "string", "description": "Text content for this extended section." }
+            }
+          }
+        }
+      }
+    }
   },
   "host": {
     "id": { "type": "string", "description": "Unique host identifier (e.g., '2855696')" },
@@ -126,6 +115,17 @@
       },
       "note": "Added unit for clarity and flexibility"
     },
+    "host_highlights": {
+      "type": "array",
+      "description": "List of host highlights e.g. ['Where I went to school: Kreisgymnasium Meppen, Freie Uni Berlin', 'Speaks English and German', 'Business']",
+      "items": { "type": "string", "description": "Host highlight" },
+      "optional": true
+    },
+    "business_details": {
+      "type": "string",
+      "description": "Business details (e.g., 'Business address, business registration number, business email, business phone number')",
+      "optional": true
+    },
     "co_hosts": {
       "type": "array",
       "description": "List of co-hosts",
@@ -142,7 +142,7 @@
     "bedrooms": { "type": "integer", "description": "Number of bedrooms (e.g., 0 for Studio, 1 for 1 bedroom)" },
     "room_type": {
       "type": "string",
-      "description": "Type of room (e.g., 'Master bedroom', 'Living room')",
+      "description": "Type of room (e.g. entire_home', 'private_room', 'shared_room', 'hotel_room')",
       "optional": true
     },
     "beds": { "type": "integer", "description": "Number of beds (e.g., 1)" },
@@ -288,54 +288,21 @@
     }
   },
   "amenities": {
-    "ids": {
+    "top_amenities": {
       "type": "array",
-      "description": "List of amenity IDs (e.g., [1, 2, 4, 8, 10])",
-      "items": { "type": "integer" }
+      "items": { "name": "string", "available": true, "note": "string" },
+      "optional": true,
+      "description": "Top amenities",
+      "source": "Airbnb’s amenity display"
     },
-    "names": {
+    "amenities_by_category": {
       "type": "array",
-      "description": "Human-readable amenity names (e.g., ['Wifi', 'TV', 'Kitchen'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "amenity_categories": {
-      "type": "object",
-      "description": "Grouped amenities (e.g., { 'Bathroom': ['Hair dryer', 'Towels'], 'Kitchen': ['Oven', 'Microwave'] })",
-      "additionalProperties": { "type": "array", "items": { "type": "string" } },
+      "items": {
+        "title": { "type": "string", "description": "Category name (e.g., 'Bathroom')" },
+        "amenities": { "type": "array", "items": { "name": "string", "available": true, "note": "string" } }
+      },
       "optional": true,
       "source": "Airbnb’s categorized amenity display"
-    },
-    "bathroom_amenities": {
-      "type": "array",
-      "description": "Specific bathroom amenities (e.g., ['Hair dryer', 'Towels', 'Shampoo'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "kitchen_amenities": {
-      "type": "array",
-      "description": "Specific kitchen amenities (e.g., ['Oven', 'Microwave', 'Dishwasher'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "entertainment": {
-      "type": "array",
-      "description": "Entertainment-related amenities (e.g., ['TV', 'Board games', 'Pool table'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "health_and_safety": {
-      "type": "array",
-      "description": "Health and safety amenities (e.g., ['Hand sanitizer', 'Disinfectant wipes'])",
-      "items": { "type": "string" },
-      "optional": true,
-      "source": "Airbnb’s 'Health & Safety' section"
-    },
-    "special_features": {
-      "type": "array",
-      "description": "Unique or highlighted amenities (e.g., ['Pet-friendly', 'Eco-friendly'])",
-      "items": { "type": "string" },
-      "optional": true
     }
   },
   "ratings": {
@@ -489,5 +456,10 @@
       "optional": true,
       "source": "Airbnb’s 'About This Space' or host-provided cultural notes"
     }
+  },
+  "additional_rules": {
+    "type": "string",
+    "description": "Additional rules or house rules specific to the property(e.g., 'The usual times of quiet are to be kept absolutely')",
+    "optional": true
   }
 }

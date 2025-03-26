@@ -37,7 +37,10 @@ interface Location {
   country: string;
   zip_code?: string;
   coordinates: Coordinates;
-  neighborhood?: string;
+  neighborhood?: {
+    preview?: { title: string; content: string };
+    extended?: Array<{ title: string; content: string }>;
+  };
   transportation?: string[];
   landmarks?: string[];
   noise_level?: string;
@@ -77,6 +80,8 @@ interface Host {
   response_rate?: number;
   response_time: ResponseTime;
   co_hosts?: CoHost[];
+  host_highlights?: string[];
+  business_details?: string;
 }
 
 // Capacity interfaces
@@ -141,31 +146,21 @@ interface Availability {
 }
 
 // Amenities interfaces
-interface AmenityCategory {
-  id: string;
+interface AmenityItem {
   name: string;
-  amenities: string[];
+  available: boolean;
+  note: string;
+}
+
+interface CategoryItem {
+  title: string;
+  amenities: AmenityItem[];
 }
 
 interface Amenities {
   ids: number[];
-  amenities_by_category?: AmenityCategory[];
-  top_amenities?: string[];
-  has_wifi: boolean;
-  has_kitchen: boolean;
-  has_air_conditioning: boolean;
-  has_heating: boolean;
-  has_washer: boolean;
-  has_dryer: boolean;
-  has_free_parking: boolean;
-  has_pool: boolean;
-  has_hot_tub: boolean;
-  has_fire_pit: boolean;
-  has_pets_allowed: boolean;
-  has_smoke_alarm: boolean;
-  has_carbon_monoxide_alarm: boolean;
-  has_fire_extinguisher: boolean;
-  has_first_aid_kit: boolean;
+  top_amenities: AmenityItem[];
+  amenities_by_category: CategoryItem[];
 }
 
 // Images interfaces
@@ -242,14 +237,6 @@ interface Seo {
   structured_data?: Record<string, unknown>;
 }
 
-// Additional metadata interfaces
-interface AdditionalMetadata {
-  scrape_id: string;
-  scrape_time: string;
-  scraper_version: string;
-  raw_data_blob?: string;
-}
-
 // Root property data interface
 interface PropertyData {
   listing: Listing;
@@ -263,21 +250,20 @@ interface PropertyData {
   reviews: Reviews;
   booking_availability: BookingAvailability;
   cancellation_policy: CancellationPolicy;
-  additional_house_rules?: string;
   check_in_instructions?: string;
   accessibility_features?: string[];
   listing_expectations?: string;
   locale_details: LocaleDetails;
   seo: Seo;
-  additional_metadata: AdditionalMetadata;
+  additional_rules?: string;
 }
 
 // Airbnb API data related interfaces
-interface AirbnbApiData {
+export interface AirbnbApiData {
   [key: string]: unknown;
 }
 
-interface PdpSectionData {
+export interface PdpSectionData {
   data?: {
     presentation?: {
       stayProductDetailPage?: {
@@ -351,6 +337,63 @@ interface ReviewSectionData extends AirbnbSection {
   };
 }
 
+// Host section interfaces
+interface HostHighlight {
+  icon?: string;
+  title?: string;
+}
+
+interface HostCardData {
+  userId?: string;
+  name?: string;
+  isSuperhost?: boolean;
+  isVerified?: boolean;
+  profilePictureUrl?: string;
+  timeAsHost?: {
+    years?: number;
+    months?: number;
+  };
+}
+
+interface MeetYourHostSection {
+  __typename?: string;
+  titleText?: string;
+  cardData?: HostCardData;
+  hostHighlights?: HostHighlight[];
+  hostDetails?: string[];
+  cohosts?: Array<{
+    id?: string;
+    name?: string;
+    rating?: number;
+  }>;
+}
+
+// Airbnb API amenities interfaces
+interface AmenityResponse {
+  __typename?: string;
+  title?: string;
+  available?: boolean;
+  subtitle?: string;
+  icon?: string;
+  id?: string;
+}
+
+interface AmenityGroupResponse {
+  __typename?: string;
+  title?: string;
+  amenities?: AmenityResponse[];
+}
+
+interface AmenitiesSectionResponse {
+  __typename?: string;
+  title?: string;
+  previewAmenitiesGroups?: AmenityGroupResponse[];
+  seeAllAmenitiesGroups?: AmenityGroupResponse[];
+  seeAllAmenitiesButton?: {
+    title?: string;
+  };
+}
+
 /**
  * Transforms raw Airbnb API data into structured property data
  * following the schema.json blueprint
@@ -382,6 +425,7 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
     const reviewsSection = findSection("REVIEWS_DEFAULT") as ReviewSectionData;
     const locationSection = findSection("LOCATION_PDP") as LocationSectionData;
     const availabilitySection = findSection("AVAILABILITY_CALENDAR_DEFAULT");
+    const hostSection = findSection("MEET_YOUR_HOST") as MeetYourHostSection;
 
     // We can use this in the future for pricing details
     // const bookItSection = findSection('BOOK_IT_CALENDAR_SHEET') || findSection('BOOK_IT_FLOATING_FOOTER');
@@ -391,7 +435,7 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
     const descriptionItems = (descriptionSection.items as DescriptionItem[]) || [];
 
     // Extract listing ID safely
-    const shareSave = (photoTourSection.shareSave || {}) as ShareSaveData;
+    const shareSave = (photoTourSection.shareSave as ShareSaveData) || {};
     const embedData = shareSave.embedData || {};
     const listingId = String(embedData.id || "");
 
@@ -447,6 +491,30 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
       }
 
       return rules;
+    };
+
+    // Extract additional rules content from house rules
+    const extractAdditionalRules = (): string | undefined => {
+      let additionalRulesContent: string | undefined = undefined;
+
+      if (Array.isArray(policiesSection.houseRulesSections)) {
+        for (const section of policiesSection.houseRulesSections as Record<string, unknown>[]) {
+          if (Array.isArray(section.items)) {
+            for (const item of section.items as Record<string, unknown>[]) {
+              if (item.title === "Additional rules" && item.html) {
+                const htmlContent = item.html as { htmlText?: string };
+                if (htmlContent.htmlText) {
+                  additionalRulesContent = htmlContent.htmlText;
+                  break;
+                }
+              }
+            }
+          }
+          if (additionalRulesContent) break;
+        }
+      }
+
+      return additionalRulesContent;
     };
 
     // Extract safety features
@@ -522,27 +590,69 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
 
     // Extract amenities
     const extractAmenities = (): Amenities => {
-      const safetyFeatures = extractSafetyFeatures();
+      // const safetyFeatures = extractSafetyFeatures();
+
+      // Find the amenities section
+      const amenitiesSection = findSection("AMENITIES_DEFAULT") as AmenitiesSectionResponse;
+
+      // Extract top amenities from previewAmenitiesGroups
+      const topAmenities: AmenityItem[] = [];
+      if (
+        amenitiesSection &&
+        amenitiesSection.previewAmenitiesGroups &&
+        Array.isArray(amenitiesSection.previewAmenitiesGroups)
+      ) {
+        amenitiesSection.previewAmenitiesGroups.forEach((group: AmenityGroupResponse) => {
+          if (group.amenities && Array.isArray(group.amenities)) {
+            group.amenities.forEach((amenity: AmenityResponse) => {
+              if (amenity.title) {
+                topAmenities.push({
+                  name: amenity.title,
+                  available: amenity.available !== false, // Default to true if not explicitly false
+                  note: amenity.subtitle || "",
+                });
+              }
+            });
+          }
+        });
+      }
+
+      // Extract categorized amenities from seeAllAmenitiesGroups
+      const amenitiesByCategory: CategoryItem[] = [];
+      if (
+        amenitiesSection &&
+        amenitiesSection.seeAllAmenitiesGroups &&
+        Array.isArray(amenitiesSection.seeAllAmenitiesGroups)
+      ) {
+        amenitiesSection.seeAllAmenitiesGroups.forEach((category: AmenityGroupResponse) => {
+          if (category.title) {
+            const categoryAmenities: AmenityItem[] = [];
+            if (category.amenities && Array.isArray(category.amenities)) {
+              category.amenities.forEach((amenity: AmenityResponse) => {
+                if (amenity.title) {
+                  categoryAmenities.push({
+                    name: amenity.title,
+                    available: amenity.available !== false, // Default to true if not explicitly false
+                    note: amenity.subtitle || "",
+                  });
+                }
+              });
+            }
+
+            if (categoryAmenities.length > 0) {
+              amenitiesByCategory.push({
+                title: category.title,
+                amenities: categoryAmenities,
+              });
+            }
+          }
+        });
+      }
 
       return {
         ids: [],
-        amenities_by_category: [],
-        top_amenities: [],
-        has_wifi: false,
-        has_kitchen: false,
-        has_air_conditioning: false,
-        has_heating: false,
-        has_washer: false,
-        has_dryer: false,
-        has_free_parking: false,
-        has_pool: false,
-        has_hot_tub: false,
-        has_fire_pit: false,
-        has_pets_allowed: false,
-        has_smoke_alarm: safetyFeatures.some((feature) => feature.toLowerCase().includes("smoke alarm")),
-        has_carbon_monoxide_alarm: safetyFeatures.some((feature) => feature.toLowerCase().includes("carbon monoxide")),
-        has_fire_extinguisher: safetyFeatures.some((feature) => feature.toLowerCase().includes("fire extinguisher")),
-        has_first_aid_kit: safetyFeatures.some((feature) => feature.toLowerCase().includes("first aid")),
+        top_amenities: topAmenities,
+        amenities_by_category: amenitiesByCategory,
       };
     };
 
@@ -638,6 +748,41 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
         if (parts.length >= 3) country = parts[2];
       }
 
+      // Extract neighborhood information
+      const neighborhood: {
+        preview?: { title: string; content: string };
+        extended?: Array<{ title: string; content: string }>;
+      } = {};
+
+      // Extract preview from previewLocationDetails
+      if (
+        locationSection.previewLocationDetails &&
+        Array.isArray(locationSection.previewLocationDetails) &&
+        locationSection.previewLocationDetails.length > 0
+      ) {
+        const previewDetail = locationSection.previewLocationDetails[0];
+        if (previewDetail && previewDetail.title && previewDetail.content?.htmlText) {
+          neighborhood.preview = {
+            title: previewDetail.title,
+            content: previewDetail.content.htmlText.replace(/<br \/>/g, "\n"),
+          };
+        }
+      }
+
+      // Extract extended details from seeAllLocationDetails
+      if (
+        locationSection.seeAllLocationDetails &&
+        Array.isArray(locationSection.seeAllLocationDetails) &&
+        locationSection.seeAllLocationDetails.length > 0
+      ) {
+        neighborhood.extended = locationSection.seeAllLocationDetails
+          .filter((detail) => detail && detail.title && detail.content?.htmlText)
+          .map((detail) => ({
+            title: detail.title,
+            content: detail.content.htmlText.replace(/<br \/>/g, "\n"),
+          }));
+      }
+
       return {
         city: (stayListingData.city as string) || city,
         region: (stayListingData.state as string) || region,
@@ -647,7 +792,7 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
           latitude: safeParseNumber(locationSection.lat, 0),
           longitude: safeParseNumber(locationSection.lng, 0),
         },
-        neighborhood: undefined,
+        neighborhood: Object.keys(neighborhood).length > 0 ? neighborhood : undefined,
         transportation: undefined,
         landmarks: undefined,
         noise_level: undefined,
@@ -658,38 +803,105 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
       };
     };
 
-    // Extract host information from various sections
+    // Extract host information
     const extractHost = (): Host => {
-      // We can use this in the future for host details
-      // const embedData = (photoTourSection.shareSave as Record<string, unknown>)?.embedData || {};
-
-      return {
+      // Default empty host object
+      const defaultHost: Host = {
         id: "",
         name: "",
         is_superhost: false,
         verification_status: [],
         languages_spoken: [],
         contact_methods: [],
-        years_hosting: undefined,
-        avatar: {
-          url: "",
-        },
-        bio: undefined,
-        response_rate: undefined,
-        response_time: {
-          value: undefined,
-          unit: "hours",
-        },
+        avatar: { url: "" },
+        response_time: { unit: "hours" },
         co_hosts: [],
+        host_highlights: [],
+        business_details: "",
       };
-    };
 
-    // Generate a scrape ID
-    const generateScrapeId = (): string => {
-      // Use crypto API if available, otherwise use timestamp
-      return typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `scrape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // If no host section is found, return the default host object
+      if (!hostSection) return defaultHost;
+
+      const cardData = hostSection.cardData || {};
+      const hostHighlights = Array.isArray(hostSection.hostHighlights) ? hostSection.hostHighlights : [];
+      const hostDetails = Array.isArray(hostSection.hostDetails) ? hostSection.hostDetails : [];
+
+      // Extract languages from hostHighlights
+      const languagesSpoken: string[] = [];
+      hostHighlights.forEach((highlight: HostHighlight) => {
+        if (highlight.icon === "SYSTEM_LANGUAGE" && highlight.title) {
+          // Extract languages from "Speaks Czech and English"
+          const languageMatch = highlight.title.match(/Speaks\s+(.+)/i);
+          if (languageMatch && languageMatch[1]) {
+            languageMatch[1].split(/\s+and\s+|,\s*/).forEach((lang: string) => {
+              if (lang) languagesSpoken.push(lang.trim());
+            });
+          }
+        }
+      });
+
+      // Extract response time from hostDetails
+      const responseTime = { unit: "hours", value: 24 }; // Default value
+      hostDetails.forEach((detail: string) => {
+        if (detail.startsWith("Responds within")) {
+          const timeMatch = detail.match(/within\s+an?\s+(.+)/i);
+          if (timeMatch && timeMatch[1]) {
+            const timeUnit = timeMatch[1].toLowerCase();
+            responseTime.unit = timeUnit.endsWith("s") ? timeUnit : `${timeUnit}s`;
+            responseTime.value = timeUnit.includes("hour")
+              ? 1
+              : timeUnit.includes("day")
+              ? 24
+              : timeUnit.includes("minute")
+              ? 1 / 60
+              : 24;
+          }
+        }
+      });
+
+      // Construct verification status array
+      const verificationStatus: string[] = [];
+      if (cardData.isVerified) {
+        verificationStatus.push("identity_verified");
+      }
+      if (cardData.isSuperhost) {
+        verificationStatus.push("superhost");
+      }
+
+      // Extract host highlights
+      const hostHighlightsList: string[] = [];
+      hostHighlights.forEach((highlight: HostHighlight) => {
+        if (highlight.title) {
+          hostHighlightsList.push(highlight.title);
+        }
+      });
+
+      // Extract business details
+      const businessDetails = hostDetails.find((detail: string) => detail.startsWith("Business travel ready"));
+
+      return {
+        id: cardData.userId || "",
+        name: cardData.name || "",
+        is_superhost: !!cardData.isSuperhost,
+        verification_status: verificationStatus,
+        languages_spoken: languagesSpoken,
+        contact_methods: ["airbnb_message"],
+        years_hosting: cardData.timeAsHost?.years,
+        avatar: {
+          url: cardData.profilePictureUrl || "",
+          accessibility_label: cardData.name ? `Profile photo of ${cardData.name}` : undefined,
+        },
+        response_time: responseTime,
+        response_rate: hostDetails.some((detail: string) => detail.includes("Response rate: 100%")) ? 100 : undefined,
+        co_hosts: (hostSection.cohosts || []).map((cohost: { id?: string; name?: string; rating?: number }) => ({
+          id: cohost.id || "",
+          name: cohost.name || "",
+          rating: cohost.rating,
+        })),
+        host_highlights: hostHighlightsList,
+        business_details: businessDetails || "",
+      };
     };
 
     // Extract check-in/checkout times
@@ -757,7 +969,7 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
         description: undefined,
         cancellation_policy_id: undefined,
       },
-      additional_house_rules: getDescriptionByTitle("Other things to note") || undefined,
+      additional_rules: extractAdditionalRules(),
       check_in_instructions: undefined,
       accessibility_features: [],
       listing_expectations: undefined,
@@ -774,12 +986,6 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
           image: firstImageUrl,
         },
         canonical_url: `https://www.airbnb.com/rooms/${listingId}`,
-      },
-      additional_metadata: {
-        scrape_id: generateScrapeId(),
-        scrape_time: new Date().toISOString(),
-        scraper_version: "1.0.0",
-        raw_data_blob: undefined,
       },
     };
 
