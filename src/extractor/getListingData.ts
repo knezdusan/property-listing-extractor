@@ -8,9 +8,9 @@ import { AirbnbApiData, ListingData } from "./types";
 
 const apiResponseSelectors = {
   // api endpoint: /api/v2/get-data-layer-variables
-  PROPERTY_TYPE: "propertyType", // property type
+  LISTING_TYPE: "propertyType", // listing type
   PRIVACY_TYPE: "roomType", // privacy type
-  PROPERTY_TAGS: "categoryTags", // property tags
+  LISTING_TAGS: "categoryTags", // listing tags
   // api endpoint: /api/v3/StaysPdpSections
   LISTING_TITLE: "listingTitle", // listing main page title
   LISTING_SUBS: "sbuiData", // subtitle, capacity highlights
@@ -33,21 +33,21 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
-  const propertyType = getNestedValue(apiData, apiResponseSelectors.PROPERTY_TYPE) as string | null;
-  if (!propertyType) {
-    console.error("❌ No property type found");
+  const listingType = getNestedValue(apiData, apiResponseSelectors.LISTING_TYPE) as string | null;
+  if (!listingType) {
+    console.error("❌ No listing type found");
     return null;
   }
 
   const privacyType = getNestedValue(apiData, apiResponseSelectors.PRIVACY_TYPE) as string | null;
   if (!privacyType) {
-    console.error("❌ No property privacy/room type found");
+    console.error("❌ No listing privacy/room type found");
     return null;
   }
 
-  const propertyTags = getNestedValue(apiData, apiResponseSelectors.PROPERTY_TAGS) as string[] | null;
-  if (!propertyTags) {
-    console.error("❌ No property tags found");
+  const listingTags = getNestedValue(apiData, apiResponseSelectors.LISTING_TAGS) as string[] | null;
+  if (!listingTags) {
+    console.error("❌ No listing tags found");
     return null;
   }
 
@@ -56,40 +56,40 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
   // listing id, url
   const seoFeaturesData = getNestedValue(apiData, apiResponseSelectors.SEO_FEATURES) as Record<string, unknown> | null;
   if (!seoFeaturesData) {
-    console.error("❌ No ${apiResponseSelectors.SEO_FEATURES} property selector data found");
+    console.error("❌ No ${apiResponseSelectors.SEO_FEATURES} listing selector data found");
     return null;
   }
 
   // listing subtitle, capacity highlights
   const sbuiData = getNestedValue(apiData, apiResponseSelectors.LISTING_SUBS) as Record<string, unknown> | null;
   if (!sbuiData) {
-    console.error(`❌ No ${apiResponseSelectors.LISTING_SUBS} property selector data found`);
+    console.error(`❌ No ${apiResponseSelectors.LISTING_SUBS} listing selector data found`);
     return null;
   }
 
   // Find section object by typename *************
 
-  // Property Highlights Section object
-  const propertyHighlightsSection = findNestedObjectByPropValue(
+  // Listing Highlights Section object
+  const listingHighlightsSection = findNestedObjectByPropValue(
     apiData,
     "section",
     "__typename",
     "PdpHighlightsSection"
   );
-  if (!propertyHighlightsSection) {
-    console.error("❌ No property highlights section found");
+  if (!listingHighlightsSection) {
+    console.error("❌ No listing highlights section found");
     return null;
   }
 
-  // Property Description Section object
-  const propertyDescriptionSection = findNestedObjectByPropValue(
+  // Listing Description Section object
+  const listingDescriptionSection = findNestedObjectByPropValue(
     apiData,
     "section",
     "__typename",
     "PdpDescriptionSection"
   );
-  if (!propertyDescriptionSection) {
-    console.error("❌ No property description section found");
+  if (!listingDescriptionSection) {
+    console.error("❌ No listing description section found");
     return null;
   }
 
@@ -98,25 +98,21 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
   // Extract main listing data
   const mainListingData = extractListingData(
     seoFeaturesData,
-    propertyType,
+    listingType,
     privacyType,
     listingTitle,
     sbuiData,
-    propertyHighlightsSection,
-    propertyDescriptionSection,
-    propertyTags
+    listingHighlightsSection,
+    listingDescriptionSection,
+    listingTags
   );
   if (!mainListingData) {
     console.error("❌ Failed to extract listing data");
     return null;
   }
 
-  // Extract property description
-  //   const propertyDescription = extractPropertyDescription(apiData);
-
   const listingData = {
     listing: mainListingData,
-    // description: propertyDescription,
     // location: extractLocationData(apiData),
     // host: extractHostData(apiData),
     // capacity: extractCapacityData(apiData),
@@ -143,24 +139,24 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
 // Extract listing data from API response ApiData object segments
 function extractListingData(
   seoFeaturesData: Record<string, unknown>,
-  propertyType: string,
-  privacyType: string,
-  listingTitle: string,
+  type: string,
+  privacy: string,
+  title: string,
   sbuiData: Record<string, unknown>,
-  propertyHighlightsSection: Record<string, unknown>,
-  propertyDescriptionSection: Record<string, unknown>,
-  propertyTags: string[]
+  listingHighlightsSection: Record<string, unknown>,
+  listingDescriptionSection: Record<string, unknown>,
+  tags: string[]
 ) {
   // extract listing canonicalUrl (e.g. https://www.airbnb.com/rooms/30397973)
-  const canonicalUrl = seoFeaturesData["canonicalUrl"] as string | null;
-  if (!canonicalUrl) {
+  const url = seoFeaturesData["canonicalUrl"] as string | null;
+  if (!url) {
     console.error("❌ No canonicalUrl found");
     return null;
   }
 
   // extract listing id from canonicalUrl (e.g. https://www.airbnb.com/rooms/30397973 -> 30397973)
-  const listingId = canonicalUrl.split("/").pop();
-  if (!listingId) {
+  const id = url.split("/").pop();
+  if (!id) {
     console.error("❌ No listingId found");
     return null;
   }
@@ -180,52 +176,52 @@ function extractListingData(
   }
 
   // extract capacity highlights from capacityHighlightsItems
-  const capacityHighlights = capacityHighlightsItems.map((item) => item["title"] as string);
-  if (!capacityHighlights) {
+  const capacity = capacityHighlightsItems.map((item) => item["title"] as string);
+  if (!capacity) {
     console.error("❌ No capacity highlights found");
     return null;
   }
 
-  // extract property highlights from propertyHighlightsSection
-  const propertyHighlightsObject = propertyHighlightsSection?.highlights as Record<string, unknown>[] | null;
-  if (!propertyHighlightsObject) {
-    console.error("❌ No property highlights found");
+  // extract listing highlights from listingHighlightsSection
+  const listingHighlightsObject = listingHighlightsSection?.highlights as Record<string, unknown>[] | null;
+  if (!listingHighlightsObject) {
+    console.error("❌ No listing highlights found");
     return null;
   }
 
-  const propertyHighlights = propertyHighlightsObject.map((highlight) => {
+  const highlights = listingHighlightsObject.map((highlight) => {
     return { title: highlight["title"] as string, subtitle: highlight["subtitle"] as string };
   });
 
-  if (!propertyHighlights) {
-    console.error("❌ No property highlights found");
+  if (!highlights) {
+    console.error("❌ No listing highlights found");
     return null;
   }
 
-  // extract property description from propertyDescriptionSection
-  const propertyDescriptionObject = propertyDescriptionSection?.htmlDescription as Record<string, unknown> | null;
-  if (!propertyDescriptionObject) {
-    console.error("❌ No property description found");
+  // extract listing description from listingDescriptionSection
+  const descriptionObject = listingDescriptionSection?.htmlDescription as Record<string, unknown> | null;
+  if (!descriptionObject) {
+    console.error("❌ No listing description found");
     return null;
   }
 
-  const propertyDescription = propertyDescriptionObject["htmlText"] as string | null;
-  if (!propertyDescription) {
+  const description = descriptionObject["htmlText"] as string | null;
+  if (!description) {
     console.error("❌ No property description found");
     return null;
   }
 
   const listingData = {
-    id: listingId,
-    url: canonicalUrl,
-    property_type: propertyType,
-    privacy_type: privacyType,
-    title: listingTitle,
-    subtitle: subtitle,
-    capacityHighlights: capacityHighlights,
-    propertyHighlights: propertyHighlights,
-    propertyDescription: propertyDescription,
-    propertyTags: propertyTags,
+    id,
+    url,
+    type,
+    privacy,
+    title,
+    subtitle,
+    capacity,
+    highlights,
+    description,
+    tags,
   };
 
   return listingData;
