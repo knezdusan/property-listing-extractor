@@ -43,7 +43,7 @@ export async function getProxyData(): Promise<ProxyData | null> {
       ? "us|en|en-US|America/New_York|en-US|USA"
       : proxyCountriesData.find((data) => data.includes(countryCode)); // eg. "gb|en|en-GB|Europe/London|(en-GB)|UK"
   if (!proxyData) {
-    console.error("✘ Invalid proxy country data");
+    console.error("❌ Invalid proxy country data");
     return null;
   }
 
@@ -103,7 +103,7 @@ async function fetchRandomProxies(): Promise<string[]> {
   const combinedPool = [...usProxyPool, ...proxyPool];
 
   if (!combinedPool.length) {
-    console.error("✘Failed to fetch any proxies");
+    console.error("❌Failed to fetch any proxies");
     return [];
   }
 
@@ -135,12 +135,12 @@ async function fetchProxyPool(count: number = 10, location: string = "_country-u
       const API_TOKEN = process.env.PROXY_API_TOKEN;
 
       if (!API_TOKEN) {
-        console.error("✘ Missing PROXY_API_TOKEN environment variable");
+        console.error("❌ Missing PROXY_API_TOKEN environment variable");
         return [];
       }
 
       if (!hostname || !username || !password) {
-        console.error("✘ Missing proxy configuration in environment variables");
+        console.error("❌ Missing proxy configuration in environment variables");
         return [];
       }
 
@@ -169,12 +169,12 @@ async function fetchProxyPool(count: number = 10, location: string = "_country-u
         });
 
         if (!response.ok) {
-          throw new Error(`✘ API returned ${response.status}: ${response.statusText}`);
+          throw new Error(`❌ API returned ${response.status}: ${response.statusText}`);
         }
 
         const proxyStrings = await response.json();
         if (!proxyStrings || !Array.isArray(proxyStrings) || proxyStrings.length === 0) {
-          throw new Error("✘ API returned empty or invalid proxy list");
+          throw new Error("❌ API returned empty or invalid proxy list");
         }
 
         const proxyList = proxyStrings.map((proxyString: string) => {
@@ -184,12 +184,12 @@ async function fetchProxyPool(count: number = 10, location: string = "_country-u
 
         return proxyList;
       } catch (fetchError) {
-        console.error("✘ Request timed out after 5 seconds" + fetchError);
+        console.error("❌ Request timed out after 5 seconds" + fetchError);
         return [];
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`✘ Error fetching proxy pool for ${location}: ${errorMessage}`);
+      console.error(`❌ Error fetching proxy pool for ${location}: ${errorMessage}`);
 
       // If we have retries left, try again
       if (attempt < maxRetries) {

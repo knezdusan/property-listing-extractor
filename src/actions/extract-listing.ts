@@ -30,12 +30,12 @@ export async function extractListing(previousData: string, formData: FormData): 
     const listingData = await scrp(listingUrl);
 
     if (!listingData) {
-      throw new Error("✘ Failed to extract listing data");
+      throw new Error("❌ Failed to extract listing data");
     }
 
     console.log("✔ Succesfully extracted data from the listing", listingData);
   } catch (error) {
-    console.error("✘ Failed to extract listing data:", error);
+    console.error("❌ Failed to extract listing data:", error);
     return "~~~~~~~~~~~~~~~~~~~~~~~~~ false :(";
   }
 

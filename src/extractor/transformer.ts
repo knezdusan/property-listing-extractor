@@ -18,11 +18,27 @@ interface Listing {
   tier?: number;
   is_new: boolean;
   description: string;
-  house_rules?: string[];
-  safety_features?: string[];
+  house_rules?: ListingHouseRule[];
+  safety_features?: Array<{
+    section_title: string;
+    items: Array<{
+      title: string;
+      subtitle?: string;
+    }>;
+  }>;
+  highlights?: ListingHighlight[];
   guest_favorite?: boolean;
   tags?: string[];
   legal_disclaimer?: string;
+}
+
+interface ListingHighlight {
+  title: string;
+  subtitle?: string;
+}
+interface ListingHouseRule {
+  title: string;
+  subtitle?: string;
 }
 
 // Location interfaces
@@ -475,15 +491,18 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
     };
 
     // Extract house rules
-    const extractHouseRules = (): string[] => {
-      const rules: string[] = [];
+    const extractHouseRules = (): { title: string; subtitle?: string }[] => {
+      const rules: { title: string; subtitle?: string }[] = [];
 
       if (Array.isArray(policiesSection.houseRulesSections)) {
         (policiesSection.houseRulesSections as Record<string, unknown>[]).forEach((section) => {
           if (Array.isArray(section.items)) {
             (section.items as HouseRule[]).forEach((item) => {
               if (item.title) {
-                rules.push(item.title + (item.subtitle ? `: ${item.subtitle}` : ""));
+                rules.push({
+                  title: item.title,
+                  subtitle: item.subtitle || "",
+                });
               }
             });
           }
@@ -518,28 +537,111 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
     };
 
     // Extract safety features
-    const extractSafetyFeatures = (): string[] => {
-      const features: string[] = [];
+    const extractSafetyFeatures = (): Array<{
+      section_title: string;
+      items: Array<{
+        title: string;
+        subtitle?: string;
+      }>;
+    }> => {
+      const categorizedFeatures: Array<{
+        section_title: string;
+        items: Array<{
+          title: string;
+          subtitle?: string;
+        }>;
+      }> = [];
 
       if (Array.isArray(policiesSection.safetyAndPropertiesSections)) {
         (policiesSection.safetyAndPropertiesSections as Record<string, unknown>[]).forEach((section) => {
+          const sectionTitle = (section.title as string) || "Safety Features";
+          const sectionItems: Array<{ title: string; subtitle?: string }> = [];
+
           if (Array.isArray(section.items)) {
-            (section.items as HouseRule[]).forEach((item) => {
+            (section.items as Record<string, unknown>[]).forEach((item) => {
               if (item.title) {
-                features.push(item.title.replace(" installed", "").trim());
+                sectionItems.push({
+                  title: item.title as string,
+                  subtitle: (item.subtitle as string) || "",
+                });
               }
+            });
+          }
+
+          if (sectionItems.length > 0) {
+            categorizedFeatures.push({
+              section_title: sectionTitle,
+              items: sectionItems,
             });
           }
         });
       } else if (Array.isArray(policiesSection.previewSafetyAndProperties)) {
+        // For preview data, create a single category
+        const previewItems: Array<{ title: string; subtitle?: string }> = [];
+
         (policiesSection.previewSafetyAndProperties as Record<string, unknown>[]).forEach((item) => {
-          if ((item as HouseRule).title) {
-            features.push((item as HouseRule).title as string);
+          if ((item as Record<string, unknown>).title) {
+            previewItems.push({
+              title: (item as Record<string, unknown>).title as string,
+              subtitle: ((item as Record<string, unknown>).subtitle as string) || "",
+            });
           }
         });
+
+        if (previewItems.length > 0) {
+          categorizedFeatures.push({
+            section_title: "Safety Features",
+            items: previewItems,
+          });
+        }
       }
 
-      return features;
+      return categorizedFeatures;
+    };
+
+    // Extract property highlights
+    const extractHighlights = (): ListingHighlight[] | undefined => {
+      // Find the highlights section
+      const highlightsSection = staysPdpSections.find(
+        (section) =>
+          section.sectionComponentType === "HIGHLIGHTS_DEFAULT" &&
+          section.section &&
+          "section" in section &&
+          typeof section.section === "object" &&
+          section.section !== null &&
+          "__typename" in section.section &&
+          section.section.__typename === "PdpHighlightsSection"
+      );
+
+      if (!highlightsSection || !highlightsSection.section) {
+        return undefined;
+      }
+
+      // Type assertion with more specific type
+      interface PdpHighlightsSection {
+        __typename: string;
+        highlights?: Array<{
+          __typename?: string;
+          title?: string;
+          subtitle?: string;
+          icon?: string;
+          type?: string;
+        }>;
+      }
+
+      const pdpHighlightsSection = highlightsSection.section as PdpHighlightsSection;
+
+      if (!pdpHighlightsSection.highlights || !Array.isArray(pdpHighlightsSection.highlights)) {
+        return undefined;
+      }
+
+      // Map the highlights to the schema format
+      return pdpHighlightsSection.highlights
+        .filter((highlight) => highlight.title)
+        .map((highlight) => ({
+          title: highlight.title!,
+          subtitle: highlight.subtitle,
+        }));
     };
 
     // Extract media items
@@ -927,6 +1029,7 @@ export function getPropertyData(apiData: AirbnbApiData): PropertyData | null {
         description: getDescriptionByTitle("") || getDescriptionByTitle("The space") || "",
         house_rules: extractHouseRules(),
         safety_features: extractSafetyFeatures(),
+        highlights: extractHighlights(),
         guest_favorite: !!reviewsSection.isGuestFavorite,
         tags: (stayListingData.categoryTags as string[]) || [],
         legal_disclaimer: undefined,

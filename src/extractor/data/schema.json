@@ -5,35 +5,50 @@
       "type": "string",
       "description": "Canonical URL of the listing (e.g., 'https://www.airbnb.com/rooms/30397973')"
     },
-    "title": { "type": "string", "description": "Listing title (e.g., 'Eiffel Tower IN your living room')" },
-    "type": {
+    "property_type": {
       "type": "string",
       "description": "Type of building or structure the listing is. eg.( 'apartment', 'house', 'bungalow', 'chalet', 'cabin', 'cottage', 'farmhouse', 'guesthouse', 'guestroom', 'houseboat', 'hut', 'igloo', 'loft', 'mansion', 'pavilion', 'shack', 'studio', 'tent', 'townhouse', 'villa', 'yurt' )"
     },
-    "tier": { "type": "integer", "description": "Home tier level (e.g., 1)", "optional": true },
-    "is_new": { "type": "boolean", "description": "Indicates if the listing is new (e.g., false)" },
-    "description": { "type": "string", "description": "Full text description of the listing" },
-    "house_rules": { "type": "string", "description": "Rules guests must follow", "optional": true },
-    "safety_features": {
+    "privacy_type": {
+      "type": "string",
+      "description": "what guests are renting (whole property or part) (e.g., 'Entire place', 'Private room', 'Shared room', 'Hotel room')"
+    },
+    "title": {
+      "type": "string",
+      "description": "Listing title (e.g., 'Eiffel Tower IN your living room')",
+      "constraints": "max 50 characters"
+    },
+    "subtitle": { "type": "string", "description": "Listing subtitle (e.g., 'Entire rental unit in Berlin, Germany')" },
+    "capacity_highlights": {
       "type": "array",
-      "description": "Safety-related amenities (e.g., ['Smoke alarm', 'First aid kit', 'Fire extinguisher'])",
-      "items": { "type": "string" },
-      "optional": true
+      "description": "Listing capacity highlights (e.g., ['3 guests', '1 bedroom', '2 beds', '1 bath'])",
+      "items": { "type": "string" }
     },
-    "guest_favorite": {
-      "type": "boolean",
-      "description": "Indicates if the listing is marked as a Guest Favorite",
-      "optional": true
+    "highlights": {
+      "type": "array",
+      "description": "Key selling points or notable features highlighted for the listing (e.g., Superhost status, great check-in, location perks).",
+      "optional": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The main text of the highlight (e.g., 'Great check-in experience')."
+          },
+          "subtitle": {
+            "type": "string",
+            "description": "Supporting detail or explanation for the highlight.",
+            "optional": true
+          }
+        },
+        "required": ["title"]
+      }
     },
+    "description": { "type": "text", "description": "Provides in-depth property listing info for guests" },
     "tags": {
       "type": "array",
       "description": "Custom tags for categorization (e.g., ['Romantic', 'Family-friendly', 'Business'])",
       "items": { "type": "string" },
-      "optional": true
-    },
-    "legal_disclaimer": {
-      "type": "string",
-      "description": "Legal disclaimers or requirements (e.g., 'Must provide ID upon check-in')",
       "optional": true
     }
   },
@@ -71,6 +86,49 @@
         }
       }
     }
+  },
+  "house_rules": {
+    "type": "array",
+    "items": { "title": "string", "subtitle": "string" },
+    "description": "Rules guests must follow",
+    "optional": true
+  },
+  "safety_features": {
+    "type": "array",
+    "description": "Categorized list of safety considerations, devices, and property info, reflecting the structure from 'safetyAndPropertiesSections'.",
+    "optional": true,
+    "items": {
+      "type": "object",
+      "properties": {
+        "section_title": {
+          "type": "string",
+          "description": "The title of the safety/property category (e.g., 'Safety considerations', 'Safety devices', 'Property info'). Sourced from GeneralListContentSection.title."
+        },
+        "items": {
+          "type": "array",
+          "description": "List of specific safety/property items within this category. Sourced from GeneralListContentSection.items.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "The specific safety/property item title (e.g., 'Smoke alarm installed'). Sourced from BasicListItem.title."
+              },
+              "subtitle": {
+                "type": "string",
+                "description": "Additional details or context provided by the host for the item. Can be null. Sourced from BasicListItem.subtitle.",
+                "optional": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "legal_disclaimer": {
+    "type": "string",
+    "description": "Legal disclaimers or requirements (e.g., 'Must provide ID upon check-in')",
+    "optional": true
   },
   "host": {
     "id": { "type": "string", "description": "Unique host identifier (e.g., '2855696')" },

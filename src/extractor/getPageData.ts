@@ -1,25 +1,21 @@
-import { firefox, type Browser, type BrowserContext, type Page } from "playwright";
+import { firefox } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
 import { closePopups } from "./helpers";
 
 /**
- * Setup Playwright with proxy
- * @returns Browser, Context and Page instances with API data
+ * Setup Playwright with proxy and extract API data from AirBnB listing API endpoints responses
+ * @param url URL of the listing
+ * @returns apiData - intercepted API response data
  */
-export async function getPage(url: string): Promise<{
-  browser: Browser;
-  context: BrowserContext;
-  page: Page;
-  apiData: Record<string, unknown>;
-} | null> {
+export async function getPageData(url: string): Promise<Record<string, unknown> | null> {
   console.log("➜➜➜➜ Setting up Playwright...");
 
   // Get proxy data { server, username, password, language, locale, timezone, acceptLanguage } ---------
   const proxyData = await getWithRetry(getProxyData, 3, "Getting proxy data");
 
   if (!proxyData) {
-    console.error("✘ No proxy data available");
+    console.error("❌ No proxy data available");
     return null;
   }
 
@@ -73,38 +69,14 @@ export async function getPage(url: string): Promise<{
     // API Interception and Data Extraction
     console.log("➜ Intercepting calls from API endpoints...");
     const apiData: Record<string, unknown> = {};
-    const targetEndpoints = [
-      "/api/v2/get-data-layer-variables",
-      "/api/v3/StaysPdpSections",
-      "/api/v3/PdpAvailabilityCalendar",
-      "/api/v3/StaysPdpReviewsQuery",
-      "/api/v3/MapViewportInfoQuery",
-    ];
 
-    function mergeData(existing: unknown, incoming: unknown): unknown {
-      if (isObject(existing) && isObject(incoming)) {
-        const merged = { ...existing };
-        for (const key in incoming) {
-          if (Object.prototype.hasOwnProperty.call(incoming, key)) {
-            merged[key] = mergeData(existing[key], incoming[key]);
-          }
-        }
-        return merged;
-      }
-      if (Array.isArray(incoming)) {
-        return Array.isArray(existing) ? [...existing, ...incoming] : incoming;
-      }
-      return incoming;
-    }
-
-    function isObject(value: unknown): value is Record<string, unknown> {
-      return value !== null && typeof value === "object" && !Array.isArray(value);
-    }
+    // Get array of API endpoints from env
+    const apiEndpoints: string[] = JSON.parse(process.env.EXTRACTION_API_ENDPOINTS || "[]");
 
     page.on("response", async (response) => {
       const url = response.url();
 
-      for (const endpoint of targetEndpoints) {
+      for (const endpoint of apiEndpoints) {
         if (url.includes(endpoint)) {
           const json = await response.json().catch(() => null);
           if (json) {
@@ -207,12 +179,37 @@ export async function getPage(url: string): Promise<{
     // Final wait for any triggered lazy-loaded content
     await randomDelay(2000, 3000);
 
-    return { browser, context, page, apiData };
+    return apiData;
   } catch (error) {
-    console.error("✘ Error during extraction:", error);
+    console.error("❌ Error during extraction:", error);
     // Close the browser to avoid resource leaks
     await context.close();
     await browser.close();
     return null;
+  } finally {
+    // Close the browser to avoid resource leaks
+    await context.close();
+    await browser.close();
   }
+}
+
+// helper function to merge Data ---------------------------------------------------------------
+function mergeData(existing: unknown, incoming: unknown): unknown {
+  if (isObject(existing) && isObject(incoming)) {
+    const merged = { ...existing };
+    for (const key in incoming) {
+      if (Object.prototype.hasOwnProperty.call(incoming, key)) {
+        merged[key] = mergeData(existing[key], incoming[key]);
+      }
+    }
+    return merged;
+  }
+  if (Array.isArray(incoming)) {
+    return Array.isArray(existing) ? [...existing, ...incoming] : incoming;
+  }
+  return incoming;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
