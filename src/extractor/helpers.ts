@@ -1,5 +1,89 @@
 import { Page } from "playwright";
-import { findNestedValue, isObject, randomDelay } from "@/utils/helpers";
+import { randomDelay } from "@/utils/helpers";
+
+/**
+ * Validates and extracts the Airbnb listing ID from a given URL string.
+ *
+ * Performs validation checks:
+ * - Valid URL format
+ * - HTTPS protocol
+ * - Hostname matching airbnb domains (e.g., www.airbnb.com, www.airbnb.co.uk, etc.)
+ * - Pathname starting with /rooms/, /homes/, or /stays/ followed by a numeric ID
+ *   (optionally allowing /plus/ segment before the ID).
+ *
+ * @param urlString - The URL string to validate and extract from. Can be string, undefined, or null.
+ * @returns The listing ID as a string if the URL is valid and the ID can be extracted, otherwise null.
+ */
+export function validateAirbnbUrl(urlString: string | undefined | null): string | null {
+  // 1. Basic Input Check: Ensure it's a non-empty string
+  if (typeof urlString !== "string" || urlString.trim() === "") {
+    return null;
+  }
+
+  try {
+    // 2. Parse the URL: This also validates the basic URL structure.
+    const parsedUrl: URL = new URL(urlString);
+
+    // 3. Check Protocol: Must be HTTPS
+    if (parsedUrl.protocol !== "https:") {
+      return null;
+    }
+
+    // 4. Check Hostname: Must be an Airbnb domain
+    const hostnameRegex: RegExp = /^(www\.)?airbnb\.[a-z.]{2,}$/i;
+    if (!hostnameRegex.test(parsedUrl.hostname)) {
+      return null;
+    }
+
+    // 5. Check Pathname and Extract ID:
+    //    Regex Explanation:
+    //    ^                   - Start of the pathname string
+    //    \/                  - Matches the initial forward slash
+    //    (?:rooms|homes|stays) - Matches "rooms" OR "homes" OR "stays" (non-capturing group)
+    //    \/                  - Matches the forward slash after the path segment
+    //    (?:plus\/)?         - Optionally matches "plus/" literally (non-capturing group)
+    //    (\d+)               - ***Capturing group*** for one or more digits (the listing ID)
+    //    (?:\/.*)?           - Optionally matches a "/" followed by any characters (non-capturing group)
+    //    $                   - End of the pathname string
+    const pathnameExtractionRegex: RegExp = /^\/(?:rooms|homes|stays)\/(?:plus\/)?(\d+)(?:\/.*)?$/;
+
+    const matchResult = parsedUrl.pathname.match(pathnameExtractionRegex);
+
+    // 6. Return the captured ID or null
+    if (matchResult && matchResult[1]) {
+      // matchResult[0] is the full matched path, matchResult[1] is the first capturing group (\d+)
+      return matchResult[1];
+    } else {
+      return null;
+    }
+  } catch (error: unknown) {
+    console.error("❌ Error parsing URL:", error);
+    return null;
+  }
+}
+
+/**
+ * Formats a listing ID into a complete Airbnb URL with mandatory query parameters
+ * check in and check out dates are set to 15 and 16 days in next month
+ * @param listingId The listing ID to format
+ * @returns A formatted URL string with the listing ID and mandatory query parameters
+ */
+export function formatListingUrl(listingId: string): string {
+  const today = new Date();
+  let year = today.getFullYear();
+  let month = String(today.getMonth() + 2).padStart(2, "0");
+  if (month === "13") {
+    year += 1;
+    month = "01";
+  }
+
+  const startDate = `${year}-${month}-15`;
+  const endDate = `${year}-${month}-16`;
+
+  const basePath = `https://www.airbnb.com/rooms/${listingId}`;
+  const queryString = `?check_in=${startDate}&check_out=${endDate}&guests=3&adults=1&children=1&infants=1&pets=1`;
+  return `${basePath}${queryString}`;
+}
 
 /**
  * Smoothly scroll to a specified position on the page and wait for the scroll to complete
@@ -159,21 +243,4 @@ export async function closePopups(page: Page): Promise<void> {
   } else {
     console.log("✓ Popup check complete");
   }
-}
-
-/**
- * Function to reduce API data to a more manageable format
- * @param apiData API data to be reduced
- * @returns Reduced API data
- */
-export function reduceApiData(apiData: Record<string, unknown>): Record<string, unknown> | null {
-  const reducedData: Record<string, unknown> = {};
-
-  reducedData["section"] = findNestedValue(apiData, "section");
-
-  if (!isObject(reducedData["section"])) {
-    return null;
-  }
-
-  return reducedData;
 }

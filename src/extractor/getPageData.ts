@@ -2,6 +2,7 @@ import { firefox } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
 import { closePopups } from "./helpers";
+import { EXTRACTION_API_ENDPOINTS_ARRAY } from "./selectors";
 
 /**
  * Setup Playwright with proxy and extract API data from AirBnB listing API endpoints responses
@@ -70,8 +71,8 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     console.log("➜ Intercepting calls from API endpoints...");
     const apiData: Record<string, unknown> = {};
 
-    // Get array of API endpoints from env
-    const apiEndpoints: string[] = JSON.parse(process.env.EXTRACTION_API_ENDPOINTS || "[]");
+    // Get array of API endpoints from config
+    const apiEndpoints: string[] = EXTRACTION_API_ENDPOINTS_ARRAY;
 
     page.on("response", async (response) => {
       const url = response.url();

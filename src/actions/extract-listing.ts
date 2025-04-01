@@ -1,7 +1,7 @@
 "use server";
 
-import { shuffleArray } from "@/utils/helpers";
 import { scrp } from "@/extractor/scrp";
+import { formatListingUrl, validateAirbnbUrl } from "@/extractor/helpers";
 
 export async function extractListing(previousData: string, formData: FormData): Promise<string> {
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");
@@ -9,18 +9,22 @@ export async function extractListing(previousData: string, formData: FormData): 
   // Use the URL provided by the form, or fall back to test URL if empty
   let listingUrl = formData.get("url") as string;
 
-  // Sample listing URLs for testing
-  const sampleListingUrls = [
-    "https://www.airbnb.com/rooms/54224514",
-    "https://www.airbnb.com/rooms/22382672",
-    "https://www.airbnb.com/rooms/53478370",
-    "https://www.airbnb.com/rooms/1365865975375373285",
-    "https://www.airbnb.com/rooms/48023999",
-    "https://www.airbnb.com/rooms/17084120",
-  ];
+  // Ensure it's a non-empty string
+  if (typeof listingUrl !== "string" || listingUrl.trim() === "") {
+    throw new Error("❌ Empty Airbnb property listing URL provided");
+  }
 
+  // If url is valid Airbnb url, extract the listing ID
+  const listingId = validateAirbnbUrl(listingUrl);
+  if (!listingId) {
+    throw new Error("❌ Invalid Airbnb property listing URL provided");
+  }
+
+  // Create a new URL with the listing ID and mandatory format https://www.airbnb.com/rooms/{listingId}?query-string
+  // the query string includes the check-in and check-out dates, guests, adults, children, infants, pets to extract all API data
+  listingUrl = formatListingUrl(listingId);
   if (!listingUrl) {
-    listingUrl = shuffleArray(sampleListingUrls)[0];
+    throw new Error("❌ Failed to format listing URL");
   }
 
   // listingUrl = "https://www.airbnb.com/rooms/1089599548357132872";

@@ -1,15 +1,68 @@
 {
+  "host": {
+    "id": { "type": "string", "description": "Unique host identifier (e.g., '2855696')" },
+    "name": { "type": "string", "description": "Host’s first name (e.g., 'Vanessa')" },
+    "superhost": { "type": "boolean", "description": "Superhost status (e.g., true)" },
+    "photo": { "type": "string", "description": "URL of host’s profile picture" },
+    "reviews": { "type": "integer", "description": "Number of reviews (e.g., 251)" },
+    "rating": { "type": "number", "description": "Host’s average rating (e.g., 4.93)" },
+    "years_hosting": { "type": "integer", "description": "Number of years hosting (e.g., 13)", "optional": true },
+    "about": { "type": "string", "description": "Host’s about section (e.g., '')" },
+    "highlights": {
+      "type": "array",
+      "description": "List of host highlights (e.g., ['Where I went to school: Kreisgymnasium Meppen, Freie Uni Berlin', 'Speaks English and German', 'Business'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "details": {
+      "type": "array",
+      "description": "List of host details (e.g., ['Response rate: 100%', 'Responds within an hour'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "contact_methods": {
+      "type": "array",
+      "description": "Methods to contact the host (e.g., ['Airbnb messaging', 'Phone', 'Email'])",
+      "items": { "type": "string" },
+      "optional": true
+    },
+    "business_details": {
+      "type": "string",
+      "description": "Business details (e.g., 'Business address, business registration number, business email, business phone number')",
+      "optional": true
+    },
+    "co_hosts": {
+      "type": "array",
+      "description": "List of co-hosts",
+      "items": {
+        "id": { "type": "string", "description": "Co-host ID" },
+        "name": { "type": "string", "description": "Co-host name" },
+        "rating": { "type": "number", "description": "Co-host average rating (e.g., 4.86)", "optional": true }
+      },
+      "optional": true
+    },
+    "other_listings": {
+      "type": "array",
+      "description": "List of other listings by the host",
+      "items": {
+        "id": { "type": "string", "description": "Listing ID" },
+        "name": { "type": "string", "description": "Listing name" },
+        "url": { "type": "string", "description": "Listing URL" }
+      },
+      "optional": true
+    }
+  },
   "listing": {
     "id": { "type": "string", "description": "Unique identifier for the listing (e.g., '30397973')" },
     "url": {
       "type": "string",
       "description": "Canonical URL of the listing (e.g., 'https://www.airbnb.com/rooms/30397973')"
     },
-    "property_type": {
+    "type": {
       "type": "string",
       "description": "Type of building or structure the listing is. eg.( 'apartment', 'house', 'bungalow', 'chalet', 'cabin', 'cottage', 'farmhouse', 'guesthouse', 'guestroom', 'houseboat', 'hut', 'igloo', 'loft', 'mansion', 'pavilion', 'shack', 'studio', 'tent', 'townhouse', 'villa', 'yurt' )"
     },
-    "privacy_type": {
+    "privacy": {
       "type": "string",
       "description": "what guests are renting (whole property or part) (e.g., 'Entire place', 'Private room', 'Shared room', 'Hotel room')"
     },
@@ -19,10 +72,27 @@
       "constraints": "max 50 characters"
     },
     "subtitle": { "type": "string", "description": "Listing subtitle (e.g., 'Entire rental unit in Berlin, Germany')" },
-    "capacity_highlights": {
+    "capacity": {
       "type": "array",
       "description": "Listing capacity highlights (e.g., ['3 guests', '1 bedroom', '2 beds', '1 bath'])",
       "items": { "type": "string" }
+    },
+    "sleeping_arrangements": {
+      "type": "array",
+      "description": "Description of sleeping arrangements with rooms, beds and photo",
+      "optional": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "description": "Room type (e.g., 'Bedroom')" },
+          "subtitle": { "type": "string", "description": "Bed type (e.g., '1 queen bed')", "optional": true },
+          "images": {
+            "type": "array",
+            "items": { "type": "number", "description": "Image ID" },
+            "optional": true
+          }
+        }
+      }
     },
     "highlights": {
       "type": "array",
@@ -45,6 +115,7 @@
       }
     },
     "description": { "type": "text", "description": "Provides in-depth property listing info for guests" },
+    "average_daily_rate": { "type": "number", "description": "Average daily rate of the listing in USD (e.g., 165.5)" },
     "tags": {
       "type": "array",
       "description": "Custom tags for categorization (e.g., ['Romantic', 'Family-friendly', 'Business'])",
@@ -54,70 +125,51 @@
   },
   "location": {
     "city": { "type": "string", "description": "City of the listing (e.g., 'Paris')" },
-    "region": { "type": "string", "description": "Region or state (e.g., 'Île-de-France')" },
+    "state": { "type": "string", "description": "Region or state (e.g., 'Île-de-France')" },
     "country": { "type": "string", "description": "Country (e.g., 'France')" },
-    "zip_code": { "type": "string", "description": "Postal or ZIP code of the property", "optional": true },
-    "coordinates": {
-      "latitude": { "type": "number", "description": "Latitude of the property (e.g., 48.85068)" },
-      "longitude": { "type": "number", "description": "Longitude of the property (e.g., 2.29188)" }
+    "address": {
+      "type": "string",
+      "description": "Address of the listing (e.g., '2 Place des Abbesses')",
+      "optional": true
     },
-    "neighborhood": {
+    "zip": { "type": "string", "description": "Zip code of the listing (e.g., '75008')", "optional": true },
+    "coordinates": { "type": "string", "description": "Coordinates of the listing (e.g., '48.85068,2.29188')" },
+    "details": {
+      "type": "array",
       "description": "Detailed information about the neighborhood, including a preview and potentially extended sections like 'Getting Around'.",
       "optional": true,
-      "properties": {
-        "preview": {
-          "type": "object",
-          "description": "A concise summary or preview of the neighborhood, often displayed prominently.",
-          "properties": {
-            "title": { "type": "string", "description": "Title for the preview section (often the city/area name)." },
-            "content": { "type": "string", "description": "Text content describing the neighborhood preview." }
-          }
-        },
-        "extended": {
-          "type": "array",
-          "description": "An array of additional sections providing more details about the neighborhood or related topics like transportation.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "title": { "type": "string", "description": "Title for this extended section (e.g., 'Getting around')." },
-              "content": { "type": "string", "description": "Text content for this extended section." }
-            }
-          }
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "description": "Title for this section (e.g., 'Getting around')." },
+          "content": { "type": "string", "description": "Text content for this section." }
         }
       }
-    }
+    },
+    "disclaimer": { "type": "string", "description": "Location disclaimer", "optional": true }
   },
   "house_rules": {
-    "type": "array",
-    "items": { "title": "string", "subtitle": "string" },
-    "description": "Rules guests must follow",
-    "optional": true
-  },
-  "safety_features": {
-    "type": "array",
-    "description": "Categorized list of safety considerations, devices, and property info, reflecting the structure from 'safetyAndPropertiesSections'.",
-    "optional": true,
-    "items": {
-      "type": "object",
-      "properties": {
-        "section_title": {
-          "type": "string",
-          "description": "The title of the safety/property category (e.g., 'Safety considerations', 'Safety devices', 'Property info'). Sourced from GeneralListContentSection.title."
-        },
-        "items": {
-          "type": "array",
-          "description": "List of specific safety/property items within this category. Sourced from GeneralListContentSection.items.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The specific safety/property item title (e.g., 'Smoke alarm installed'). Sourced from BasicListItem.title."
-              },
-              "subtitle": {
-                "type": "string",
-                "description": "Additional details or context provided by the host for the item. Can be null. Sourced from BasicListItem.subtitle.",
-                "optional": true
+    "intro": {
+      "type": "array",
+      "description": "List of house rules intro items, eg. ['Check-in: 4:00 PM - 11:00 PM', 'Checkout before 11:00 AM', '3 guests maximum']",
+      "items": { "type": "string" }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Rules guests must follow devided by sections",
+      "items": {
+        "type": "object",
+        "description": "Rules section",
+        "properties": {
+          "section": { "type": "string", "description": "Title of the rules section" },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "html": { "type": "string", "description": "HTML content for the rule", "optional": true }
               }
             }
           }
@@ -125,112 +177,108 @@
       }
     }
   },
+  "safety_features": {
+    "intro": {
+      "type": "array",
+      "description": "List of safety & property intro items, eg. ['Exterior security cameras on property', '24/7 security']",
+      "items": { "type": "string" }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Safety and property features devided by sections",
+      "items": {
+        "type": "object",
+        "description": "Safety and property features sections",
+        "properties": {
+          "title": { "type": "string", "description": "Title of the safety and property features section" },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "html": { "type": "string", "description": "HTML content for the feature", "optional": true }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "amenities": {
+    "top_amenities": {
+      "type": "array",
+      "items": { "name": "string", "available": true, "note": "string" },
+      "optional": true,
+      "description": "Top amenities",
+      "source": "Airbnb’s amenity display"
+    },
+    "amenities_by_category": {
+      "type": "array",
+      "items": {
+        "title": { "type": "string", "description": "Category name (e.g., 'Bathroom')" },
+        "amenities": { "type": "array", "items": { "name": "string", "available": true, "note": "string" } }
+      },
+      "optional": true,
+      "source": "Airbnb’s categorized amenity display"
+    }
+  },
+  "ratings": {
+    "overall": { "type": "number", "description": "Overall star rating (e.g., 4.92)" },
+    "host_rating": { "type": "number", "description": "Separate rating for the host (e.g., 4.90)", "optional": true },
+    "review_count": { "type": "integer", "description": "Number of reviews (e.g., 251)" },
+    "categories": {
+      "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
+      "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
+      "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
+      "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
+      "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
+      "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true }
+    },
+    "reviews": {
+      "type": "array",
+      "description": "List of individual reviews",
+      "items": {
+        "id": { "type": "string", "description": "Review ID" },
+        "date": { "type": "string", "description": "Review date in YYYY-MM-DD format" },
+        "text": { "type": "string", "description": "Review content" },
+        "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
+        "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
+        "reviewer": {
+          "id": { "type": "string", "description": "Reviewer ID" },
+          "name": { "type": "string", "description": "Reviewer first name" }
+        }
+      },
+      "optional": true
+    }
+  },
+  "images": {
+    "count": { "type": "integer", "description": "Total number of images (e.g., 61)" },
+    "items": {
+      "type": "array",
+      "description": "List of image details",
+      "items": {
+        "url": { "type": "string", "description": "Image URL" },
+        "accessibility_label": { "type": "string", "description": "Alt text for the image", "optional": true },
+        "is_primary": { "type": "boolean", "description": "Indicates if this is the main image", "optional": true },
+        "caption": { "type": "string", "description": "Caption for the image", "optional": true }
+      }
+    },
+    "videos": {
+      "type": "array",
+      "description": "List of video details",
+      "items": {
+        "url": { "type": "string", "description": "Video URL" },
+        "thumbnail": { "type": "string", "description": "Thumbnail URL for the video", "optional": true }
+      },
+      "optional": true
+    }
+  },
   "legal_disclaimer": {
     "type": "string",
     "description": "Legal disclaimers or requirements (e.g., 'Must provide ID upon check-in')",
     "optional": true
-  },
-  "host": {
-    "id": { "type": "string", "description": "Unique host identifier (e.g., '2855696')" },
-    "name": { "type": "string", "description": "Host’s first name (e.g., 'Vanessa')" },
-    "is_superhost": { "type": "boolean", "description": "Superhost status (e.g., true)" },
-    "verification_status": {
-      "type": "array",
-      "description": "Host verification methods (e.g., ['Email', 'Phone', 'Government ID'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "languages_spoken": {
-      "type": "array",
-      "description": "Languages spoken by the host (e.g., ['English', 'French'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "contact_methods": {
-      "type": "array",
-      "description": "Methods to contact the host (e.g., ['Airbnb messaging', 'Phone', 'Email'])",
-      "items": { "type": "string" },
-      "optional": true
-    },
-    "years_hosting": { "type": "integer", "description": "Number of years hosting (e.g., 13)", "optional": true },
-    "avatar": {
-      "url": { "type": "string", "description": "URL of host’s profile picture" },
-      "accessibility_label": { "type": "string", "description": "Alt text for avatar", "optional": true }
-    },
-    "bio": { "type": "string", "description": "Host biography", "optional": true },
-    "response_rate": {
-      "type": "number",
-      "description": "Percentage of inquiries responded to (e.g., 98)",
-      "optional": true
-    },
-    "response_time": {
-      "value": { "type": "number", "description": "Average response time value (e.g., 1)", "optional": true },
-      "unit": {
-        "type": "string",
-        "description": "Unit of response time (e.g., 'hours', 'days')",
-        "optional": true,
-        "default": "hours"
-      },
-      "note": "Added unit for clarity and flexibility"
-    },
-    "host_highlights": {
-      "type": "array",
-      "description": "List of host highlights e.g. ['Where I went to school: Kreisgymnasium Meppen, Freie Uni Berlin', 'Speaks English and German', 'Business']",
-      "items": { "type": "string", "description": "Host highlight" },
-      "optional": true
-    },
-    "business_details": {
-      "type": "string",
-      "description": "Business details (e.g., 'Business address, business registration number, business email, business phone number')",
-      "optional": true
-    },
-    "co_hosts": {
-      "type": "array",
-      "description": "List of co-hosts",
-      "items": {
-        "id": { "type": "string", "description": "Co-host ID" },
-        "name": { "type": "string", "description": "Co-host name" },
-        "rating": { "type": "number", "description": "Co-host average rating (e.g., 4.86)", "optional": true }
-      },
-      "optional": true
-    }
-  },
-  "capacity": {
-    "guests": { "type": "integer", "description": "Maximum number of guests (e.g., 2)" },
-    "bedrooms": { "type": "integer", "description": "Number of bedrooms (e.g., 0 for Studio, 1 for 1 bedroom)" },
-    "room_type": {
-      "type": "string",
-      "description": "Type of room (e.g. entire_home', 'private_room', 'shared_room', 'hotel_room')",
-      "optional": true
-    },
-    "beds": { "type": "integer", "description": "Number of beds (e.g., 1)" },
-    "bed_types": {
-      "type": "array",
-      "description": "Types of beds (e.g., ['Queen bed', 'Sofa bed'])",
-      "items": { "type": "string" },
-      "optional": true,
-      "source": "Airbnb’s 'Sleeping Arrangements'"
-    },
-    "sleeping_arrangements": {
-      "type": "string",
-      "description": "Description of sleeping arrangements (e.g., '1 queen bed, 1 sofa bed')",
-      "optional": true,
-      "source": "Airbnb’s 'Sleeping Arrangements' section"
-    },
-    "bathrooms": {
-      "full_bathrooms": { "type": "integer", "description": "Number of full bathrooms (e.g., 1)", "optional": true },
-      "half_bathrooms": { "type": "integer", "description": "Number of half bathrooms (e.g., 0)", "optional": true }
-    },
-    "square_meters": {
-      "type": "number",
-      "description": "Size of the property in square meters or feet",
-      "optional": true
-    },
-    "occupancy_limit": {
-      "type": "integer",
-      "description": "Maximum occupants allowed by local regulations",
-      "optional": true
-    }
   },
   "pricing": {
     "base_price": { "type": "number", "description": "Base price per night (e.g., 280)" },
@@ -345,75 +393,6 @@
       "optional": true
     }
   },
-  "amenities": {
-    "top_amenities": {
-      "type": "array",
-      "items": { "name": "string", "available": true, "note": "string" },
-      "optional": true,
-      "description": "Top amenities",
-      "source": "Airbnb’s amenity display"
-    },
-    "amenities_by_category": {
-      "type": "array",
-      "items": {
-        "title": { "type": "string", "description": "Category name (e.g., 'Bathroom')" },
-        "amenities": { "type": "array", "items": { "name": "string", "available": true, "note": "string" } }
-      },
-      "optional": true,
-      "source": "Airbnb’s categorized amenity display"
-    }
-  },
-  "ratings": {
-    "overall": { "type": "number", "description": "Overall star rating (e.g., 4.92)" },
-    "host_rating": { "type": "number", "description": "Separate rating for the host (e.g., 4.90)", "optional": true },
-    "review_count": { "type": "integer", "description": "Number of reviews (e.g., 251)" },
-    "categories": {
-      "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
-      "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
-      "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
-      "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
-      "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
-      "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true }
-    },
-    "reviews": {
-      "type": "array",
-      "description": "List of individual reviews",
-      "items": {
-        "id": { "type": "string", "description": "Review ID" },
-        "date": { "type": "string", "description": "Review date in YYYY-MM-DD format" },
-        "text": { "type": "string", "description": "Review content" },
-        "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
-        "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
-        "reviewer": {
-          "id": { "type": "string", "description": "Reviewer ID" },
-          "name": { "type": "string", "description": "Reviewer first name" }
-        }
-      },
-      "optional": true
-    }
-  },
-  "images": {
-    "count": { "type": "integer", "description": "Total number of images (e.g., 61)" },
-    "items": {
-      "type": "array",
-      "description": "List of image details",
-      "items": {
-        "url": { "type": "string", "description": "Image URL" },
-        "accessibility_label": { "type": "string", "description": "Alt text for the image", "optional": true },
-        "is_primary": { "type": "boolean", "description": "Indicates if this is the main image", "optional": true },
-        "caption": { "type": "string", "description": "Caption for the image", "optional": true }
-      }
-    },
-    "videos": {
-      "type": "array",
-      "description": "List of video details",
-      "items": {
-        "url": { "type": "string", "description": "Video URL" },
-        "thumbnail": { "type": "string", "description": "Thumbnail URL for the video", "optional": true }
-      },
-      "optional": true
-    }
-  },
   "seo": {
     "meta_description": { "type": "string", "description": "SEO meta description", "optional": true },
     "og_tags": {
@@ -514,10 +493,5 @@
       "optional": true,
       "source": "Airbnb’s 'About This Space' or host-provided cultural notes"
     }
-  },
-  "additional_rules": {
-    "type": "string",
-    "description": "Additional rules or house rules specific to the property(e.g., 'The usual times of quiet are to be kept absolutely')",
-    "optional": true
   }
 }
