@@ -170,11 +170,24 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
       window.scrollTo(0, totalHeight);
       await sleep(2000 + Math.random() * 1000);
 
-      // Scroll back up a bit to mimic natural reading behavior
-      window.scrollTo({
-        top: totalHeight * 0.7,
-        behavior: "smooth",
-      });
+      // Select element that on click shows all reviews popup/modal
+      const reviewsButton = document.querySelector('[data-testid="pdp-show-all-reviews-button"]');
+
+      // Scroll back up to the location of the reviewsButton
+      if (reviewsButton) {
+        const rect = reviewsButton.getBoundingClientRect();
+        window.scrollTo({
+          top: rect.top,
+          behavior: "smooth",
+        });
+        await sleep(1000 + Math.random() * 1000);
+
+        // Click the reviews button
+        (reviewsButton as HTMLElement).click();
+        await sleep(1000 + Math.random() * 1000);
+      } else {
+        console.log("❌ Show all Reviews button not found");
+      }
     });
 
     // Final wait for any triggered lazy-loaded content
