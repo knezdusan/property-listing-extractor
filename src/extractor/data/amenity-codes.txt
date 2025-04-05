@@ -1,0 +1,821 @@
+{
+  "1": "Wifi",
+  "2": "Kitchen", // Often a parent category, specific items below
+  "3": "Heating",
+  "4": "Air conditioning",
+  "5": "Washer",
+  "6": "Dryer",
+  "7": "Essentials", // (Towels, bed sheets, soap, toilet paper, pillows)
+  "8": "Shampoo",
+  "9": "Hair dryer",
+  "10": "TV",
+  "11": "Breakfast", // (Breakfast is provided)
+  "12": "Indoor fireplace",
+  "13": "Private entrance",
+  "14": "Ethernet connection",
+  "15": "Laptop friendly workspace", // Often includes desk/table + chair
+  "16": "Iron",
+  "17": "Lockbox",
+  "18": "Hangers",
+  "19": "Hot water",
+  "21": "Free parking on premises",
+  "22": "Hot tub",
+  "25": "Pool", // Can be private or shared
+  "27": "Gym", // Can be private or shared building gym
+  "28": "Smoke detector", // Often "Smoke alarm"
+  "29": "Carbon monoxide detector", // Often "Carbon monoxide alarm"
+  "30": "First aid kit",
+  "31": "Fire extinguisher",
+  "33": "Cable TV",
+  "34": "Self check-in", // (Covers Smart lock, keypad, lockbox, building staff)
+  "35": "Private living room",
+  "37": "Bed linens",
+  "38": "Extra pillows and blankets",
+  "39": "Microwave",
+  "40": "Coffee maker",
+  "41": "Refrigerator",
+  "42": "Dishwasher",
+  "43": "Dishes and silverware", // (Plates, bowls, cups, cutlery)
+  "44": "Cooking basics", // (Pots and pans, oil, salt and pepper)
+  "45": "Oven",
+  "46": "Stove",
+  "47": "EV charger",
+  "48": "Crib",
+  "49": "Pack ’n Play/travel crib",
+  "50": "Room-darkening shades",
+  "51": "Children’s books and toys",
+  "52": "High chair",
+  "53": "Babysitter recommendations",
+  "54": "Children’s dinnerware",
+  "55": "Stair gates", // Often "Baby safety gates"
+  "56": "Fireplace guards",
+  "57": "Table corner guards",
+  "58": "Window guards",
+  "59": "Outlet covers", // Often "Baby proofing" or similar context
+  "60": "Bathtub",
+  "61": "Changing table",
+  "62": "Paid parking off premises",
+  "63": "Paid parking on premises",
+  "64": "Single level home", // No stairs inside
+  "65": "Beachfront",
+  "66": "Waterfront",
+  "67": "Ski-in/Ski-out",
+  "68": "Long term stays allowed", // (Allow stays of 28 days or more)
+  "69": "Luggage dropoff allowed", // For guests' convenience before check-in or after check-out
+  "70": "Cleaning before checkout", // Sometimes offered as an extra service
+  "71": "Host greets you",
+  "72": "Keypad", // Specific type of Self check-in
+  "73": "Building staff", // Allows check-in 24/7
+  "74": "Patio or balcony",
+  "75": "Garden or backyard",
+  "76": "BBQ grill", // Often "Barbecue utensils" included
+  "77": "Beach essentials", // (Beach towels, umbrella, beach blanket, snorkeling gear)
+  "79": "Body soap",
+  "80": "Conditioner",
+  "81": "Shower gel",
+  "82": "Cleaning products",
+  "83": "Sound system",
+  "84": "Game console",
+  "85": "Pocket wifi",
+  "86": "Lake access",
+  "87": "Outdoor furniture",
+  "88": "Outdoor dining area",
+  "89": "Free street parking",
+  "90": "Bidet",
+  "91": "Ceiling fan",
+  "92": "Portable fans",
+  "93": "Safe",
+  "94": "Clothing storage", // (Closet, wardrobe, drawers)
+  "95": "Dryer", // Note: Also code 6, potential redundancy or specificity? Usually 5/6 are paired Washer/Dryer. Could be regional/historical.
+  "96": "Washer", // Note: Also code 5, see above.
+  "97": "Dedicated workspace", // A desk/table with chair and space, distinct from "laptop friendly" maybe?
+  "98": "Smart lock", // Specific type of Self check-in
+  "101": "Security cameras on property",
+  "102": "Doorman", // Similar to Building Staff
+  "103": "Pets allowed",
+  "106": "Smoking allowed", // Rare nowadays
+  "107": "Lock on bedroom door", // Private room security
+  "108": "Step-free access", // General accessibility term
+  "109": "Wide doorway", // Accessibility
+  "110": "Wide hallway clearance", // Accessibility
+  "111": "Elevator", // Accessibility
+  "113": "Accessible parking spot", // Accessibility
+  "114": "Wheelchair accessible", // Parent category for accessibility
+  "119": "Sauna",
+  "120": "Books and reading material",
+  "121": "Board games",
+  "123": "Piano",
+  "124": "Record player",
+  "125": "Ping pong table",
+  "126": "Pool table",
+  "127": "Bikes",
+  "128": "Kayak",
+  "129": "Boat slip",
+  "130": "Water purifier", // Or Filtered Water
+  "131": "Wine cooler",
+  "132": "Espresso machine",
+  "133": "Rice maker",
+  "134": "Toaster",
+  "135": "Blender",
+  "136": "Baking sheet",
+  "137": "Barbecue utensils", // (Grill, charcoal, bamboo skewers/iron skewers, etc.)
+  "138": "Bread maker",
+  "139": "Coffee", // Provision of coffee itself
+  "140": "Dining table",
+  "141": "Freezer", // Separate or part of fridge
+  "142": "Hot water kettle",
+  "143": "Ice maker",
+  "144": "Kitchenette", // Smaller kitchen space
+  "145": "Mini fridge",
+  "146": "Trash compactor",
+  "147": "Wine glasses",
+  "148": "Laundromat nearby",
+  "149": "Mosquito net",
+  "150": "Central heating", // Sometimes distinct from generic 'Heating'
+  "151": "Portable heater",
+  "152": "Heated floors", // Radiant heating
+  "153": "Central air conditioning", // Sometimes distinct from generic 'Air conditioning'
+  "154": "Window AC unit",
+  "155": "Portable air conditioning",
+  "156": "Ethernet connection in room", // More specific than general Ethernet
+  "157": "Printer",
+  "158": "Projector and screen",
+  "159": "Pocket Wifi available for rent", // Different from included Pocket Wifi (85)
+  "160": "Baby bath",
+  "161": "Baby monitor",
+  "162": "Hammock",
+  "163": "Sun loungers",
+  "164": "Tennis court", // Shared or private
+  "165": "Basketball court", // Shared or private
+  "166": "Fire pit",
+  "167": "Shared patio or balcony",
+  "168": "Shared garden or backyard",
+  "169": "Private patio or balcony",
+  "170": "Private garden or backyard",
+  "171": "Ski storage",
+  "172": "Mudroom",
+  "173": "Exercise equipment", // Specific items beyond 'Gym'
+  "174": "Soundproofing",
+  "175": "Smart TV", // Distinct from regular TV (10)
+  "176": "Netflix", // Often implied with Smart TV/TV but sometimes listed
+  "177": "HBO Max", // etc. for streaming services
+  "178": "Amazon Prime Video",
+  "179": "Disney+",
+  "180": "Apple TV", // The device
+  "181": "Chromecast",
+  "182": "Roku",
+  "183": "DVD player",
+  "184": "Answering machine", // Very rare now
+  "185": "Fax machine", // Very rare now
+  "186": "Beach chairs",
+  "187": "Beach umbrella",
+  "188": "Beach blanket",
+  "189": "Snorkel gear",
+  "190": "Stand up paddle board",
+  "191": "Surfboard",
+  "192": "Bodyboard",
+  "193": "Life jackets",
+  "194": "Outdoor shower",
+  "195": "Private pool", // Specific vs shared Pool (25)
+  "196": "Shared pool", // Specific vs generic Pool (25)
+  "197": "Private hot tub", // Specific vs shared Hot Tub (22)
+  "198": "Shared hot tub", // Specific vs generic Hot Tub (22)
+  "199": "Heated pool",
+  "200": "Infinity pool",
+  "201": "Pool cover",
+  "202": "Pool toys",
+  "203": "Walk-in shower", // Accessibility / Feature
+  "204": "Grab rails in shower", // Accessibility
+  "205": "Grab rails in toilet", // Accessibility
+  "206": "Toilet paper", // Often part of Essentials (7) but sometimes separate
+  "207": "Soap", // Often part of Essentials (7) but sometimes separate
+  "208": "Towels provided", // Often part of Essentials (7) but sometimes separate
+  "209": "Well-lit path to entrance", // Safety/Accessibility
+  "210": "Flat path to front door", // Accessibility
+  "211": "Disabled parking spot", // Same as Accessible parking spot (113) - potential duplicate ID usage or regional term.
+  "212": "Wide entrance for guests", // Accessibility
+  "213": "Step-free path to the guest entrance", // Accessibility
+  "214": "Wide clearance to bed", // Accessibility
+  "215": "Step-free access to bedroom", // Accessibility
+  "216": "Wide doorway to bedroom", // Accessibility
+  "217": "Accessible height bed", // Accessibility
+  "218": "Wide clearance to shower", // Accessibility
+  "219": "Step-free access to shower", // Accessibility
+  "220": "Accessible height toilet", // Accessibility
+  "221": "Shower chair", // Accessibility
+  "222": "Handheld shower head", // Accessibility / Feature
+  "223": "Wide doorway to bathroom", // Accessibility
+  "224": "Step-free access to bathroom", // Accessibility
+  "225": "Tub with shower bench", // Accessibility
+  "226": "Ceiling hoist", // Accessibility
+  "227": "Mobile hoist", // Accessibility
+  "228": "Pool hoist", // Accessibility
+  "229": "Hot tub hoist", // Accessibility
+  "230": "Firm mattress", // Preference/Feature
+  "231": "Memory foam mattress", // Preference/Feature
+  "232": "Pillow-top mattress", // Preference/Feature
+  "233": "Bathrobes",
+  "234": "Slippers",
+  "235": "Umbrella",
+  "236": "Welcome gift", // Eg: Bottle of wine, local snacks
+  "237": "Breakfast bar",
+  "238": "Island kitchen",
+  "239": "Convection oven", // Specific type of Oven (45)
+  "240": "Double oven", // Specific type of Oven (45)
+  "241": "Warming drawer",
+  "242": "Gas stove", // Specific type of Stove (46)
+  "243": "Electric stove", // Specific type of Stove (46)
+  "244": "Induction stove", // Specific type of Stove (46)
+  "245": "Vent hood", // Kitchen ventilation
+  "246": "Garbage disposal",
+  "247": "Pour-over coffee", // Coffee maker type
+  "248": "French press", // Coffee maker type
+  "249": "Keurig coffee machine", // Coffee maker type
+  "250": "Nespresso machine", // Coffee maker type
+  "251": "Coffee grinder",
+  "252": "Electric kettle", // Same as Hot water kettle (142)? Potential duplicate ID.
+  "253": "Stand mixer", // KitchenAid etc.
+  "254": "Hot tub cover",
+  "255": "Heated towel rack",
+  "256": "Makeup mirror", // Vanity mirror
+  "257": "Scale", // Bathroom scale
+  "258": "Ocean view",
+  "259": "Mountain view",
+  "260": "Lake view",
+  "261": "River view",
+  "262": "City skyline view",
+  "263": "Garden view",
+  "264": "Pool view",
+  "265": "Sea view", // Often same as Ocean view (258)
+  "266": "Valley view",
+  "267": "Canal view",
+  "268": "Park view",
+  "269": "Courtyard view",
+  "270": "Resort view",
+  "271": "Golf course view",
+  "272": "Bay view",
+  "273": "Harbor view",
+  "274": "Marina view",
+  "275": "Vineyard view",
+  "276": "Desert view",
+  "277": "Gated community", // Security feature
+  "278": "Private entrance from street", // Specific type of Private Entrance (13)
+  "279": "Concierge service",
+  "280": "Room service", // More common in Aparthotels/Serviced Apartments
+  "281": "Daily housekeeping",
+  "282": "Turndown service",
+  "283": "Valet parking",
+  "284": "Airport shuttle", // Provided or arranged
+  "285": "Car rental available",
+  "286": "Bike rental available",
+  "287": "Boat rental available",
+  "288": "Ski equipment rental available",
+  "289": "Chef service available",
+  "290": "Massage service available",
+  "291": "Yoga classes available",
+  "292": "Cooking classes available",
+  "293": "Wine tasting available",
+  "294": "Tour assistance",
+  "295": "Event hosting allowed", // Parties/Events allowed
+  "296": "Open Paddock", // Equestrian amenity
+  "297": "Stable", // Equestrian amenity
+  "298": "Horse riding arena", // Equestrian amenity
+  "299": "Washer/Dryer combo unit", // Single machine
+  "300": "Heated Pool", // Possibly duplicate or more specific than 199
+  "301": "Saltwater pool",
+  "302": "Lazy river", // Pool feature
+  "303": "Water slide", // Pool feature
+  "304": "Steam room", // Similar to Sauna (119) but distinct
+  "305": "Outdoor kitchen",
+  "306": "Beach access - Public or shared",
+  "307": "Private beach access",
+  "308": "Lake access - Public or shared", // Similar to Lake Access (86) but maybe specifies public
+  "309": "Private lake access",
+  "310": "Playground", // Shared or private
+  "311": "Putting green", // Golf related
+  "312": "Basketball hoop", // Smaller than a court (165)
+  "313": "Foosball table",
+  "314": "Arcade games",
+  "315": "Dart board",
+  "316": "Outdoor play area",
+  "317": "Trampoline",
+  "318": "Treehouse",
+  "319": "Volleyball court",
+  "320": "Yoga mat",
+  "321": "Free weights", // Gym equipment detail
+  "322": "Treadmill", // Gym equipment detail
+  "323": "Elliptical machine", // Gym equipment detail
+  "324": "Stationary bike", // Gym equipment detail
+  "325": "Weight bench", // Gym equipment detail
+  "326": "Rowing machine", // Gym equipment detail
+  "327": "Universal gym machine", // Gym equipment detail
+  "328": "Punching bag", // Gym equipment detail
+  "329": "Boxing gloves", // Gym equipment detail
+  "330": "Resistance bands", // Gym equipment detail
+  "331": "Jump rope", // Gym equipment detail
+  "332": "Basketball", // The ball itself
+  "333": "American football", // The ball itself
+  "334": "Soccer ball", // The ball itself
+  "335": "Tennis rackets",
+  "336": "Tennis balls",
+  "337": "Golf clubs",
+  "338": "Fishing gear",
+  "339": "Ice fishing gear",
+  "340": "Sled",
+  "341": "Snowshoes",
+  "342": "Cross-country skis",
+  "343": "Ice skates",
+  "344": "Roller blades",
+  "345": "Skateboard",
+  "346": "Scooter",
+  "347": "Cooler", // Portable cooler box
+  "348": "Picnic basket",
+  "349": "Day bed", // Outdoor or indoor furniture
+  "350": "Porch swing",
+  "351": "Sunroom / Solarium",
+  "352": "Gazebo",
+  "353": "Veranda",
+  "354": "Terrace", // Often rooftop
+  "355": "Rooftop deck",
+  "356": "Observatory", // Stargazing
+  "357": "Telescope",
+  "358": "Binoculars",
+  "359": "Bird watching guides",
+  "360": "Local maps",
+  "361": "Hiking guides",
+  "362": "Restaurant recommendations",
+  "363": "Activity recommendations",
+  "364": "Public transportation nearby",
+  "365": "Taxi service available",
+  "366": "Uber/Lyft available", // Area info
+  "367": "Walkable to restaurants", // Location feature
+  "368": "Walkable to shops", // Location feature
+  "369": "Walkable to beach", // Location feature
+  "370": "Walkable to park", // Location feature
+  "371": "Secluded", // Location feature
+  "372": "Rural", // Location feature
+  "373": "Urban", // Location feature
+  "374": "Downtown", // Location feature
+  "375": "Historic district", // Location feature
+  "376": "Near winery/vineyard", // Location feature
+  "377": "Near ski resort", // Location feature
+  "378": "Near theme park", // Location feature
+  "379": "Near national park", // Location feature
+  "380": "Near casino", // Location feature
+  "381": "Near golf course", // Location feature
+  "382": "Near nightlife", // Location feature
+  "383": "Near airport", // Location feature
+  "384": "Near train station", // Location feature
+  "385": "Near ferry terminal", // Location feature
+  "386": "Oceanfront", // Distinct from Beachfront? Maybe implies cliff/no direct beach access.
+  "387": "Beach", // General category, often used with specifics like Beachfront/Access.
+  "388": "Mountain", // General category
+  "389": "Lake", // General category
+  "390": "River", // General category
+  "391": "Ski", // General category
+  "392": "Desert", // General category
+  "393": "Tropical", // Climate/Setting
+  "394": "Arctic", // Climate/Setting
+  "395": "Forest", // Setting
+  "396": "Rainforest", // Setting
+  "397": "Farm stay", // Type of property/experience
+  "398": "Vineyard stay", // Type of property/experience
+  "399": "Ranch stay", // Type of property/experience
+  "400": "Island", // Location type
+  "401": "Peninsula", // Location type
+  "402": "Wheelchair ramp access", // Accessibility
+  "403": "Grab bars in bathtub", // Accessibility
+  "404": "Suitable for events", // Same as Event hosting allowed (295)?
+  "405": "Long-term renters welcome", // Same as Long term stays allowed (68)?
+  "406": "Minimum age requirement for renters", // Policy
+  "407": "Maximum number of guests", // Policy (though usually defined elsewhere)
+  "408": "Security deposit required", // Policy
+  "409": "Cleaning fee", // Policy (though usually defined elsewhere)
+  "410": "Pets considered", // Less strict than 'Pets allowed' (103)
+  "411": "Non-smoking", // Default now, but sometimes explicitly stated
+  "412": "Photography/Filming allowed", // Special use case
+  "413": "Printer/Scanner/Copier", // Combined office device
+  "414": "Whiteboard", // Workspace feature
+  "415": "Monitor", // External computer display
+  "416": "Ergonomic chair", // Workspace feature
+  "417": "Standing desk", // Workspace feature
+  "418": "Fenced yard", // Safety/Pet feature
+  "419": "Dog run", // Pet feature
+  "420": "Cat litter box provided", // Pet feature
+  "421": "Pet bowls provided", // Pet feature
+  "422": "Pet bed provided", // Pet feature
+  "423": "CCTV inside property", // Security Camera specification
+  "424": "CCTV outside property", // Security Camera specification
+  "425": "Noise decibel monitor", // Security/House Rules Monitoring
+  "426": "Alarm system", // Security
+  "427": "Window bars", // Security
+  "428": "Gated property", // Security, potentially simpler than Gated Community (277)
+  "429": "Private security guard", // High-end security
+  "430": "Emergency exit", // Safety
+  "431": "Fire escape ladder", // Safety
+  "432": "Sprinkler system", // Safety
+  "433": "Backup generator", // Utility
+  "434": "Solar panels", // Utility/Eco-feature
+  "435": "Rainwater harvesting", // Eco-feature
+  "436": "Composting toilet", // Eco-feature
+  "437": "Geothermal heating", // Eco-feature
+  "438": "Green roof", // Eco-feature
+  "439": "Eco-friendly cleaning supplies used", // Eco-feature
+  "440": "Recycling bins provided", // Eco-feature
+  "441": "Organic toiletries provided", // Eco/Luxury feature
+  "442": "Locally sourced food recommendations", // Host service
+  "443": "Sustainable tourism information provided", // Host service
+  "444": "Carbon offset options offered", // Host service/Eco-feature
+  "445": "Support for local community initiatives", // Host ethos
+  "446": "Art supplies", // Feature
+  "447": "Easel", // Feature
+  "448": "Pottery wheel", // Feature
+  "449": "Darkroom", // Feature (Photography)
+  "450": "Kiln", // Feature (Pottery/Glass)
+  "451": "Sewing machine", // Feature
+  "452": "Knitting needles/Crochet hooks", // Feature
+  "453": "Yarn provided", // Feature
+  "454": "Musical instruments", // General category
+  "455": "Guitar", // Specific instrument
+  "456": "Drums", // Specific instrument
+  "457": "Keyboard/Synthesizer", // Specific instrument
+  "458": "Microphone", // Music/Recording feature
+  "459": "Amplifier", // Music feature
+  "460": "DJ equipment", // Music feature
+  "461": "Karaoke machine", // Entertainment feature
+  "462": "Tiki bar", // Feature
+  "463": "Wine cellar", // Feature
+  "464": "Home theater", // Feature
+  "465": "Video library", // Movies (DVD/Blu-ray/Digital)
+  "466": "Music library", // CDs/Vinyl/Digital
+  "467": "Newspaper delivery", // Service
+  "468": "Magazine subscription", // Service/Feature
+  "469": "Butler service", // High-end service
+  "470": "Personal shopper", // High-end service
+  "471": "Ski valet", // Service at ski resorts
+  "472": "Golf cart included", // Feature at golf resorts/communities
+  "473": "Snowmobile access/trails", // Feature
+  "474": "ATV access/trails", // Feature
+  "475": "Horseback riding available on-site/nearby", // Feature/Activity
+  "476": "Hunting available nearby", // Activity info
+  "477": "Fly fishing available nearby", // Activity info
+  "478": "Deep sea fishing available nearby", // Activity info
+  "479": "Scuba diving available nearby", // Activity info
+  "480": "Snorkeling available nearby", // Activity info
+  "481": "Surfing lessons available nearby", // Activity info
+  "482": "Windsurfing available nearby", // Activity info
+  "483": "Kitesurfing available nearby", // Activity info
+  "484": "Parasailing available nearby", // Activity info
+  "485": "Jet ski rental available nearby", // Activity info
+  "486": "Waterskiing available nearby", // Activity info
+  "487": "White water rafting available nearby", // Activity info
+  "488": "Rock climbing available nearby", // Activity info
+  "489": "Mountain biking trails nearby", // Activity info
+  "490": "Hiking trails nearby", // Activity info
+  "491": "Spelunking/Caving available nearby", // Activity info
+  "492": "Ziplining available nearby", // Activity info
+  "493": "Hot air ballooning available nearby", // Activity info
+  "494": "Glacier tours available nearby", // Activity info
+  "495": "Whale watching available nearby", // Activity info
+  "496": "Dolphin watching available nearby", // Activity info
+  "497": "Safari available nearby", // Activity info
+  "498": "Museum nearby", // Location feature
+  "499": "Art gallery nearby", // Location feature
+  "500": "Theater nearby", // Location feature
+  "501": "Cinema nearby", // Location feature
+  "502": "Live music venue nearby", // Location feature
+  "503": "Botanical garden nearby", // Location feature
+  "504": "Zoo nearby", // Location feature
+  "505": "Aquarium nearby", // Location feature
+  "506": "Water park nearby", // Location feature
+  "507": "Amusement park nearby", // Location feature
+  "508": "Library nearby", // Location feature
+  "509": "University nearby", // Location feature
+  "510": "Hospital nearby", // Location feature
+  "511": "Pharmacy nearby", // Location feature
+  "512": "Grocery store nearby", // Location feature
+  "513": "Farmers market nearby", // Location feature
+  "514": "Shopping mall nearby", // Location feature
+  "515": "Outlet mall nearby", // Location feature
+  "516": "Antique shops nearby", // Location feature
+  "517": "Craft brewery nearby", // Location feature
+  "518": "Distillery nearby", // Location feature
+  "519": "Winery tours available nearby", // Activity info
+  "520": "Coffee shop nearby", // Location feature
+  "521": "Bakery nearby", // Location feature
+  "522": "Ice cream shop nearby", // Location feature
+  "523": "Communal kitchen", // Shared facility
+  "524": "Communal living area", // Shared facility
+  "525": "Coin laundry on site", // Shared facility
+  "526": "Vending machine", // Shared facility/Feature
+  "527": "ATM on site", // Shared facility/Feature
+  "528": "Gift shop on site", // Shared facility/Feature
+  "529": "Restaurant on site", // Shared facility/Feature
+  "530": "Bar/Lounge on site", // Shared facility/Feature
+  "531": "Snack bar on site", // Shared facility/Feature
+  "532": "Rooftop bar", // Feature
+  "533": "Swim-up bar", // Feature (Pool)
+  "534": "Sports bar", // Feature
+  "535": "Nightclub on site", // Feature
+  "536": "Conference room", // Business feature
+  "537": "Business center", // Business feature
+  "538": "Meeting rooms", // Business feature
+  "539": "Photocopying service", // Business feature
+  "540": "Fax service", // Business feature (rare)
+  "541": "Audio/Visual equipment rental", // Business/Event feature
+  "542": "Catering available", // Event feature
+  "543": "Ballroom", // Event feature
+  "544": "Banquet hall", // Event feature
+  "545": "Wedding services", // Event feature
+  "546": "Chapel/Worship space on site", // Feature
+  "547": "Meditation area", // Feature
+  "548": "Yoga studio", // Feature
+  "549": "Pilates studio", // Feature
+  "550": "Spinning studio", // Feature
+  "551": "Personal trainer available", // Service
+  "552": "Spa/Wellness center on site", // Feature
+  "553": "Massage room", // Feature
+  "554": "Manicure/Pedicure service", // Service
+  "555": "Hair salon on site", // Feature/Service
+  "556": "Barber shop on site", // Feature/Service
+  "557": "Hot springs access", // Feature
+  "558": "Mud bath", // Spa feature
+  "559": "Float tank", // Spa feature
+  "560": "Cryotherapy chamber", // Spa feature
+  "561": "Infrared sauna", // Spa feature
+  "562": "Outdoor pool (seasonal)", // Pool specification
+  "563": "Indoor pool (year-round)", // Pool specification
+  "564": "Adults-only pool", // Pool specification
+  "565": "Kids' pool / Wading pool", // Pool specification
+  "566": "Watersports equipment rental on site", // Feature
+  "567": "Dive shop on site", // Feature
+  "568": "Marina on site", // Feature
+  "569": "Fishing charter available", // Service
+  "570": "Sailing charter available", // Service
+  "571": "Yacht charter available", // Service
+  "572": "Helicopter landing pad", // High-end feature
+  "573": "Private airstrip", // High-end feature
+  "574": "Electric vehicle charging station network nearby", // Location info
+  "575": "Bike sharing station nearby", // Location info
+  "576": "Scooter sharing available nearby", // Location info
+  "577": "Car sharing available nearby", // Location info
+  "578": "Public gym nearby", // Location info
+  "579": "Yoga/Pilates studio nearby", // Location info
+  "580": "Indoor climbing gym nearby", // Location info
+  "581": "Ice skating rink nearby", // Location info
+  "582": "Bowling alley nearby", // Location info
+  "583": "Laser tag nearby", // Location info
+  "584": "Escape room nearby", // Location info
+  "585": "Mini golf nearby", // Location info
+  "586": "Go-kart track nearby", // Location info
+  "587": "Shooting range nearby", // Location info
+  "588": "Archery range nearby", // Location info
+  "589": "Horse riding stables nearby", // Location info
+  "590": "Dog park nearby", // Location info
+  "591": "Nature preserve nearby", // Location info
+  "592": "Beach club access included", // Feature/Partnership
+  "593": "Golf course access included", // Feature/Partnership
+  "594": "Ski lift access included", // Feature/Partnership
+  "595": "Gym membership included", // Feature/Partnership
+  "596": "Spa access included", // Feature/Partnership
+  "597": "Exclusive lounge access", // Feature (e.g., Club level)
+  "598": "Complimentary happy hour", // Feature/Service
+  "599": "Complimentary afternoon tea", // Feature/Service
+  "600": "Complimentary snacks/drinks", // Feature/Service
+  "601": "Mini-bar (stocked)", // Feature
+  "602": "Mini-bar (empty, for guest use)", // Feature
+  "603": "Ice machine access", // Feature (Shared)
+  "604": "Water dispenser access", // Feature (Shared)
+  "605": "Complimentary bottled water", // Feature
+  "606": "Hypoallergenic bedding available", // Feature/Accessibility
+  "607": "Feather-free room available", // Feature/Accessibility
+  "608": "Air purifier", // Feature/Health
+  "609": "Humidifier", // Feature/Comfort
+  "610": "Dehumidifier", // Feature/Comfort
+  "611": "Blackout curtains", // Feature (Same as Room-darkening shades 50?)
+  "612": "Sound machine / White noise machine", // Feature/Comfort
+  "613": "Earplugs provided", // Feature/Comfort
+  "614": "Sleep mask provided", // Feature/Comfort
+  "615": "Pillow menu", // Luxury feature
+  "616": "Heated blanket", // Feature/Comfort
+  "617": "Electric blanket", // Feature/Comfort
+  "618": "Weighted blanket", // Feature/Comfort
+  "619": "Fan", // General, could overlap with Ceiling (91) or Portable (92)
+  "620": "Smart home features (lights, thermostat etc.)", // Feature/Tech
+  "621": "Smart speaker (Alexa, Google Home etc.)", // Feature/Tech
+  "622": "Tablet provided (for guest use/info)", // Feature/Tech
+  "623": "Universal phone charger", // Feature/Convenience
+  "624": "USB charging ports", // Feature/Convenience
+  "625": "Wireless charging pad", // Feature/Convenience
+  "626": "International power adapters", // Feature/Convenience
+  "627": "Voltage converters", // Feature/Convenience
+  "628": "Ironing board", // Often paired with Iron (16)
+  "629": "Trouser press", // Feature/Luxury
+  "630": "Steamer (for clothes)", // Feature/Convenience
+  "631": "Lint roller", // Feature/Convenience
+  "632": "Shoehorn", // Feature/Convenience
+  "633": "Shoe polishing kit", // Feature/Convenience
+  "634": "Sewing kit", // Feature/Convenience
+  "635": "Static cling remover", // Feature/Convenience
+  "636": "Clothing drying rack", // Feature/Laundry
+  "637": "Laundry basket", // Feature/Laundry
+  "638": "Laundry detergent provided", // Feature/Laundry
+  "639": "Fabric softener provided", // Feature/Laundry
+  "640": "Dry cleaning service available", // Service
+  "641": "Laundry service available", // Service
+  "642": "Dish soap provided", // Kitchen essential
+  "643": "Dishwasher pods/detergent provided", // Kitchen essential
+  "644": "Sponges/Dish cloths provided", // Kitchen essential
+  "645": "Paper towels provided", // Kitchen essential
+  "646": "Trash bags provided", // Essential
+  "647": "Vacuum cleaner", // Cleaning supply
+  "648": "Broom and dustpan", // Cleaning supply
+  "649": "Mop and bucket", // Cleaning supply
+  "650": "Cleaning supplies (sprays, wipes etc.)", // Cleaning supply
+  "651": "First aid supplies stocked", // More specific than kit (30)
+  "652": "Emergency contact list provided", // Safety
+  "653": "Local emergency numbers provided", // Safety
+  "654": "Flashlight", // Safety
+  "655": "Candles (emergency)", // Safety
+  "656": "Matches/Lighter", // Safety/Utility
+  "657": "Whistle (emergency)", // Safety
+  "658": "Multi-tool", // Utility
+  "659": "Duct tape", // Utility
+  "660": "Basic tool kit (screwdriver, pliers etc.)", // Utility
+  "661": "Jumper cables", // Utility (if parking included)
+  "662": "Tire pressure gauge", // Utility (if parking included)
+  "663": "Ice scraper/Snow brush", // Utility (seasonal/regional)
+  "664": "Beach towels", // Specific item from Beach Essentials (77)
+  "665": "Body wash", // Alternative name for Shower Gel (81)? Or distinct.
+  "666": "Outdoor seating", // General term, encompasses furniture (87) etc.
+  "667": "Ethernet cable provided", // With Ethernet connection (14)
+  "668": "Monitor stand/riser", // Workspace feature
+  "669": "Laptop stand", // Workspace feature
+  "670": "External keyboard", // Workspace feature
+  "671": "External mouse", // Workspace feature
+  "672": "Webcam", // Workspace feature
+  "673": "Headset", // Workspace feature
+  "674": "Docking station", // Workspace feature
+  "675": "Surge protector", // Workspace/Tech feature
+  "676": "Paper shredder", // Workspace/Security feature
+  "677": "Filing cabinet", // Workspace feature
+  "678": "Office supplies (pens, paper, etc.)", // Workspace feature
+  "679": "Desk lamp", // Workspace feature
+  "680": "Book shelf", // Feature
+  "681": "Reading lamp", // Feature
+  "682": "Night light", // Feature/Safety
+  "683": "Full-length mirror", // Feature
+  "684": "Magnifying mirror", // Feature (Bathroom/Vanity)
+  "685": "Hair straightener", // Feature (Bathroom)
+  "686": "Curling iron", // Feature (Bathroom)
+  "687": "Cotton balls/swabs", // Feature (Bathroom)
+  "688": "Makeup remover wipes", // Feature (Bathroom)
+  "689": "Feminine hygiene products", // Feature (Bathroom)
+  "690": "Mouthwash", // Feature (Bathroom)
+  "691": "Dental floss", // Feature (Bathroom)
+  "692": "Toothbrush/Toothpaste (complimentary)", // Feature (Bathroom)
+  "693": "Razor/Shaving cream (complimentary)", // Feature (Bathroom)
+  "694": "Loofah/Body scrub", // Feature (Bathroom)
+  "695": "Bath salts/Bubble bath", // Feature (Bathroom)
+  "696": "Essential oil diffuser", // Feature/Comfort
+  "697": "Incense burner/holder", // Feature/Comfort
+  "698": "Candles (decorative/mood)", // Feature/Comfort
+  "699": "Fresh flowers", // Feature/Luxury
+  "700": "Plants (indoor)", // Feature/Decor
+  "701": "Art collection", // Feature/Decor
+  "702": "Sculptures", // Feature/Decor
+  "703": "Antique furniture", // Feature/Decor
+  "704": "Designer furniture", // Feature/Decor
+  "705": "Custom furniture", // Feature/Decor
+  "706": "Original artwork", // Feature/Decor
+  "707": "Photography displayed", // Feature/Decor
+  "708": "Library/Book collection", // Feature
+  "709": "Vinyl record collection", // Feature
+  "710": "CD collection", // Feature
+  "711": "DVD/Blu-ray collection", // Feature
+  "712": "Board game collection", // Feature
+  "713": "Video game collection", // Feature
+  "714": "Puzzle collection", // Feature
+  "715": "Telescope", // Feature (Duplicate of 357?)
+  "716": "Microscope", // Feature
+  "717": "Chemistry set", // Feature (Unusual!)
+  "718": "Electronics kit", // Feature
+  "719": "Robotics kit", // Feature
+  "720": "3D printer", // Feature
+  "721": "VR headset", // Feature
+  "722": "Flight simulator setup", // Feature
+  "723": "Racing simulator setup", // Feature
+  "724": "Arcade machine (specific game)", // Feature
+  "725": "Pinball machine", // Feature
+  "726": "Air hockey table", // Feature
+  "727": "Shuffleboard table", // Feature
+  "728": "Card table", // Feature
+  "729": "Poker set", // Feature
+  "730": "Mahjong set", // Feature
+  "731": "Chess set", // Feature
+  "732": "Backgammon set", // Feature
+  "733": "Croquet set", // Feature (Outdoor)
+  "734": "Bocce ball set", // Feature (Outdoor)
+  "735": "Horseshoes", // Feature (Outdoor)
+  "736": "Cornhole/Bean bag toss", // Feature (Outdoor)
+  "737": "Giant Jenga", // Feature (Outdoor)
+  "738": "Giant Connect Four", // Feature (Outdoor)
+  "739": "Slackline", // Feature (Outdoor)
+  "740": "Climbing wall", // Feature
+  "741": "Basketball court (private)", // Specific type
+  "742": "Tennis court (private)", // Specific type
+  "743": "Volleyball court (private)", // Specific type
+  "744": "Badminton set", // Feature (Outdoor)
+  "745": "Pickleball court", // Feature
+  "746": "Pickleball paddles/balls", // Feature
+  "747": "Roller skates", // Feature
+  "748": "Ice skates", // Feature (Duplicate of 343?)
+  "749": "Hockey sticks/pucks", // Feature
+  "750": "Golf simulator", // Feature
+  "751": "Putting green (indoor)", // Feature
+  "752": "Bowling alley (private)", // Feature
+  "753": "Movie theater (private)", // Feature (Duplicate of 464?)
+  "754": "Bar (private)", // Feature
+  "755": "Dance floor", // Feature
+  "756": "Disco ball", // Feature
+  "757": "Stage", // Feature
+  "758": "PA system", // Feature
+  "759": "Projector", // Feature (Duplicate of 158?)
+  "760": "Screen", // Feature (Duplicate of 158?)
+  "761": "Laser pointer", // Feature (Presentation)
+  "762": "Flip chart", // Feature (Presentation)
+  "763": "Lectern/Podium", // Feature (Presentation)
+  "764": "Exhibition space", // Feature
+  "765": "Photo studio setup", // Feature
+  "766": "Green screen", // Feature (Photo/Video)
+  "767": "Studio lighting", // Feature (Photo/Video)
+  "768": "Tripod", // Feature (Photo/Video)
+  "769": "Reflectors", // Feature (Photo/Video)
+  "770": "Backdrops", // Feature (Photo/Video)
+  "771": "Recording studio setup", // Feature (Music)
+  "772": "Soundproof room", // Feature (Music/Quiet)
+  "773": "Mixing board", // Feature (Music)
+  "774": "Studio monitors (speakers)", // Feature (Music)
+  "775": "MIDI keyboard", // Feature (Music)
+  "776": "Drum machine", // Feature (Music)
+  "777": "Turntables", // Feature (Music/DJ)
+  "778": "Sampler", // Feature (Music)
+  "779": "Synthesizer", // Feature (Music)
+  "780": "Acoustic treatment (room)", // Feature (Music/Theater)
+  "781": "Workshop space", // Feature (Crafts/DIY)
+  "782": "Workbench", // Feature (Workshop)
+  "783": "Power tools", // Feature (Workshop)
+  "784": "Hand tools", // Feature (Workshop)
+  "785": "Safety glasses", // Feature (Workshop)
+  "786": "Work gloves", // Feature (Workshop)
+  "787": "Wood stove", // Heating/Feature
+  "788": "Pellet stove", // Heating/Feature
+  "789": "Radiant floor heating", // Heating/Feature (Duplicate of 152?)
+  "790": "Underfloor heating", // Heating/Feature (Duplicate of 152/789?)
+  "791": "Forced air heating", // Heating type
+  "792": "Swamp cooler / Evaporative cooler", // Cooling type
+  "793": "Whole-house fan", // Cooling/Ventilation
+  "794": "Attic fan", // Cooling/Ventilation
+  "795": "Cross ventilation design", // Feature (Passive cooling)
+  "796": "Double-paned windows", // Feature (Insulation)
+  "797": "Triple-paned windows", // Feature (Insulation)
+  "798": "Insulated walls/roof", // Feature (Insulation)
+  "799": "Solar water heater", // Eco/Utility feature
+  "800": "Greywater system", // Eco/Utility feature
+
+  // ... Potentially many more, especially niche, regional, or newly added ones.
+  // Codes above ~700 become increasingly speculative or based on fewer sources.
+
+  // Codes from your initial example:
+  // 1: Wifi (Matches)
+  // 4: Air conditioning (Matches)
+  // 8: Shampoo (Matches)
+  // 10: TV (Matches)
+  // 30: First aid kit (Matches)
+  // 31: Fire extinguisher (Matches)
+  // 33: Cable TV (Matches)
+  // 35: Private living room (Matches)
+  // 37: Bed linens (Matches)
+  // 38: Extra pillows and blankets (Matches)
+  // 39: Microwave (Matches)
+  // 40: Coffee maker (Matches)
+  // 41: Refrigerator (Matches)
+  // 44: Cooking basics (Matches)
+  // 45: Oven (Matches)
+  // 46: Stove (Matches)
+  // 77: Beach essentials (Matches)
+  // 79: Body soap (Matches)
+  // 85: Pocket wifi (Matches)
+  // 86: Lake access (Matches)
+  // 89: Free street parking (Matches)
+  // 90: Bidet (Matches)
+  // 91: Ceiling fan (Matches)
+  // 93: Safe (Matches)
+  // 94: Clothing storage (Matches)
+  // 95: Dryer (Matches - potential duplicate ID with 6 noted)
+  // 96: Washer (Matches - potential duplicate ID with 5 noted)
+  // 129: Boat slip (Matches)
+  // 611: Blackout curtains (Matches - potential duplicate ID with 50 noted)
+  // 665: Body wash (Matches - potential duplicate ID with 81 noted)
+  // 671: External mouse (Matches)
+}

@@ -13,10 +13,48 @@ import { apiResponseNestedSelectors, apiResponseSelectors, dataLayerSelectors } 
 export function getListingData(apiData: AirbnbApiData): ListingData | null {
   // ApiData nested objects and selectors used for extraction -------------------------------------------- :
 
-  // Direct selectors **********
+  // Direct selectors - return primitive value or null **********
   const listingTitle = getNestedValue(apiData, apiResponseSelectors.LISTING_TITLE) as string | null;
   if (!listingTitle) {
     console.error("❌ No listing title found");
+    return null;
+  }
+
+  // Indirect selectors - return nested objects or null **********
+
+  // listing id, url
+  const seoFeaturesData = getNestedValue(apiData, apiResponseSelectors.SEO_FEATURES) as Record<string, unknown> | null;
+  if (!seoFeaturesData) {
+    console.error("❌ No ${apiResponseSelectors.SEO_FEATURES} listing selector data found");
+    return null;
+  }
+
+  // listing subtitle, capacity highlights
+  const sbuiData = getNestedValue(apiData, apiResponseSelectors.LISTING_SUBS) as Record<string, unknown> | null;
+  if (!sbuiData) {
+    console.error(`❌ No ${apiResponseSelectors.LISTING_SUBS} listing selector data found`);
+    return null;
+  }
+
+  // listing hero images
+  const heroImages = getNestedValue(apiData, apiResponseSelectors.HERO_SECTION) as Record<string, unknown>[] | null;
+  if (!heroImages) {
+    console.error("❌ No hero images found");
+    return null;
+  }
+
+  // listing hero image data
+  const heroImageData = heroImages[0] as Record<string, unknown> | null;
+  console.log("Hero image data:", heroImageData);
+  if (!heroImageData) {
+    console.error("❌ No hero image data found");
+    return null;
+  }
+
+  // data layer data: city, state, country, roomType, propertyType, averageDailyRateInUSD, categoryTags
+  const dataLayerData = getNestedValue(apiData, apiResponseSelectors.DATA_LAYER) as Record<string, unknown> | null;
+  if (!dataLayerData) {
+    console.error("❌ No data layer data found");
     return null;
   }
 
@@ -36,7 +74,6 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
 
   const safetyFeaturesIntro = getNestedValue(apiData, apiResponseSelectors.SAFETY) as Record<string, unknown>[] | null;
   if (!safetyFeaturesIntro) {
-    console.error("❌ No safety features intro found");
     return null;
   }
 
@@ -48,30 +85,53 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
-  // Indirect selectors **********
-
-  // listing id, url
-  const seoFeaturesData = getNestedValue(apiData, apiResponseSelectors.SEO_FEATURES) as Record<string, unknown> | null;
-  if (!seoFeaturesData) {
-    console.error("❌ No ${apiResponseSelectors.SEO_FEATURES} listing selector data found");
+  const amenitiesHighlightsValue = getNestedValue(apiData, apiResponseSelectors.AMENITIES_HIGHLIGHTS) as Record<
+    string,
+    unknown
+  > | null;
+  if (!amenitiesHighlightsValue) {
+    console.error("❌ No amenities highlights value found");
     return null;
   }
 
-  // listing subtitle, capacity highlights
-  const sbuiData = getNestedValue(apiData, apiResponseSelectors.LISTING_SUBS) as Record<string, unknown> | null;
-  if (!sbuiData) {
-    console.error(`❌ No ${apiResponseSelectors.LISTING_SUBS} listing selector data found`);
+  const amenitiesHighlightsObject = amenitiesHighlightsValue[0] as Record<string, unknown> | null;
+  if (!amenitiesHighlightsObject) {
+    console.error("❌ No amenities highlights object found");
     return null;
   }
 
-  // data layer data: city, state, country, roomType, propertyType, averageDailyRateInUSD, categoryTags
-  const dataLayerData = getNestedValue(apiData, apiResponseSelectors.DATA_LAYER) as Record<string, unknown> | null;
-  if (!dataLayerData) {
-    console.error("❌ No data layer data found");
+  const amenitiesHighlights = amenitiesHighlightsObject["amenities"] as Record<string, unknown>[] | null;
+  if (!amenitiesHighlights) {
+    console.error("❌ No amenities highlights found");
     return null;
   }
 
-  // Find nested section object by __typename prope*************
+  const amenitiesAll = getNestedValue(apiData, apiResponseSelectors.AMENITIES_ALL) as Record<string, unknown>[] | null;
+  if (!amenitiesAll) {
+    console.error("❌ No amenities all found");
+    return null;
+  }
+
+  const galleryTourSection = getNestedValue(apiData, apiResponseSelectors.GALLERY_TOUR) as
+    | Record<string, unknown>[]
+    | null;
+  if (!galleryTourSection) {
+    console.error("❌ No gallery tour section found");
+    return null;
+  }
+
+  const categoryRatingsValue = getNestedValue(apiData, apiResponseSelectors.CATEGORY_RATINGS);
+  // Type guard to ensure categoryRatingsValue is an object or null
+  const categoryRatings =
+    categoryRatingsValue !== null && typeof categoryRatingsValue === "object" && !Array.isArray(categoryRatingsValue)
+      ? (categoryRatingsValue as Record<string, unknown>)
+      : null;
+  if (!categoryRatings) {
+    console.error("❌ No category ratings found");
+    return null;
+  }
+
+  // Find nested section object by __typename prope *************
 
   // Host Section object
   const hostSection = findNestedObjectByPropValue(apiData, "section", "__typename", apiResponseSelectors.HOST_SECTION);
@@ -130,6 +190,24 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
 
   const locationData = { ...dataLayerData, location_details: { ...listingLocationSection } };
 
+  // Galler Photos Section object
+  const galleryPhotosSection = findNestedObjectByPropValue(
+    apiData,
+    "section",
+    "__typename",
+    apiResponseNestedSelectors.GALLERY_PHOTOS
+  );
+  if (!galleryPhotosSection) {
+    console.error("❌ No gallery photos section found");
+    return null;
+  }
+
+  const galleryPhotosData = galleryPhotosSection["mediaItems"] as Record<string, unknown>[] | null;
+  if (!galleryPhotosData) {
+    console.error("❌ No gallery photos data found");
+    return null;
+  }
+
   /* ********************************************************************************************
    *************************************** Extract API Sections Data *****************************
    ******************************************************************************************** */
@@ -149,6 +227,7 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     dataLayerData,
     listingTitle,
     sbuiData,
+    heroImageData,
     listingSleepingArrangementSection,
     listingHighlightsSection,
     listingDescriptionSection
@@ -179,12 +258,36 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  // Extract amenities data -------------------------------------------------------------------------- :
+  const amenities = extractAmenitiesData(amenitiesHighlights, amenitiesAll);
+  if (!amenities) {
+    console.error("❌ Failed to extract amenities data");
+    return null;
+  }
+
+  // Extract gallery photos and tour data ------------------------------------------------------------ :
+  const gallery = extractGalleryPhotosData(galleryPhotosData, galleryTourSection);
+  if (!gallery) {
+    console.error("❌ Failed to extract gallery photos and tour data");
+    return null;
+  }
+
+  // Extract category ratings data ------------------------------------------------------------------- :
+  const category_ratings = extractCategoryRatingsData(categoryRatings);
+  if (!category_ratings) {
+    console.error("❌ Failed to extract category ratings data");
+    return null;
+  }
+
   const listingData: ListingData = {
     host: hostData,
     listing: mainListing,
     location,
     house_rules,
     safety_property,
+    amenities,
+    gallery,
+    category_ratings,
     // capacity: extractCapacityData(apiData),
     // pricing: extractPricingData(apiData),
     // availability: extractAvailabilityData(apiData),
@@ -273,6 +376,7 @@ function extractListingData(
   dataLayerData: Record<string, unknown>,
   title: string,
   sbuiData: Record<string, unknown>,
+  heroImageData: Record<string, unknown> | null,
   listingSleepingArrangementSection: Record<string, unknown>,
   listingHighlightsSection: Record<string, unknown>,
   listingDescriptionSection: Record<string, unknown>
@@ -308,6 +412,13 @@ function extractListingData(
   const subtitle = (getNestedValue(sbuiData, "title") as string) || "";
   if (!subtitle) {
     console.error("❌ No subtitle property selector 'title' found");
+    return null;
+  }
+
+  // extract hero images from heroImage Data
+  const hero = heroImageData?.["id"] as string | null;
+  if (!hero) {
+    console.error("❌ No hero image found");
     return null;
   }
 
@@ -398,6 +509,7 @@ function extractListingData(
     privacy,
     title,
     subtitle,
+    hero,
     capacity,
     sleeping_arrangement,
     highlights,
@@ -494,6 +606,10 @@ export function extractHouseRulesData(
     };
   });
 
+  if (!intro || !sections) {
+    return null;
+  }
+
   return {
     intro,
     sections,
@@ -521,8 +637,98 @@ export function extractSafetyFeaturesData(
     };
   });
 
+  if (!intro || !sections) {
+    return null;
+  }
+
   return {
     intro,
     sections,
+  };
+}
+
+// Extract Gallery data from API response ApiData object segment
+export function extractGalleryPhotosData(
+  galleryPhotosData: Record<string, unknown>[] | null,
+  galleryTourSection: Record<string, unknown>[] | null
+) {
+  if (!galleryPhotosData || !galleryTourSection) {
+    return null;
+  }
+
+  const photos = galleryPhotosData
+    .filter((photo) => (photo["__typename"] as string) === "Image")
+    .map((photo) => ({
+      id: (photo["id"] as string) || "",
+      aspectRatio: (photo["aspectRatio"] as number) || 0,
+      orientation: (photo["orientation"] as string) || "",
+      accessibilityLabel: (photo["accessibilityLabel"] as string) || "",
+      baseUrl: (photo["baseUrl"] as string) || "",
+      caption: ((photo["imageMetadata"] as Record<string, unknown>)?.["caption"] as string) || "",
+    }));
+  const tour = galleryTourSection.map((tourItem) => ({
+    title: (tourItem["title"] as string) || "",
+    photos: (tourItem["imageIds"] as string[]) || [],
+    highlights:
+      (tourItem["highlights"] as Record<string, unknown>[]).map((highlight) => highlight["title"] as string) || [],
+  }));
+
+  return {
+    photos,
+    tour,
+  };
+}
+
+// Extract amenities data from API response ApiData object segment
+export function extractAmenitiesData(
+  amenitiesHighlights: Record<string, unknown>[],
+  amenitiesAll: Record<string, unknown>[]
+) {
+  // Extract highlights
+  const highlights = amenitiesHighlights.map((highlight) => highlight["title"] as string);
+
+  // Extract all amenities
+  const allAmenitiesCategories = amenitiesAll.map((amenityGroup) => {
+    return {
+      category: (amenityGroup["title"] as string) || "",
+      amenities: (amenityGroup["amenities"] as Record<string, unknown>[]).map((amenity) => ({
+        title: (amenity["title"] as string) || "",
+        subtitle: (amenity["subtitle"] as string) || "",
+        top: highlights.includes(amenity["title"] as string) ? true : false,
+        icon: (amenity["icon"] as string) || "",
+        available: Boolean(amenity["available"]),
+      })),
+    };
+  });
+
+  if (!highlights || !allAmenitiesCategories) {
+    return null;
+  }
+
+  return allAmenitiesCategories;
+}
+
+// Extract category ratings data from API response ApiData object segment
+export function extractCategoryRatingsData(categoryRatings: Record<string, unknown>) {
+  const accuracy = (categoryRatings["accuracyRating"] as number) || 0;
+  const check_in = (categoryRatings["checkinRating"] as number) || 0;
+  const cleanliness = (categoryRatings["cleanlinessRating"] as number) || 0;
+  const communication = (categoryRatings["communicationRating"] as number) || 0;
+  const location = (categoryRatings["locationRating"] as number) || 0;
+  const value = (categoryRatings["valueRating"] as number) || 0;
+  const guest_satisfaction = (categoryRatings["guestSatisfactionOverall"] as number) || 0;
+
+  if (!accuracy || !check_in || !cleanliness || !communication || !location || !value || !guest_satisfaction) {
+    return null;
+  }
+
+  return {
+    accuracy,
+    check_in,
+    cleanliness,
+    communication,
+    location,
+    value,
+    guest_satisfaction,
   };
 }

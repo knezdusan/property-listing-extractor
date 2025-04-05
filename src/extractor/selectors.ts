@@ -20,10 +20,15 @@ export const apiResponseSelectors = {
   SEO_FEATURES: "seoFeatures", // listing id, canonical url
   LISTING_TITLE: "listingTitle", // listing main page title
   LISTING_SUBS: "sbuiData", // subtitle, capacity highlights
+  HERO_SECTION: "previewImages", // listing hero images (front page)
   HOUSE_RULES: "houseRules", // house rules intro
   HOUSE_RULES_SECTIONS: "houseRulesSections", // house rules section
   SAFETY: "previewSafetyAndProperties", // safety features intro
   SAFETY_SECTIONS: "safetyAndPropertiesSections", // safety & properties sections
+  CATEGORY_RATINGS: "eventDataLogging", // ratings per category (accuracy, check-in, cleanliness, communication, location, value)
+  AMENITIES_HIGHLIGHTS: "previewAmenitiesGroups", // amenities highlights - top amenities
+  AMENITIES_ALL: "seeAllAmenitiesGroups", // amenities see all - categorized amenities
+  GALLERY_TOUR: "roomTourItems", // gallery tour
 };
 
 // Api response nested selectors ****************************************
@@ -32,6 +37,7 @@ export const apiResponseNestedSelectors = {
   LISTING_DESCRIPTION: "PdpDescriptionSection",
   LISTING_LOCATION: "LocationSection",
   SLEEPING_ARRANGEMENT: "SleepingArrangementSection",
+  GALLERY_PHOTOS: "PhotoTourModalSection",
 };
 
 // Data layer API endpoint selectors ****************************************

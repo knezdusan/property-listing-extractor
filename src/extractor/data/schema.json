@@ -66,6 +66,10 @@
       "type": "string",
       "description": "what guests are renting (whole property or part) (e.g., 'Entire place', 'Private room', 'Shared room', 'Hotel room')"
     },
+    "hero": {
+      "type": "string",
+      "description": "Hero image ID"
+    },
     "title": {
       "type": "string",
       "description": "Listing title (e.g., 'Eiffel Tower IN your living room')",
@@ -207,73 +211,76 @@
     }
   },
   "amenities": {
-    "top_amenities": {
-      "type": "array",
-      "items": { "name": "string", "available": true, "note": "string" },
-      "optional": true,
-      "description": "Top amenities",
-      "source": "Airbnb’s amenity display"
-    },
-    "amenities_by_category": {
-      "type": "array",
-      "items": {
-        "title": { "type": "string", "description": "Category name (e.g., 'Bathroom')" },
-        "amenities": { "type": "array", "items": { "name": "string", "available": true, "note": "string" } }
-      },
-      "optional": true,
-      "source": "Airbnb’s categorized amenity display"
+    "type": "array",
+    "items": {
+      "category": { "type": "string", "description": "Category name (e.g., 'Bathroom')", "optional": true },
+      "amenities": {
+        "type": "array",
+        "items": { "title": "string", "subtitle": "string", "top": false, "icon": "string", "available": true },
+        "optional": true
+      }
     }
   },
-  "ratings": {
-    "overall": { "type": "number", "description": "Overall star rating (e.g., 4.92)" },
-    "host_rating": { "type": "number", "description": "Separate rating for the host (e.g., 4.90)", "optional": true },
-    "review_count": { "type": "integer", "description": "Number of reviews (e.g., 251)" },
-    "categories": {
-      "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
-      "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
-      "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
-      "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
-      "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
-      "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true }
-    },
-    "reviews": {
-      "type": "array",
-      "description": "List of individual reviews",
-      "items": {
-        "id": { "type": "string", "description": "Review ID" },
-        "date": { "type": "string", "description": "Review date in YYYY-MM-DD format" },
-        "text": { "type": "string", "description": "Review content" },
-        "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
-        "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
-        "reviewer": {
-          "id": { "type": "string", "description": "Reviewer ID" },
-          "name": { "type": "string", "description": "Reviewer first name" }
-        }
+  "gallery": {
+    "type": "object",
+    "properties": {
+      "photos": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "baseUrl": { "type": "string" },
+            "aspectRatio": { "type": "number", "optional": true },
+            "orientation": { "type": "string", "optional": true },
+            "accessibilityLabel": { "type": "string", "optional": true },
+            "caption": { "type": "string", "optional": true }
+          }
+        },
+        "description": "List of all property listing images with all details"
       },
+      "tour": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "photos": { "type": "array", "items": { "type": "number" } },
+            "highlights": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "description": "Photo tour of property lising categorized by room type, eg. ['Living room', 'Bedroom 1', 'Bedroom 2', 'Kitchen', 'Bathroom']"
+      }
+    }
+  },
+  "category_ratings": {
+    "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
+    "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
+    "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
+    "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
+    "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
+    "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true },
+    "guest_satisfaction": {
+      "type": "number",
+      "description": "Guest satisfaction rating (e.g., 4.96)",
       "optional": true
     }
   },
-  "images": {
-    "count": { "type": "integer", "description": "Total number of images (e.g., 61)" },
+  "reviews": {
+    "type": "array",
+    "description": "List of individual reviews",
     "items": {
-      "type": "array",
-      "description": "List of image details",
-      "items": {
-        "url": { "type": "string", "description": "Image URL" },
-        "accessibility_label": { "type": "string", "description": "Alt text for the image", "optional": true },
-        "is_primary": { "type": "boolean", "description": "Indicates if this is the main image", "optional": true },
-        "caption": { "type": "string", "description": "Caption for the image", "optional": true }
+      "id": { "type": "string", "description": "Review ID" },
+      "date": { "type": "string", "description": "Review date in YYYY-MM-DD format" },
+      "text": { "type": "string", "description": "Review content" },
+      "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
+      "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
+      "reviewer": {
+        "id": { "type": "string", "description": "Reviewer ID" },
+        "name": { "type": "string", "description": "Reviewer first name" }
       }
     },
-    "videos": {
-      "type": "array",
-      "description": "List of video details",
-      "items": {
-        "url": { "type": "string", "description": "Video URL" },
-        "thumbnail": { "type": "string", "description": "Thumbnail URL for the video", "optional": true }
-      },
-      "optional": true
-    }
+    "optional": true
   },
   "legal_disclaimer": {
     "type": "string",

@@ -118,129 +118,96 @@ export async function smoothScroll(
 }
 
 /**
- * Closes visible, user-facing modals or popups on the page
- * @param page Playwright page object
- * @returns Promise that resolves when the visible modal is closed
+ * Closes potential popups or modals that might appear on the page
+ * @param page Playwright Page object
+ * @param maxAttempts Maximum number of attempts to close popups
  */
-export async function closePopups(page: Page): Promise<void> {
-  console.log("➜ Checking for visible popups/modals");
+export async function closePopups(page: Page, maxAttempts: number = 3): Promise<void> {
+  console.log("➜ Checking for potential popups/modals...");
 
-  // Wait for page to stabilize (post-render)
-  await page.waitForLoadState("networkidle", { timeout: 10000 });
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let closedPopup = false;
 
-  // Detect visible modals: Look for centered, fixed-position elements with high z-index
-  const modalCandidates = await page.$$eval('[style*="position: fixed"], [style*="position: absolute"]', (elements) =>
-    elements.filter((el) => {
-      const style = window.getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-
-      // Must be visible
-      if (style.display === "none" || style.visibility === "hidden") return false;
-
-      // High z-index (modal-like)
-      const zIndex = parseInt(style.zIndex, 10);
-      if (zIndex < 1000) return false;
-
-      // Centered on screen, not too large (exclude headers/footers)
-      const isCentered =
-        rect.left >= window.innerWidth * 0.1 &&
-        rect.right <= window.innerWidth * 0.9 &&
-        rect.top >= window.innerHeight * 0.1 &&
-        rect.bottom <= window.innerHeight * 0.9;
-
-      // Covers a reasonable area (modal-like, not a button or banner)
-      const isModalSize =
-        rect.width >= window.innerWidth * 0.3 &&
-        rect.width <= window.innerWidth * 0.7 &&
-        rect.height >= window.innerHeight * 0.2 &&
-        rect.height <= window.innerHeight * 0.7;
-
-      return isCentered && isModalSize;
-    })
-  );
-
-  console.log(`Found ${modalCandidates.length} visible modal candidates`);
-
-  if (modalCandidates.length === 0) {
-    console.log("✓ No visible popups/modals detected");
-    return;
-  }
-
-  // Process the first visible modal (Airbnb typically shows one at a time)
-  for (let i = 0; i < modalCandidates.length; i++) {
     try {
-      // Re-locate the modal in the DOM
-      const modal = await page.$(
-        '[style*="position: fixed"][style*="z-index"], [style*="position: absolute"][style*="z-index"]'
-      );
-      if (!modal || !(await modal.isVisible())) continue;
+      // Strategy 1: Role-based dialogs
+      const closeButtonSelectors = [
+        'button[aria-label*="close" i], button[aria-label*="dismiss" i]',
+        'button:has-text("Close"), button:has-text("Dismiss")',
+        'button[class*="close" i]',
+      ];
 
-      // Look for a close button (top-left or top-right "X")
-      const closeButton = await modal.evaluateHandle((el) => {
-        const buttons = el.querySelectorAll("button, [role='button'], div");
-        for (const btn of buttons) {
-          const rect = btn.getBoundingClientRect();
-          const text = btn.textContent?.toLowerCase() || "";
-          const svg = btn.querySelector("svg");
+      const dialogs = page.locator('[role="dialog"], [role="alertdialog"]');
+      const dialogCount = await dialogs.count();
 
-          // Top-left or top-right position
-          const isTopCorner =
-            (rect.top < 100 && rect.left < 100) || // Top-left
-            (rect.top < 100 && rect.right > window.innerWidth - 100); // Top-right
+      if (dialogCount > 0) {
+        console.log(`  Attempt ${attempt}: Found ${dialogCount} dialog(s)`);
 
-          // Contains "X" or SVG (common for close buttons)
-          if (isTopCorner && (text.includes("x") || (svg && svg.getAttribute("viewBox")?.match(/32\s*32/)))) {
-            return btn;
+        for (let i = 0; i < dialogCount; i++) {
+          const dialog = dialogs.nth(i);
+          if (!(await dialog.isVisible({ timeout: 2000 }).catch(() => false))) continue;
+
+          for (const selector of closeButtonSelectors) {
+            const closeButton = dialog.locator(selector).first();
+            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+              await closeButton.click({ force: true, timeout: 5000 });
+              console.log(`  Closed popup via button selector: ${selector}`);
+              closedPopup = true;
+              await page.waitForTimeout(1000);
+              break;
+            }
           }
+
+          if (closedPopup) break;
         }
-        return null;
+      }
+
+      // Strategy 2: Overlay handling
+      const overlayHandle = await page.evaluateHandle(() => {
+        const elements = document.querySelectorAll('div[style*="position: fixed"], div[style*="position: absolute"]');
+        return (
+          Array.from(elements).find((el) => {
+            // Add type guard first
+            if (!(el instanceof HTMLElement)) return false;
+
+            const style = window.getComputedStyle(el);
+            return (
+              parseInt(style.zIndex || "0", 10) > 999 &&
+              el.offsetWidth >= window.innerWidth * 0.7 &&
+              el.offsetHeight >= window.innerHeight * 0.7
+            );
+          }) || null
+        );
       });
 
-      if (closeButton && (await closeButton.asElement()?.isVisible())) {
-        console.log("✓ Found a visible close button (X); clicking");
-        await closeButton.asElement()?.click();
-        await page.waitForTimeout(500); // Wait for animation
-        await closeButton.dispose();
-      } else {
-        // Fallback: Look for a dismiss/accept button (e.g., "Accept all", "Only necessary")
-        const dismissButton = await modal.$(
-          'button:has-text("Accept"), button:has-text("Only necessary"), button:has-text("Dismiss")'
-        );
-        if (dismissButton && (await dismissButton.isVisible())) {
-          console.log("✓ Found a dismiss button; clicking");
-          await dismissButton.click();
-          await page.waitForTimeout(500);
-        } else {
-          // Final fallback: Simulate Escape key
-          console.log("➜ No close/dismiss button found; pressing Escape");
-          await page.keyboard.press("Escape");
-          await page.waitForTimeout(500);
+      if (overlayHandle) {
+        const overlayElement = overlayHandle.asElement();
+        if (overlayElement && (await overlayElement.isVisible())) {
+          await overlayElement.click({ force: true, timeout: 3000 });
+          console.log("  Closed popup via overlay click");
+          closedPopup = true;
         }
+        await overlayHandle.dispose();
       }
 
-      // Verify closure
-      const stillOpen = await page.$('[style*="position: fixed"][style*="z-index"]');
-      if (!stillOpen || !(await stillOpen.isVisible())) {
-        console.log("✓ Modal closed successfully");
-        break;
+      // Final fallback
+      if (!closedPopup && attempt === maxAttempts) {
+        console.log("  Final fallback: Pressing Escape");
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(500);
       }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.warn("⚠ Minor error during closure attempt:", errorMessage);
-      continue;
+    } catch (error) {
+      console.warn(`  Attempt ${attempt} error: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      if (closedPopup) {
+        await page.waitForLoadState("networkidle", { timeout: 3000 });
+      }
+    }
+
+    if (closedPopup) {
+      console.log(`  Attempt ${attempt}: Successfully closed popup`);
+      break;
     }
   }
 
-  // Final check
-  const remainingModals = await page.$$('[style*="position: fixed"][style*="z-index"]');
-  const visibleRemaining: Array<unknown> = [];
-  for (const modal of remainingModals) {
-    if (await modal.isVisible()) visibleRemaining.push(modal);
-  }
-
-  if (visibleRemaining.length > 0) {
-    console.warn("⚠ Some visible modals may still be open; manual inspection needed");
-  } else {
-    console.log("✓ Popup check complete");
-  }
+  console.log("✓ Popup check complete");
 }

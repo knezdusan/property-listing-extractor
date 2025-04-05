@@ -73,7 +73,6 @@ export interface Location {
 }
 
 // House rules interfaces -------------------------------------
-
 interface RuleItem {
   title: string;
   subtitle: string;
@@ -91,10 +90,55 @@ export interface HouseRules {
 }
 
 // Safety & property features interfaces -------------------------------------
-
 export interface SafetyProperty {
   intro: string[];
   sections: RulesSection[];
+}
+
+// Gallery interfaces -------------------------------------
+export interface GalleryPhoto {
+  id: string;
+  baseUrl: string;
+  aspectRatio?: number;
+  orientation?: string;
+  accessibilityLabel?: string;
+  caption?: string;
+}
+
+export interface GalleryTourItem {
+  title: string;
+  photos: string[];
+  highlights: string[];
+}
+
+export interface Gallery {
+  photos: GalleryPhoto[];
+  tour: GalleryTourItem[];
+}
+
+// Amenities interfaces -------------------------------------
+
+interface AmenityItem {
+  title: string;
+  subtitle: string;
+  top: boolean;
+  icon: string;
+  available: boolean;
+}
+
+interface AmenityCategory {
+  category: string;
+  amenities: AmenityItem[];
+}
+
+// Category ratings interface -------------------------------------
+export interface CategoryRatings {
+  accuracy: number;
+  check_in: number;
+  cleanliness: number;
+  communication: number;
+  location: number;
+  value: number;
 }
 
 /* ********************************************************************
@@ -106,6 +150,9 @@ export interface ListingData {
   location: Location;
   house_rules: HouseRules;
   safety_property: SafetyProperty;
+  amenities: AmenityCategory[];
+  gallery: Gallery;
+  category_ratings: CategoryRatings;
   //   capacity: Capacity;
   //   pricing: Pricing;
   //   availability: Availability;
