@@ -1,7 +1,7 @@
 import { firefox } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
-import { closePopups } from "./helpers";
+import { closePopups, locateAndScrollToReviewsButton } from "./helpers";
 import { EXTRACTION_API_ENDPOINTS_ARRAY } from "./selectors";
 
 /**
@@ -169,29 +169,29 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
       // Final scroll to ensure we reach the bottom
       window.scrollTo(0, totalHeight);
       await sleep(2000 + Math.random() * 1000);
-
-      // Select element that on click shows all reviews popup/modal
-      const reviewsButton = document.querySelector('[data-testid="pdp-show-all-reviews-button"]');
-
-      // Scroll back up to the location of the reviewsButton
-      if (reviewsButton) {
-        const rect = reviewsButton.getBoundingClientRect();
-        window.scrollTo({
-          top: rect.top,
-          behavior: "smooth",
-        });
-        await sleep(1000 + Math.random() * 1000);
-
-        // Click the reviews button
-        (reviewsButton as HTMLElement).click();
-        await sleep(1000 + Math.random() * 1000);
-      } else {
-        console.log("❌ Show all Reviews button not found");
-      }
     });
 
-    // Final wait for any triggered lazy-loaded content
-    await randomDelay(2000, 3000);
+    // Locate the reviews button and scroll into view using the helper
+    const reviewsButtonLocator = await locateAndScrollToReviewsButton(page);
+
+    if (reviewsButtonLocator) {
+      try {
+        console.log("➜ Clicking reviews button...");
+        // Use force: true cautiously if clicks are sometimes missed due to overlays
+        await reviewsButtonLocator.click({ timeout: 5000 });
+        await randomDelay(1500, 2500); // Wait after click for modal to potentially open/load
+      } catch (error) {
+        console.error(`❌ Error interacting with reviews button: ${error instanceof Error ? error.message : error}`);
+        return null;
+      }
+    } else {
+      console.log("❌ Reviews button not found, cannot click to open modal.");
+      return null;
+    }
+
+    // Final wait for any triggered lazy-loaded content or modal transitions
+    console.log("➜ Final wait before concluding page interaction...");
+    await randomDelay(2000, 4000);
 
     return apiData;
   } catch (error) {

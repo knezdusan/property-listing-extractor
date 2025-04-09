@@ -1,4 +1,4 @@
-import { Page } from "playwright";
+import { Page, Locator } from "playwright";
 import { randomDelay } from "@/utils/helpers";
 
 /**
@@ -118,6 +118,45 @@ export async function smoothScroll(
 }
 
 /**
+ * Helper function to perform smooth scroll to a given locator.
+ * Includes fallback to immediate scroll if smooth scroll fails.
+ * @param page The Playwright Page object.
+ * @param locator The Playwright Locator to scroll to.
+ */
+async function smoothScrollToLocator(page: Page, locator: Locator): Promise<void> {
+  try {
+    const elementHandle = await locator.elementHandle();
+    if (elementHandle) {
+      await page.evaluate(async (element) => {
+        const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        await sleep(750 + Math.random() * 500); // Wait for scroll animation
+      }, elementHandle);
+      await elementHandle.dispose();
+      await randomDelay(500, 1000); // Pause after scroll
+    } else {
+      console.warn("⚠ Could not get element handle, falling back to default scroll.");
+      await locator.scrollIntoViewIfNeeded({ timeout: 5000 });
+      await randomDelay(500, 1000); // Pause after scroll
+    }
+  } catch (scrollError) {
+    console.error(
+      `❌ Error during scrolling: ${scrollError instanceof Error ? scrollError.message : scrollError}. Falling back.`
+    );
+    try {
+      await locator.scrollIntoViewIfNeeded({ timeout: 5000 });
+      await randomDelay(500, 1000); // Pause after scroll
+    } catch (fallbackScrollError) {
+      console.error(
+        `❌ Fallback scroll also failed: ${
+          fallbackScrollError instanceof Error ? fallbackScrollError.message : fallbackScrollError
+        }`
+      );
+    }
+  }
+}
+
+/**
  * Closes potential popups or modals that might appear on the page
  * @param page Playwright Page object
  * @param maxAttempts Maximum number of attempts to close popups
@@ -140,7 +179,7 @@ export async function closePopups(page: Page, maxAttempts: number = 3): Promise<
       const dialogCount = await dialogs.count();
 
       if (dialogCount > 0) {
-        console.log(`  Attempt ${attempt}: Found ${dialogCount} dialog(s)`);
+        console.log(`➜ Attempt ${attempt}: Found ${dialogCount} dialog(s)`);
 
         for (let i = 0; i < dialogCount; i++) {
           const dialog = dialogs.nth(i);
@@ -150,7 +189,7 @@ export async function closePopups(page: Page, maxAttempts: number = 3): Promise<
             const closeButton = dialog.locator(selector).first();
             if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
               await closeButton.click({ force: true, timeout: 5000 });
-              console.log(`  Closed popup via button selector: ${selector}`);
+              console.log(`✓ Closed popup via button selector: ${selector}`);
               closedPopup = true;
               await page.waitForTimeout(1000);
               break;
@@ -183,7 +222,7 @@ export async function closePopups(page: Page, maxAttempts: number = 3): Promise<
         const overlayElement = overlayHandle.asElement();
         if (overlayElement && (await overlayElement.isVisible())) {
           await overlayElement.click({ force: true, timeout: 3000 });
-          console.log("  Closed popup via overlay click");
+          console.log("✓ Closed popup via overlay click");
           closedPopup = true;
         }
         await overlayHandle.dispose();
@@ -191,12 +230,12 @@ export async function closePopups(page: Page, maxAttempts: number = 3): Promise<
 
       // Final fallback
       if (!closedPopup && attempt === maxAttempts) {
-        console.log("  Final fallback: Pressing Escape");
+        console.log("✓ Final fallback: Pressing Escape");
         await page.keyboard.press("Escape");
         await page.waitForTimeout(500);
       }
     } catch (error) {
-      console.warn(`  Attempt ${attempt} error: ${error instanceof Error ? error.message : String(error)}`);
+      console.warn(`⚠ Attempt ${attempt} error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       if (closedPopup) {
         await page.waitForLoadState("networkidle", { timeout: 3000 });
@@ -204,10 +243,71 @@ export async function closePopups(page: Page, maxAttempts: number = 3): Promise<
     }
 
     if (closedPopup) {
-      console.log(`  Attempt ${attempt}: Successfully closed popup`);
+      console.log(`✓ Attempt ${attempt}: Successfully closed popup`);
       break;
     }
   }
 
   console.log("✓ Popup check complete");
+}
+
+/**
+ * Finds the "Show all reviews" button using multiple Playwright locator strategies.
+ * Checks visibility before returning the locator.
+ * @param page The Playwright Page object.
+ * @returns A Playwright Locator for the button, or null if not found or not visible.
+ */
+export async function locateAndScrollToReviewsButton(page: Page): Promise<Locator | null> {
+  console.log("➜ Finding and scrolling to reviews button...");
+  const textRegex = /Show all \d+ reviews/i;
+  let attempts = 0;
+  const maxAttempts = 3; // Add retries in case of timing issues
+
+  while (attempts < maxAttempts) {
+    attempts++;
+    console.log(`➜ Attempt ${attempts}/${maxAttempts}...`);
+
+    try {
+      // 1. Try finding button/link by text content (checking visibility)
+      const buttonByText = page.getByRole("button", { name: textRegex });
+      const linkByText = page.getByRole("link", { name: textRegex });
+      const buttonOrLinkByText = buttonByText.or(linkByText).first(); // Use first() in case multiple matches
+
+      if (await buttonOrLinkByText.isVisible({ timeout: 2000 })) {
+        console.log("✔ Found reviews button via text content ('Show all #number reviews')");
+        await smoothScrollToLocator(page, buttonOrLinkByText);
+        return buttonOrLinkByText;
+      }
+
+      // 2. Fallback to data-testid (checking visibility)
+      const buttonByTestId = page.getByTestId("pdp-show-all-reviews-button");
+      if (await buttonByTestId.isVisible({ timeout: 2000 })) {
+        console.log("✔ Found reviews button via data-testid attribute selector");
+        await smoothScrollToLocator(page, buttonByTestId);
+        return buttonByTestId;
+      }
+
+      // 3. Fallback to aria-label (checking visibility)
+      const elementByLabel = page.locator(`[aria-label*="Show all"][aria-label*="reviews"]`).first(); // Less strict label match
+      if (await elementByLabel.isVisible({ timeout: 2000 })) {
+        console.log("✔ Found reviews button via aria-label attribute selector");
+        await smoothScrollToLocator(page, elementByLabel);
+        return elementByLabel;
+      }
+    } catch (e) {
+      // Ignore timeout errors during isVisible check, proceed to next attempt or fallback
+      if (e instanceof Error && e.message.includes("Timeout")) {
+        console.log(`➜ Visibility check timed out on attempt ${attempts}, trying next...`);
+      } else {
+        console.error(`❌ Error during find attempt ${attempts}:`, e);
+      }
+    }
+
+    if (attempts < maxAttempts) {
+      await page.waitForTimeout(1000); // Wait before retrying
+    }
+  }
+
+  console.log("❌ Reviews button could not be located after multiple attempts.");
+  return null;
 }
