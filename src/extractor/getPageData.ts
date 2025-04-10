@@ -1,7 +1,7 @@
 import { firefox } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
-import { closePopups, locateAndScrollToReviewsButton } from "./helpers";
+import { closePopups, locateAndScrollToReviewsButton, findReviewsNumber } from "./helpers";
 import { EXTRACTION_API_ENDPOINTS_ARRAY } from "./selectors";
 
 /**
@@ -171,22 +171,37 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
       await sleep(2000 + Math.random() * 1000);
     });
 
-    // Locate the reviews button and scroll into view using the helper
-    const reviewsButtonLocator = await locateAndScrollToReviewsButton(page);
+    // Find the reviews number on page and log it
+    const reviewsNumber = await findReviewsNumber(page);
+    if (!reviewsNumber) {
+      console.log("❌ Reviews number not found");
+      return null;
+    }
 
-    if (reviewsButtonLocator) {
-      try {
-        console.log("➜ Clicking reviews button...");
-        // Use force: true cautiously if clicks are sometimes missed due to overlays
-        await reviewsButtonLocator.click({ timeout: 5000 });
-        await randomDelay(1500, 2500); // Wait after click for modal to potentially open/load
-      } catch (error) {
-        console.error(`❌ Error interacting with reviews button: ${error instanceof Error ? error.message : error}`);
+    console.log(`✔ Found reviews number: ${reviewsNumber}`);
+
+    // As we catch all the reviws under 24 with initial API call
+    // we proceed extracting reviews from the reviews modal only if reviewsNumber > 24
+    if (reviewsNumber > 24) {
+      // Locate the reviews button and scroll into view using the helper
+      const reviewsButtonLocator = await locateAndScrollToReviewsButton(page);
+
+      if (reviewsButtonLocator) {
+        try {
+          console.log("➜ Clicking reviews button...");
+          // Use force: true cautiously if clicks are sometimes missed due to overlays
+          await reviewsButtonLocator.click({ timeout: 5000 });
+          await randomDelay(1500, 2500); // Wait after click for modal to potentially open/load
+
+          // Scroll the reviews modal
+        } catch (error) {
+          console.error(`❌ Error interacting with reviews button: ${error instanceof Error ? error.message : error}`);
+          return null;
+        }
+      } else {
+        console.log("❌ Reviews button not found, cannot click to open modal.");
         return null;
       }
-    } else {
-      console.log("❌ Reviews button not found, cannot click to open modal.");
-      return null;
     }
 
     // Final wait for any triggered lazy-loaded content or modal transitions

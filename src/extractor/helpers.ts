@@ -252,13 +252,64 @@ export async function closePopups(page: Page, maxAttempts: number = 3): Promise<
 }
 
 /**
+ * Finds the number of reviews on an Airbnb listing page using multiple pattern matching strategies
+ * @param page The Playwright Page object
+ * @returns The number of reviews as a number, or null if not found
+ */
+export async function findReviewsNumber(page: Page): Promise<number | null> {
+  console.log("➜ Finding reviews number on page...");
+
+  try {
+    return await page.evaluate(() => {
+      // Try multiple patterns that might contain review counts
+      const patterns = [/(\d+)\s+reviews/i, /(\d+)\s+review/i];
+
+      // Get normalized text content with preserved spacing
+      const textContent = Array.from(document.querySelectorAll("*"))
+        .map((el) => {
+          // Get the direct text content of this element (not including children)
+          const text = Array.from(el.childNodes)
+            .filter((node) => node.nodeType === Node.TEXT_NODE)
+            .map((node) => node.textContent)
+            .join(" ");
+
+          // Only return non-empty text with a space suffix to preserve separation
+          return text.trim() ? text.trim() + " " : "";
+        })
+        .join("")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // Try each pattern
+      for (const pattern of patterns) {
+        const match = textContent.match(pattern);
+        if (match && match[1]) {
+          return parseInt(match[1], 10); // Convert string to number
+        }
+      }
+
+      // Fallback to more generic pattern if specific patterns fail
+      const genericMatch = textContent.match(/(\d+)\s*reviews?/i);
+      if (genericMatch && genericMatch[1]) {
+        return parseInt(genericMatch[1], 10); // Convert string to number
+      }
+
+      return null; // No matches found
+    });
+  } catch (error) {
+    console.error(`❌ Error finding reviews number: ${error instanceof Error ? error.message : error}`);
+    return null;
+  }
+}
+
+/**
  * Finds the "Show all reviews" button using multiple Playwright locator strategies.
  * Checks visibility before returning the locator.
  * @param page The Playwright Page object.
  * @returns A Playwright Locator for the button, or null if not found or not visible.
  */
 export async function locateAndScrollToReviewsButton(page: Page): Promise<Locator | null> {
-  console.log("➜ Finding and scrolling to reviews button...");
+  console.log("➜ Finding and scrolling to Show all reviews button...");
   const textRegex = /Show all \d+ reviews/i;
   let attempts = 0;
   const maxAttempts = 3; // Add retries in case of timing issues
