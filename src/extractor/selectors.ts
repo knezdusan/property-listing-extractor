@@ -11,6 +11,12 @@ export const EXTRACTION_API_ENDPOINTS = {
 };
 export const EXTRACTION_API_ENDPOINTS_ARRAY = Object.values(EXTRACTION_API_ENDPOINTS);
 
+// Html selectors ****************************************
+export const HTML_SELECTORS = {
+  REVIEWS_MODAL: 'div[role="dialog"][aria-modal="true"]',
+  REVIEW: "[data-review-id]",
+};
+
 // Api response selectors ****************************************
 export const apiResponseSelectors = {
   // api endpoint: /api/v2/get-data-layer-variables

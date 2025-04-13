@@ -1,8 +1,8 @@
 import { firefox } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
-import { closePopups, locateAndScrollToReviewsButton, findReviewsNumber } from "./helpers";
-import { EXTRACTION_API_ENDPOINTS_ARRAY } from "./selectors";
+import { closePopups, locateAndScrollToReviewsButton, findReviewsNumber, loadAllReviews } from "./helpers";
+import { EXTRACTION_API_ENDPOINTS_ARRAY, HTML_SELECTORS } from "./selectors";
 
 /**
  * Setup Playwright with proxy and extract API data from AirBnB listing API endpoints responses
@@ -194,6 +194,8 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
           await randomDelay(1500, 2500); // Wait after click for modal to potentially open/load
 
           // Scroll the reviews modal
+          // Load all reviews using the helper function
+          await loadAllReviews(page, HTML_SELECTORS.REVIEWS_MODAL, HTML_SELECTORS.REVIEW);
         } catch (error) {
           console.error(`❌ Error interacting with reviews button: ${error instanceof Error ? error.message : error}`);
           return null;

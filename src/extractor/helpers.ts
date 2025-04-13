@@ -362,3 +362,88 @@ export async function locateAndScrollToReviewsButton(page: Page): Promise<Locato
   console.log("❌ Reviews button could not be located after multiple attempts.");
   return null;
 }
+
+/**
+ * Loads all reviews from the Airbnb property listing modal by scrolling the modal dynamically.
+ * Assumes the modal is already open and visible on the page.
+ *
+ * @param page - The Playwright Page instance.
+ * @returns A Promise that resolves when all reviews are loaded.
+ * @throws Error if the modal or scrollable element cannot be found, or if loading fails.
+ */
+export async function loadAllReviews(page: Page, modalSelector: string, reviewSelector: string): Promise<void> {
+  // Step 1: Locate the modal using semantic attributes
+  const modal = await page.locator(modalSelector);
+  await modal.waitFor({ state: "visible", timeout: 10000 });
+  if (!(await modal.isVisible())) {
+    console.error("Error: Reviews modal not found or not visible.");
+    throw new Error("Reviews modal not found");
+  }
+  console.log("Modal found and visible.");
+
+  // Step 2: Locate the scrollable element with a generic selector and a fallback
+  let scrollableElement: Locator | null = null;
+
+  // Primary Approach: Use a more generic selector that doesn't enforce nesting depth
+  const candidates = await modal.locator(`div:has(${reviewSelector})`).all();
+  for (const candidate of candidates) {
+    const isScrollable = await candidate.evaluate((el) => el.scrollHeight > el.clientHeight);
+    if (isScrollable) {
+      scrollableElement = candidate;
+      console.log("Scrollable element found using generic selector (div containing reviews at any depth).");
+      break;
+    }
+  }
+
+  if (!scrollableElement || !(await scrollableElement.isVisible())) {
+    console.log(
+      "Generic selector (div containing reviews) failed or not scrollable. Falling back to known working selector..."
+    );
+
+    // Fallback: Use the known working selector with specific nesting
+    scrollableElement = await modal.locator(`div:has(> div ${reviewSelector})`).first();
+    if (!(await scrollableElement.isVisible())) {
+      const modalHtml = await modal.innerHTML();
+      console.log("Modal HTML for debugging:", modalHtml);
+      console.error("Error: Scrollable element not found in the modal using any approach.");
+      throw new Error("Scrollable element not found");
+    }
+    console.log("Scrollable element found using fallback selector (direct child with specific nesting).");
+  }
+
+  // Step 3: Scroll the modal to load all reviews dynamically
+  let previousReviewCount = 0;
+  let currentReviewCount = 0;
+  const maxReviews = 200;
+  const maxAttempts = 20; // Prevent infinite loops
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    const reviews = await scrollableElement.locator(reviewSelector);
+    currentReviewCount = await reviews.count();
+
+    console.log(`Loaded ${currentReviewCount} reviews so far...`);
+
+    if (currentReviewCount > maxReviews || (currentReviewCount === previousReviewCount && attempts > 0)) {
+      console.log(`No more reviews to load. Total reviews loaded: ${currentReviewCount}.`);
+      break;
+    }
+
+    await scrollableElement.evaluate((el) => {
+      el.scrollTo(0, el.scrollHeight);
+    });
+
+    await page.waitForTimeout(2000);
+    await page.waitForLoadState("networkidle", { timeout: 5000 }).catch((error) => {
+      console.warn(`Network idle wait failed: ${error.message}`);
+    });
+
+    previousReviewCount = currentReviewCount;
+    attempts++;
+  }
+
+  // Step 4: Verify that reviews were loaded
+  if (currentReviewCount === 0) {
+    console.log("No reviews found for this listing.");
+  }
+}
