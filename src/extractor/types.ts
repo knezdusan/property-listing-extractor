@@ -141,6 +141,27 @@ export interface CategoryRatings {
   value: number;
 }
 
+// Reviews interface -------------------------------------
+export interface Reviewer {
+  id: string;
+  name: string;
+  photo: string;
+}
+
+export interface Review {
+  id: string;
+  language: string;
+  comments: string;
+  rating: number;
+  highlight?: string;
+  period?: string;
+  reviewer: Reviewer;
+  response?: string;
+  createdAt: string;
+}
+
+export type Reviews = Review[];
+
 /* ********************************************************************
  * ******* Root listing data interface ********************************
  ******************************************************************* */
@@ -153,12 +174,12 @@ export interface ListingData {
   amenities: AmenityCategory[];
   gallery: Gallery;
   category_ratings: CategoryRatings;
+  reviews: Reviews;
   //   capacity: Capacity;
   //   pricing: Pricing;
   //   availability: Availability;
   //   amenities: Amenities;
   //   images: Image[];
-  //   reviews: Reviews;
   //   booking_availability: BookingAvailability;
   //   cancellation_policy: CancellationPolicy;
   //   check_in_instructions?: string;

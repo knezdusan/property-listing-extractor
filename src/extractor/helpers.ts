@@ -371,15 +371,15 @@ export async function locateAndScrollToReviewsButton(page: Page): Promise<Locato
  * @returns A Promise that resolves when all reviews are loaded.
  * @throws Error if the modal or scrollable element cannot be found, or if loading fails.
  */
-export async function loadAllReviews(page: Page, modalSelector: string, reviewSelector: string): Promise<void> {
+export async function loadAllReviews(page: Page, modalSelector: string, reviewSelector: string): Promise<null | void> {
   // Step 1: Locate the modal using semantic attributes
   const modal = await page.locator(modalSelector);
   await modal.waitFor({ state: "visible", timeout: 10000 });
   if (!(await modal.isVisible())) {
-    console.error("Error: Reviews modal not found or not visible.");
-    throw new Error("Reviews modal not found");
+    console.error("❌ Error: Reviews modal not found or not visible.");
+    return null;
   }
-  console.log("Modal found and visible.");
+  console.log("✓ Modal found and visible.");
 
   // Step 2: Locate the scrollable element with a generic selector and a fallback
   let scrollableElement: Locator | null = null;
@@ -390,25 +390,25 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
     const isScrollable = await candidate.evaluate((el) => el.scrollHeight > el.clientHeight);
     if (isScrollable) {
       scrollableElement = candidate;
-      console.log("Scrollable element found using generic selector (div containing reviews at any depth).");
+      console.log("✓ Scrollable element found using generic selector (div containing reviews at any depth).");
       break;
     }
   }
 
   if (!scrollableElement || !(await scrollableElement.isVisible())) {
-    console.log(
-      "Generic selector (div containing reviews) failed or not scrollable. Falling back to known working selector..."
+    console.warn(
+      "⚠ Generic selector (div containing reviews) failed or not scrollable. Falling back to known working selector..."
     );
 
     // Fallback: Use the known working selector with specific nesting
     scrollableElement = await modal.locator(`div:has(> div ${reviewSelector})`).first();
     if (!(await scrollableElement.isVisible())) {
       const modalHtml = await modal.innerHTML();
-      console.log("Modal HTML for debugging:", modalHtml);
-      console.error("Error: Scrollable element not found in the modal using any approach.");
-      throw new Error("Scrollable element not found");
+      console.warn("⚠ Modal HTML for debugging:", modalHtml);
+      console.error("❌ Error: Scrollable element not found in the modal using any approach.");
+      return null;
     }
-    console.log("Scrollable element found using fallback selector (direct child with specific nesting).");
+    console.log("✓ Scrollable element found using fallback selector (direct child with specific nesting).");
   }
 
   // Step 3: Scroll the modal to load all reviews dynamically
@@ -422,10 +422,10 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
     const reviews = await scrollableElement.locator(reviewSelector);
     currentReviewCount = await reviews.count();
 
-    console.log(`Loaded ${currentReviewCount} reviews so far...`);
+    console.log(`⏱ Loaded ${currentReviewCount} reviews so far...`);
 
     if (currentReviewCount > maxReviews || (currentReviewCount === previousReviewCount && attempts > 0)) {
-      console.log(`No more reviews to load. Total reviews loaded: ${currentReviewCount}.`);
+      console.log(`✓ No more reviews to load. Total reviews loaded: ${currentReviewCount}.`);
       break;
     }
 
@@ -435,7 +435,7 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
 
     await page.waitForTimeout(2000);
     await page.waitForLoadState("networkidle", { timeout: 5000 }).catch((error) => {
-      console.warn(`Network idle wait failed: ${error.message}`);
+      console.warn(`⚠ Network idle wait failed: ${error.message}`);
     });
 
     previousReviewCount = currentReviewCount;
@@ -444,6 +444,7 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
 
   // Step 4: Verify that reviews were loaded
   if (currentReviewCount === 0) {
-    console.log("No reviews found for this listing.");
+    console.error("❌ No reviews found for this listing.");
+    return null;
   }
 }

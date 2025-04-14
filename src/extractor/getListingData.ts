@@ -1,5 +1,5 @@
 // Import all types from the types file
-import { getNestedValue, findNestedObjectByPropValue } from "@/utils/helpers";
+import { getNestedValue, findNestedObjectByPropValue, isValidMonthYear } from "@/utils/helpers";
 import { AirbnbApiData, ListingData } from "./types";
 
 import { apiResponseNestedSelectors, apiResponseSelectors, dataLayerSelectors } from "./selectors";
@@ -208,6 +208,24 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  // Listing reviews nested objects
+  const listingReviewsSection = findNestedObjectByPropValue(
+    apiData,
+    "reviews",
+    "__typename",
+    apiResponseNestedSelectors.LISTING_REVIEWS
+  );
+  if (!listingReviewsSection) {
+    console.error("❌ No listing reviews section found");
+    return null;
+  }
+
+  const reviewsData = listingReviewsSection["reviews"] as Record<string, unknown>[] | null;
+  if (!reviewsData) {
+    console.error("❌ No reviews data found");
+    return null;
+  }
+
   /* ********************************************************************************************
    *************************************** Extract API Sections Data *****************************
    ******************************************************************************************** */
@@ -279,6 +297,13 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  // Extract reviews data ---------------- :
+  const reviews = extractReviewsData(reviewsData);
+  if (!reviews) {
+    console.error("❌ Failed to extract reviews data");
+    return null;
+  }
+
   const listingData: ListingData = {
     host: hostData,
     listing: mainListing,
@@ -288,12 +313,12 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     amenities,
     gallery,
     category_ratings,
+    reviews,
     // capacity: extractCapacityData(apiData),
     // pricing: extractPricingData(apiData),
     // availability: extractAvailabilityData(apiData),
     // amenities: extractAmenitiesData(apiData),
     // images: extractImagesData(apiData),
-    // reviews: extractReviewsData(apiData),
     // booking_availability: extractBookingAvailabilityData(apiData),
     // cancellation_policy: extractCancellationPolicyData(apiData),
     // check_in_instructions: extractCheckInInstructionsData(apiData),
@@ -731,4 +756,55 @@ export function extractCategoryRatingsData(categoryRatings: Record<string, unkno
     value,
     guest_satisfaction,
   };
+}
+
+// Extract reviews data from API response ApiData object segment
+function extractReviewsData(reviews: Record<string, unknown>[]) {
+  if (!reviews) {
+    return null;
+  }
+
+  const reviewsData = reviews.map((review) => {
+    // Extract comments according to language
+    let comments = "";
+    const language = (review["language"] as string) || "";
+
+    if (language === "en") {
+      comments = (review["comments"] as string) || "";
+    } else {
+      comments = ((review["localizedReview"] as Record<string, unknown>)?.["comments"] as string) || "";
+    }
+
+    // Extract reviewer data
+    const reviewerData = (review["reviewer"] as Record<string, unknown>) || {};
+    const reviewerId = (reviewerData["id"] as string) || "";
+    const reviewerName = (reviewerData["name"] as string) || "";
+    const photo = (reviewerData["pictureUrl"] as string) || "";
+    const reviewer = {
+      id: reviewerId,
+      name: reviewerName,
+      photo,
+    };
+
+    // Extract visit period
+    let period = (review["localizedDate"] as string) || "";
+    // if period is empty or if it is not this date format (e.g., June 2023), set it this month, this year
+    if (!period || !isValidMonthYear(period)) {
+      period = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+
+    return {
+      id: (review["id"] as string) || "",
+      language,
+      comments,
+      rating: (review["rating"] as number) || 0,
+      highlight: (review["reviewHighlight"] as string) || "",
+      period,
+      reviewer,
+      response: (review["response"] as string) || "",
+      createdAt: (review["createdAt"] as string) || "",
+    };
+  });
+
+  return reviewsData;
 }

@@ -20,6 +20,41 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
+// Helper function: Checks if a string is a valid month-year format like "June 2023"
+export function isValidMonthYear(monthYearString: string) {
+  const parts = monthYearString.split(" ");
+  if (parts.length !== 2) {
+    return false; // Incorrect format
+  }
+
+  const monthName = parts[0];
+  const yearString = parts[1];
+  const year = parseInt(yearString, 10);
+
+  if (isNaN(year) || year < 1000 || year > 9999) {
+    return false; // Invalid year format
+  }
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const monthIndex = monthNames.indexOf(monthName);
+
+  return monthIndex !== -1; // Month name is valid
+}
+
 // Helper function getWithRetry
 export async function getWithRetry<T>(getFunction: () => Promise<T>, MAX_RETRIES = 3, getWhat: string) {
   let result = null;

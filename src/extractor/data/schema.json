@@ -253,78 +253,6 @@
       }
     }
   },
-  "category_ratings": {
-    "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
-    "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
-    "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
-    "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
-    "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
-    "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true },
-    "guest_satisfaction": {
-      "type": "number",
-      "description": "Guest satisfaction rating (e.g., 4.96)",
-      "optional": true
-    }
-  },
-  "reviews": {
-    "type": "array",
-    "description": "List of individual reviews",
-    "items": {
-      "id": { "type": "string", "description": "Review ID" },
-      "date": { "type": "string", "description": "Review date in YYYY-MM-DD format" },
-      "text": { "type": "string", "description": "Review content" },
-      "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
-      "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
-      "reviewer": {
-        "id": { "type": "string", "description": "Reviewer ID" },
-        "name": { "type": "string", "description": "Reviewer first name" }
-      }
-    },
-    "optional": true
-  },
-  "legal_disclaimer": {
-    "type": "string",
-    "description": "Legal disclaimers or requirements (e.g., 'Must provide ID upon check-in')",
-    "optional": true
-  },
-  "pricing": {
-    "base_price": { "type": "number", "description": "Base price per night (e.g., 280)" },
-    "currency": { "type": "string", "description": "Currency code (e.g., 'USD')" },
-    "currency_symbol": {
-      "type": "string",
-      "description": "Currency symbol for display (e.g., '$')",
-      "note": "Made non-optional for display consistency"
-    },
-    "cleaning_fee": { "type": "number", "description": "Cleaning fee if applicable (e.g., 50)", "optional": true },
-    "service_fee": { "type": "number", "description": "Airbnb service fee", "optional": true },
-    "security_deposit": { "type": "number", "description": "Security deposit amount (e.g., 200)", "optional": true },
-    "taxes": {
-      "type": "object",
-      "description": "Breakdown of applicable taxes (e.g., { 'VAT': 10, 'City Tax': 5 })",
-      "additionalProperties": { "type": "number", "description": "Tax percentage or amount" },
-      "optional": true
-    },
-    "tax_breakdown": {
-      "type": "object",
-      "description": "Detailed breakdown of taxes (e.g., { 'VAT': 10, 'City Tax': 5 })",
-      "additionalProperties": { "type": "number", "description": "Tax percentage or amount" },
-      "optional": true,
-      "note": "Redundant with taxes; kept for clarity"
-    },
-    "additional_guest_fee": {
-      "type": "number",
-      "description": "Fee for extra guests beyond base capacity",
-      "optional": true
-    },
-    "discounts": {
-      "weekly": { "type": "number", "description": "Percentage discount for weekly stays", "optional": true },
-      "monthly": { "type": "number", "description": "Percentage discount for monthly stays", "optional": true }
-    },
-    "dynamic_pricing": {
-      "enabled": { "type": "boolean", "description": "Indicates if dynamic pricing is used", "optional": true },
-      "tool": { "type": "string", "description": "Name of pricing tool (e.g., 'PriceLabs')", "optional": true }
-    }
-  },
   "availability": {
     "can_instant_book": { "type": "boolean", "description": "Instant book availability (e.g., false)" },
     "calendar": {
@@ -376,6 +304,89 @@
       "type": "string",
       "description": "Check-out time window (e.g., '10 AM - 12 PM')",
       "optional": true
+    }
+  },
+  "category_ratings": {
+    "accuracy": { "type": "number", "description": "Accuracy rating (e.g., 4.94)", "optional": true },
+    "check_in": { "type": "number", "description": "Check-in rating (e.g., 4.95)", "optional": true },
+    "cleanliness": { "type": "number", "description": "Cleanliness rating (e.g., 4.88)", "optional": true },
+    "communication": { "type": "number", "description": "Communication rating (e.g., 4.98)", "optional": true },
+    "location": { "type": "number", "description": "Location rating (e.g., 4.94)", "optional": true },
+    "value": { "type": "number", "description": "Value rating (e.g., 4.75)", "optional": true },
+    "guest_satisfaction": {
+      "type": "number",
+      "description": "Guest satisfaction rating (e.g., 4.96)",
+      "optional": true
+    }
+  },
+  "reviews": {
+    "type": "array",
+    "description": "List of individual reviews",
+    "items": {
+      "id": { "type": "string", "description": "Review ID" },
+      "language": { "type": "string", "description": "Review language" },
+      "comments": { "type": "string", "description": "Review content in english" },
+      "rating": { "type": "number", "description": "Star rating for this review (e.g., 5)" },
+      "highlight": { "type": "string", "description": "Review highlight, eg. 'Stayed one night'", "optional": true },
+      "period": { "type": "string", "description": "Visit period, eg. 'June 2023'", "optional": true },
+      "reviewer": {
+        "type": "object",
+        "description": "Reviewer information",
+        "properties": {
+          "id": { "type": "string", "description": "Reviewer ID" },
+          "name": { "type": "string", "description": "Reviewer first name" },
+          "photo": { "type": "string", "description": "Reviewer photo URL" }
+        }
+      },
+      "response": { "type": "string", "description": "Host’s response to the review", "optional": true },
+      "createdAt": {
+        "type": "string",
+        "description": "Review date in YYYY-MM-DDTHH:mm:ssZ format (e.g., '2023-05-30T13:32:06Z')"
+      }
+    },
+    "optional": true
+  },
+  "legal_disclaimer": {
+    "type": "string",
+    "description": "Legal disclaimers or requirements (e.g., 'Must provide ID upon check-in')",
+    "optional": true
+  },
+  "pricing": {
+    "base_price": { "type": "number", "description": "Base price per night (e.g., 280)" },
+    "currency": { "type": "string", "description": "Currency code (e.g., 'USD')" },
+    "currency_symbol": {
+      "type": "string",
+      "description": "Currency symbol for display (e.g., '$')",
+      "note": "Made non-optional for display consistency"
+    },
+    "cleaning_fee": { "type": "number", "description": "Cleaning fee if applicable (e.g., 50)", "optional": true },
+    "service_fee": { "type": "number", "description": "Airbnb service fee", "optional": true },
+    "security_deposit": { "type": "number", "description": "Security deposit amount (e.g., 200)", "optional": true },
+    "taxes": {
+      "type": "object",
+      "description": "Breakdown of applicable taxes (e.g., { 'VAT': 10, 'City Tax': 5 })",
+      "additionalProperties": { "type": "number", "description": "Tax percentage or amount" },
+      "optional": true
+    },
+    "tax_breakdown": {
+      "type": "object",
+      "description": "Detailed breakdown of taxes (e.g., { 'VAT': 10, 'City Tax': 5 })",
+      "additionalProperties": { "type": "number", "description": "Tax percentage or amount" },
+      "optional": true,
+      "note": "Redundant with taxes; kept for clarity"
+    },
+    "additional_guest_fee": {
+      "type": "number",
+      "description": "Fee for extra guests beyond base capacity",
+      "optional": true
+    },
+    "discounts": {
+      "weekly": { "type": "number", "description": "Percentage discount for weekly stays", "optional": true },
+      "monthly": { "type": "number", "description": "Percentage discount for monthly stays", "optional": true }
+    },
+    "dynamic_pricing": {
+      "enabled": { "type": "boolean", "description": "Indicates if dynamic pricing is used", "optional": true },
+      "tool": { "type": "string", "description": "Name of pricing tool (e.g., 'PriceLabs')", "optional": true }
     }
   },
   "cancellation_policy": {

@@ -2,7 +2,7 @@ import { firefox } from "playwright";
 import { getProxyData } from "./proxy";
 import { getWithRetry, randomDelay } from "@/utils/helpers";
 import { closePopups, locateAndScrollToReviewsButton, findReviewsNumber, loadAllReviews } from "./helpers";
-import { EXTRACTION_API_ENDPOINTS_ARRAY, HTML_SELECTORS } from "./selectors";
+import { EXTRACTION_API_ENDPOINTS_ARRAY, HTML_SELECTORS, EXTRACTION_API_ENDPOINTS } from "./selectors";
 
 /**
  * Setup Playwright with proxy and extract API data from AirBnB listing API endpoints responses
@@ -74,16 +74,82 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     // Get array of API endpoints from config
     const apiEndpoints: string[] = EXTRACTION_API_ENDPOINTS_ARRAY;
 
+    // Store original request headers for potential re-fetching
+    const originalRequestHeaders: Record<string, Record<string, string>> = {};
+
+    // Capture request headers for potential re-fetching
+    page.on("request", (request) => {
+      for (const endpoint of apiEndpoints) {
+        if (request.url().includes(endpoint)) {
+          originalRequestHeaders[endpoint] = request.headers();
+        }
+      }
+    });
+
     page.on("response", async (response) => {
       const url = response.url();
 
       for (const endpoint of apiEndpoints) {
         if (url.includes(endpoint)) {
-          const json = await response.json().catch(() => null);
-          if (json) {
-            apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
-          } else {
-            console.log(`Failed to parse JSON for ${endpoint}, response status: ${response.status()}`);
+          try {
+            // Special handling for the problematic reviews endpoint
+            if (endpoint === EXTRACTION_API_ENDPOINTS.reviews) {
+              // Implement retry logic for direct fetch
+              const maxRetries = 3;
+              let retryCount = 0;
+              let success = false;
+
+              while (retryCount < maxRetries && !success) {
+                try {
+                  // Get headers from the original request if available
+                  const headers = originalRequestHeaders[endpoint] || {};
+
+                  // Make a direct request using Playwright's request API
+                  const apiResponse = await page.request.get(url, {
+                    headers: headers,
+                  });
+
+                  // Process the response body
+                  const text = await apiResponse.text();
+                  const json = JSON.parse(text);
+
+                  if (json) {
+                    apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
+                    console.log(
+                      `✓ Successfully fetched and processed ${endpoint} data directly (attempt ${
+                        retryCount + 1
+                      }/${maxRetries})`
+                    );
+                    success = true;
+                  }
+                } catch (directFetchError) {
+                  retryCount++;
+                  if (retryCount < maxRetries) {
+                    console.warn(
+                      `⚠ Attempt ${retryCount}/${maxRetries} failed for ${endpoint}: ${
+                        directFetchError instanceof Error ? directFetchError.message : directFetchError
+                      }`
+                    );
+                    // Exponential backoff with jitter
+                    const backoffTime = Math.min(1000 * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
+                    console.log(`⏱ Retrying in ${Math.round(backoffTime / 1000)} seconds...`);
+                    await page.waitForTimeout(backoffTime);
+                  } else {
+                    console.error(`❌ All ${maxRetries} retry attempts failed for ${endpoint}:`, directFetchError);
+                  }
+                }
+              }
+            } else {
+              // Normal handling for other endpoints
+              const json = await response.json().catch(() => null);
+              if (json) {
+                apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
+              } else {
+                console.log(`Failed to parse JSON for ${endpoint}, response status: ${response.status()}`);
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Error processing response from ${endpoint}:`, error);
           }
         }
       }
@@ -193,9 +259,14 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
           await reviewsButtonLocator.click({ timeout: 5000 });
           await randomDelay(1500, 2500); // Wait after click for modal to potentially open/load
 
-          // Scroll the reviews modal
           // Load all reviews using the helper function
           await loadAllReviews(page, HTML_SELECTORS.REVIEWS_MODAL, HTML_SELECTORS.REVIEW);
+
+          // if loadAllReviews returns null, return null
+          if (!apiData[EXTRACTION_API_ENDPOINTS.reviews]) {
+            console.error("❌ Reviews data not extracted from the reviews modal.");
+            return null;
+          }
         } catch (error) {
           console.error(`❌ Error interacting with reviews button: ${error instanceof Error ? error.message : error}`);
           return null;

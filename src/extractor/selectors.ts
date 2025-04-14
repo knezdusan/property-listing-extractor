@@ -44,6 +44,7 @@ export const apiResponseNestedSelectors = {
   LISTING_LOCATION: "LocationSection",
   SLEEPING_ARRANGEMENT: "SleepingArrangementSection",
   GALLERY_PHOTOS: "PhotoTourModalSection",
+  LISTING_REVIEWS: "PdpReviews",
 };
 
 // Data layer API endpoint selectors ****************************************
