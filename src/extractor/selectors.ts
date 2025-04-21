@@ -11,6 +11,11 @@ export const EXTRACTION_API_ENDPOINTS = {
 };
 export const EXTRACTION_API_ENDPOINTS_ARRAY = Object.values(EXTRACTION_API_ENDPOINTS);
 
+export const LISTING_DATA_PATHS = {
+  apiData: "src/extractor/data/api-data.json",
+  listingData: "src/extractor/data/listing-data.json",
+};
+
 // Html selectors ****************************************
 export const HTML_SELECTORS = {
   REVIEWS_MODAL: 'div[role="dialog"][aria-modal="true"]',
@@ -35,6 +40,9 @@ export const apiResponseSelectors = {
   AMENITIES_HIGHLIGHTS: "previewAmenitiesGroups", // amenities highlights - top amenities
   AMENITIES_ALL: "seeAllAmenitiesGroups", // amenities see all - categorized amenities
   GALLERY_TOUR: "roomTourItems", // gallery tour
+  // api endpoint: /api/v3/PdpAvailabilityCalendar
+  AVAILABILITY: "calendarMonths", // availability data - per month per day
+  MIN_NIGHTS: "constantMinNights", // A default minimum night stay for the listing
 };
 
 // Api response nested selectors ****************************************

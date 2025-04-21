@@ -3,10 +3,10 @@
 import { scrp } from "@/extractor/scrp";
 import { formatListingUrl, validateAirbnbUrl } from "@/extractor/helpers";
 
-export async function extractListing(previousData: string, formData: FormData): Promise<string> {
+export async function extractListing(prevData: string, formData: FormData): Promise<string> {
   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");
 
-  // Use the URL provided by the form, or fall back to test URL if empty
+  // Use the URL provided by the form, (or fall back if exists to test URL if empty)
   let listingUrl = formData.get("url") as string;
 
   // Ensure it's a non-empty string

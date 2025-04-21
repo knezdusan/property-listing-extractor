@@ -131,6 +131,19 @@ interface AmenityCategory {
   amenities: AmenityItem[];
 }
 
+// Availability interface -------------------------------------
+export interface Availability {
+  minNights: number;
+  booked: UnavailableRange[];
+}
+
+export interface UnavailableRange {
+  start: string;
+  end: string;
+  checkout: boolean;
+  checkin: boolean;
+}
+
 // Category ratings interface -------------------------------------
 export interface CategoryRatings {
   accuracy: number;
@@ -173,11 +186,11 @@ export interface ListingData {
   safety_property: SafetyProperty;
   amenities: AmenityCategory[];
   gallery: Gallery;
+  availability: Availability;
   category_ratings: CategoryRatings;
   reviews: Reviews;
   //   capacity: Capacity;
   //   pricing: Pricing;
-  //   availability: Availability;
   //   amenities: Amenities;
   //   images: Image[];
   //   booking_availability: BookingAvailability;

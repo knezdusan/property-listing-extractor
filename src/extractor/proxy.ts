@@ -29,9 +29,8 @@ export async function getProxyData(): Promise<ProxyData | null> {
   const randomProxyPool = await fetchRandomProxies();
   if (randomProxyPool.length === 0) return null;
 
-  console.log("➜➜➜➜ Fetching single proxy datat from random proxy pool...");
-
   const singleProxy = randomProxyPool[0];
+  console.log(`➜➜ Fetching single proxy datat from random proxy pool: ${singleProxy}`);
 
   // Extract the server, username, and password from the proxy string -----------------------------
   const [server, username, password] = singleProxy.split("|");
@@ -68,9 +67,8 @@ export async function getProxyData(): Promise<ProxyData | null> {
  *   "https://username:password@hostname:port",
  * ]
  */
-
 async function fetchRandomProxies(): Promise<string[]> {
-  console.log("➜➜➜➜ Fetching proxy pool...");
+  console.log("➜➜ Fetching proxy pool...");
 
   // fetch 4 random country proxies
   const proxyPool: string[] = [];
@@ -103,7 +101,7 @@ async function fetchRandomProxies(): Promise<string[]> {
   const combinedPool = [...usProxyPool, ...proxyPool];
 
   if (!combinedPool.length) {
-    console.error("❌Failed to fetch any proxies");
+    console.error("❌ Failed to fetch any proxies");
     return [];
   }
 
@@ -158,7 +156,7 @@ async function fetchProxyPool(count: number = 10, location: string = "_country-u
       };
 
       try {
-        console.log(`➜ Fetching proxies for ${location}... (Attempt ${attempt + 1}/${maxRetries + 1})`);
+        console.log(`⏱ Fetching proxies for ${location}... (Attempt ${attempt + 1}/${maxRetries + 1})`);
         const response = await fetch(url, {
           method: "POST",
           headers: {
@@ -169,12 +167,12 @@ async function fetchProxyPool(count: number = 10, location: string = "_country-u
         });
 
         if (!response.ok) {
-          throw new Error(`❌ API returned ${response.status}: ${response.statusText}`);
+          throw new Error(` - API returned ${response.status}: ${response.statusText}`);
         }
 
         const proxyStrings = await response.json();
         if (!proxyStrings || !Array.isArray(proxyStrings) || proxyStrings.length === 0) {
-          throw new Error("❌ API returned empty or invalid proxy list");
+          throw new Error(" - API returned empty or invalid proxy list");
         }
 
         const proxyList = proxyStrings.map((proxyString: string) => {
@@ -194,7 +192,7 @@ async function fetchProxyPool(count: number = 10, location: string = "_country-u
       // If we have retries left, try again
       if (attempt < maxRetries) {
         attempt++;
-        console.log(`Retrying (${attempt}/${maxRetries})...`);
+        console.log(`⏱ Retrying (${attempt}/${maxRetries})...`);
         // Wait 2 seconds before retrying
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } else {

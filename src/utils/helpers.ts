@@ -1,6 +1,23 @@
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
 
+// Override console.warn and console.error to color warnings and errors
+const RESET = "\x1b[0m";
+const YELLOW = "\x1b[33m";
+const RED = "\x1b[31m";
+
+console.warn = (...args: unknown[]) => {
+  process.stdout.write(YELLOW);
+  console.log(...args);
+  process.stdout.write(RESET);
+};
+
+console.error = (...args: unknown[]) => {
+  process.stdout.write(RED);
+  console.log(...args);
+  process.stdout.write(RESET);
+};
+
 // Helper function: Random delay to mimic human behavior
 export const randomDelay = (min = 500, max = 3000) => {
   const delay = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -71,7 +88,7 @@ export async function getWithRetry<T>(getFunction: () => Promise<T>, MAX_RETRIES
     if (attempt < MAX_RETRIES) {
       // Wait with increasing backoff between retries (1s, 2s, 4s...)
       const delayMs = 1000 * Math.pow(2, attempt - 1);
-      console.log(`⏱️ Waiting ${delayMs}ms before retry ${attempt + 1}...`);
+      console.log(`⏱ Waiting ${delayMs}ms before retry ${attempt + 1}...`);
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }

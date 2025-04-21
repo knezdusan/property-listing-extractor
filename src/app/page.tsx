@@ -1,6 +1,6 @@
 "use client";
 
-import { extractListing } from "@/actions/extract-listing";
+import { extractListing } from "@/actions/extractListing";
 import styles from "./page.module.css";
 import { useActionState } from "react";
 

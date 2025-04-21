@@ -10,7 +10,7 @@ import { EXTRACTION_API_ENDPOINTS_ARRAY, HTML_SELECTORS, EXTRACTION_API_ENDPOINT
  * @returns apiData - intercepted API response data
  */
 export async function getPageData(url: string): Promise<Record<string, unknown> | null> {
-  console.log("➜➜➜➜ Setting up Playwright...");
+  console.log("➜➜ Setting up Playwright...");
 
   // Get proxy data { server, username, password, language, locale, timezone, acceptLanguage } ---------
   const proxyData = await getWithRetry(getProxyData, 3, "Getting proxy data");
@@ -209,7 +209,7 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     await randomDelay(2000, 3000);
 
     // Scroll down to trigger lazy loading content
-    console.log("➜ Scrolling to load dynamic content...");
+    console.log("➜ Scrolling to load dynamic listing page content...");
 
     // Use a smoother scroll-down approach to mimic human behavior
     await page.evaluate(async () => {
@@ -290,6 +290,7 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     return null;
   } finally {
     // Close the browser to avoid resource leaks
+    console.log("☉ Closing browser...");
     await context.close();
     await browser.close();
   }

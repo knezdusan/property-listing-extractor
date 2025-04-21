@@ -31,13 +31,16 @@
       "description": "Business details (e.g., 'Business address, business registration number, business email, business phone number')",
       "optional": true
     },
-    "co_hosts": {
+    "cohosts": {
       "type": "array",
       "description": "List of co-hosts",
       "items": {
-        "id": { "type": "string", "description": "Co-host ID" },
-        "name": { "type": "string", "description": "Co-host name" },
-        "rating": { "type": "number", "description": "Co-host average rating (e.g., 4.86)", "optional": true }
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Co-host ID" },
+          "name": { "type": "string", "description": "Co-host name" },
+          "rating": { "type": "number", "description": "Co-host average rating (e.g., 4.86)", "optional": true }
+        }
       },
       "optional": true
     },
@@ -45,9 +48,12 @@
       "type": "array",
       "description": "List of other listings by the host",
       "items": {
-        "id": { "type": "string", "description": "Listing ID" },
-        "name": { "type": "string", "description": "Listing name" },
-        "url": { "type": "string", "description": "Listing URL" }
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Listing ID" },
+          "name": { "type": "string", "description": "Listing name" },
+          "url": { "type": "string", "description": "Listing URL" }
+        }
       },
       "optional": true
     }
@@ -254,56 +260,23 @@
     }
   },
   "availability": {
-    "can_instant_book": { "type": "boolean", "description": "Instant book availability (e.g., false)" },
-    "calendar": {
+    "minNights": {
+      "type": "integer",
+      "description": "Minimum nights required for the listing (e.g., 1)",
+      "optional": true
+    },
+    "booked": {
       "type": "array",
-      "description": "Availability dates",
       "items": {
-        "date": { "type": "string", "description": "Date in YYYY-MM-DD format" },
-        "available": { "type": "boolean", "description": "Availability status" },
-        "price": { "type": "number", "description": "Price for that date", "optional": true },
-        "notes": {
-          "type": "string",
-          "description": "Additional context (e.g., 'Price adjusted for holiday season')",
-          "optional": true
+        "type": "object",
+        "properties": {
+          "start": { "type": "string" },
+          "end": { "type": "string" },
+          "checkOut": { "type": "string" },
+          "checkIn": { "type": "string" }
         }
       },
-      "optional": true
-    },
-    "blocked_dates": {
-      "type": "array",
-      "description": "Dates unavailable for booking",
-      "items": { "type": "string", "description": "Date in YYYY-MM-DD format" },
-      "optional": true
-    },
-    "minimum_stay": { "type": "integer", "description": "Minimum nights required (e.g., 1)", "optional": true },
-    "maximum_stay": { "type": "integer", "description": "Maximum nights allowed", "optional": true },
-    "advance_notice": {
-      "type": "string",
-      "description": "Advance notice required for booking (e.g., '2 days')",
-      "optional": true
-    },
-    "booking_window": {
-      "type": "string",
-      "description": "How far in advance guests can book (e.g., '6 months')",
-      "optional": true,
-      "source": "Airbnb’s booking settings"
-    },
-    "last_minute_booking": {
-      "type": "boolean",
-      "description": "Indicates if last-minute bookings are allowed",
-      "optional": true,
-      "source": "Airbnb’s booking preferences"
-    },
-    "check_in_window": {
-      "type": "string",
-      "description": "Check-in time window (e.g., '3 PM - 9 PM')",
-      "optional": true
-    },
-    "check_out_window": {
-      "type": "string",
-      "description": "Check-out time window (e.g., '10 AM - 12 PM')",
-      "optional": true
+      "description": "List of booked date ranges"
     }
   },
   "category_ratings": {

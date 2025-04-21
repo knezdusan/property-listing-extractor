@@ -1,6 +1,7 @@
+import { getListingData } from "./getListingData";
 import { getPageData } from "./getPageData";
-import { getPropertyData } from "./transformer";
 import { getWithRetry, removeNestedValue, saveToFile } from "@/utils/helpers";
+import { LISTING_DATA_PATHS } from "./selectors";
 
 /**
  * function function scrp(url: string): Promise<string | null>
@@ -23,19 +24,19 @@ export async function scrp(url: string): Promise<string | null> {
       console.error("❌ Failed to remove 'screens' property from apiData");
     }
 
-    // Save the apiData to src/data/apiData.json
-    await saveToFile(JSON.stringify(apiData), "src/extractor/data/apiData.json");
+    // Save the apiData to src/data/api-data.json
+    await saveToFile(JSON.stringify(apiData), LISTING_DATA_PATHS.apiData);
 
-    // Transform the apiData to property data
-    const propertyData = getPropertyData(apiData);
-    if (propertyData) {
-      console.log("✔ Successfully transformed property data from apiData");
+    // Transform the apiData to listing data and save to src/data/listing-data.json
+    const listingData = getListingData(apiData);
+    if (listingData) {
+      console.log("✔ Successfully transformed property listing data from apiData JSON to listingData JSON");
 
-      // Save the property data to src/data/propertyData.json
-      console.log("➜ Saving property data to propertyData.json");
-      await saveToFile(JSON.stringify(propertyData), "src/extractor/data/propertyData.json");
+      // Save the listing data to src/data/listing-data.json
+      console.log("➜ Saving listing data to listing-data.json");
+      await saveToFile(JSON.stringify(listingData), LISTING_DATA_PATHS.listingData);
     } else {
-      console.error("❌ Failed to transform property data");
+      console.error("❌ Failed to transform property listing data from apiData JSON to listingData JSON");
     }
 
     return "listing data to be extracted";

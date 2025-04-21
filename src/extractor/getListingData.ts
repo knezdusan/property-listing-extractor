@@ -1,6 +1,6 @@
 // Import all types from the types file
 import { getNestedValue, findNestedObjectByPropValue, isValidMonthYear } from "@/utils/helpers";
-import { AirbnbApiData, ListingData } from "./types";
+import { AirbnbApiData, ListingData, Availability, UnavailableRange } from "./types";
 
 import { apiResponseNestedSelectors, apiResponseSelectors, dataLayerSelectors } from "./selectors";
 
@@ -19,6 +19,8 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     console.error("❌ No listing title found");
     return null;
   }
+
+  const minNights = getNestedValue(apiData, apiResponseSelectors.MIN_NIGHTS) as number | null;
 
   // Indirect selectors - return nested objects or null **********
 
@@ -45,7 +47,7 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
 
   // listing hero image data
   const heroImageData = heroImages[0] as Record<string, unknown> | null;
-  console.log("Hero image data:", heroImageData);
+  console.log("✔ Hero image data extracted.");
   if (!heroImageData) {
     console.error("❌ No hero image data found");
     return null;
@@ -128,6 +130,12 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
       : null;
   if (!categoryRatings) {
     console.error("❌ No category ratings found");
+    return null;
+  }
+
+  const availabilityData = getNestedValue(apiData, apiResponseSelectors.AVAILABILITY) as unknown[];
+  if (!availabilityData) {
+    console.error("❌ No availability data found");
     return null;
   }
 
@@ -290,6 +298,13 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  // Extract availability data ----------------------------------------------------------------------- :
+  const availability = extractAvailabilityData(availabilityData, minNights || 1);
+  if (!availability) {
+    console.error("❌ Failed to extract availability data");
+    return null;
+  }
+
   // Extract category ratings data ------------------------------------------------------------------- :
   const category_ratings = extractCategoryRatingsData(categoryRatings);
   if (!category_ratings) {
@@ -312,29 +327,17 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     safety_property,
     amenities,
     gallery,
+    availability,
     category_ratings,
     reviews,
-    // capacity: extractCapacityData(apiData),
-    // pricing: extractPricingData(apiData),
-    // availability: extractAvailabilityData(apiData),
-    // amenities: extractAmenitiesData(apiData),
-    // images: extractImagesData(apiData),
-    // booking_availability: extractBookingAvailabilityData(apiData),
-    // cancellation_policy: extractCancellationPolicyData(apiData),
-    // check_in_instructions: extractCheckInInstructionsData(apiData),
-    // accessibility_features: extractAccessibilityFeaturesData(apiData),
-    // listing_expectations: extractListingExpectationsData(apiData),
-    // locale_details: extractLocaleDetailsData(apiData),
-    // seo: extractSeoData(apiData),
-    // additional_rules: extractAdditionalRulesData(apiData),
   };
 
   return listingData;
 }
 
-/* *************************************************************************************************************
- * ******************* Helper functions ************************************************************************
- ************************************************************************************************************ */
+/* *******************************************************************************************
+ * ******************* Helper functions ******************************************************
+ ****************************************************************************************** */
 
 // Extract host data from API response ApiData object segment
 function extractHostData(hostSection: Record<string, unknown>) {
@@ -372,12 +375,12 @@ function extractHostData(hostSection: Record<string, unknown>) {
   const detailsData = hostSection["hostDetails"] as string[] | null;
   const details = detailsData?.map((item) => item) || [];
 
-  const coHostsData = hostSection["coHosts"] as Record<string, unknown>[] | null;
-  const co_hosts =
-    coHostsData?.map((coHost) => ({
-      id: (coHost["id"] as string) || "",
-      name: (coHost["name"] as string) || "",
-      rating: (coHost["rating"] as number) || undefined,
+  const cohostsData = hostSection["cohosts"] as Record<string, unknown>[] | null;
+  const cohosts =
+    cohostsData?.map((cohost) => ({
+      id: (cohost["userId"] as string) || "",
+      name: (cohost["name"] as string) || "",
+      photo: (cohost["profilePictureUrl"] as string) || "",
     })) || [];
 
   return {
@@ -391,7 +394,7 @@ function extractHostData(hostSection: Record<string, unknown>) {
     about,
     highlights,
     details,
-    co_hosts,
+    cohosts,
   };
 }
 
@@ -733,6 +736,129 @@ export function extractAmenitiesData(
   return allAmenitiesCategories;
 }
 
+// Extract availability data from API response ApiData object segment
+export function extractAvailabilityData(
+  availabilityData: unknown[],
+  minNights: number | null = 1
+): Availability | null {
+  const unavailableRanges: UnavailableRange[] = [];
+  const defaultMinNights = minNights || 1;
+
+  if (!availabilityData || !Array.isArray(availabilityData)) {
+    console.error("❌ Availability data is not an array or is empty.");
+    return null;
+  }
+
+  // 1. Flatten all valid days into a single chronological array with safety checks
+  const allDays: Record<string, unknown>[] = availabilityData.reduce((acc: Record<string, unknown>[], month) => {
+    // Safely access month.days
+    const days = month && typeof month === "object" ? (month as Record<string, unknown>).days : undefined;
+    if (Array.isArray(days)) {
+      // Filter out days that don't have a valid calendarDate
+      const validDays = days.filter(
+        (day) => day && typeof day.calendarDate === "string" && day.calendarDate.length > 0
+      );
+      acc.push(...validDays);
+    } else {
+      console.error("❌ Month object missing or invalid 'days' array.", month);
+    }
+    return acc;
+  }, []);
+
+  // Ensure days are sorted by calendarDate
+  allDays.sort((a, b) => {
+    // Ensure calendarDate exists before comparing
+    const dateA: string = (a?.calendarDate as string) ?? "";
+    const dateB: string = (b?.calendarDate as string) ?? "";
+    return dateA.localeCompare(dateB);
+  });
+
+  if (allDays.length === 0) {
+    return { minNights: defaultMinNights, booked: [] };
+  }
+
+  let currentRangeStart: string | null = null;
+  let checkoutPossibleBeforeRange = false;
+
+  for (let i = 0; i < allDays.length; i++) {
+    const day = allDays[i];
+
+    // --- Safe Property Access ---
+    const calendarDate = typeof day?.calendarDate === "string" ? day.calendarDate : "";
+    // Treat day as unavailable if 'available' is explicitly false, null, or undefined
+    const isAvailable = day?.available === true;
+    const isUnavailable = !isAvailable;
+
+    // Need calendarDate to proceed
+    if (!calendarDate) {
+      console.warn("⚠ Day object missing calendarDate.", day);
+      continue; // Skip this day
+    }
+
+    if (isUnavailable && currentRangeStart === null) {
+      // Start of a new unavailable range
+      currentRangeStart = calendarDate || "";
+
+      // Check if checkout was possible on the day *before* this range started
+      if (i > 0) {
+        const prevDay = allDays[i - 1];
+        // Default to false if property missing/null
+        checkoutPossibleBeforeRange = prevDay?.availableForCheckout === true;
+      } else {
+        checkoutPossibleBeforeRange = false; // No previous day
+      }
+    } else if (!isUnavailable && currentRangeStart !== null) {
+      // End of the current unavailable range (because current day is available)
+      const prevDay = allDays[i - 1];
+      const rangeEnd = prevDay?.calendarDate ?? ""; // The last unavailable day
+
+      if (!rangeEnd) {
+        console.warn("⚠ Could not determine range end date for start:", currentRangeStart);
+        // Reset and continue, as the previous day was invalid
+        currentRangeStart = null;
+        checkoutPossibleBeforeRange = false;
+        continue;
+      }
+
+      // Check if checkin is possible on the day *after* the range ended (which is the current 'day')
+      // Default to false if property missing/null
+      const checkinPossibleAfterRange = day?.availableForCheckin === true;
+
+      unavailableRanges.push({
+        start: currentRangeStart as string,
+        end: rangeEnd as string,
+        checkout: Boolean(checkoutPossibleBeforeRange),
+        checkin: Boolean(checkinPossibleAfterRange),
+      });
+      // Reset for the next potential range
+      currentRangeStart = null;
+      checkoutPossibleBeforeRange = false;
+    }
+  }
+
+  // Handle case where the data ends with an unavailable range
+  if (currentRangeStart !== null) {
+    const lastDay = allDays[allDays.length - 1];
+    const rangeEnd = lastDay?.calendarDate ?? "";
+
+    if (rangeEnd) {
+      // Cannot check in after the last day in the data
+      const checkinPossibleAfterRange = false;
+
+      unavailableRanges.push({
+        start: currentRangeStart as string,
+        end: rangeEnd as string,
+        checkout: Boolean(checkoutPossibleBeforeRange),
+        checkin: Boolean(checkinPossibleAfterRange),
+      });
+    } else {
+      console.warn("⚠ Could not determine final range end date for start:", currentRangeStart);
+    }
+  }
+
+  return { minNights: defaultMinNights, booked: unavailableRanges };
+}
+
 // Extract category ratings data from API response ApiData object segment
 export function extractCategoryRatingsData(categoryRatings: Record<string, unknown>) {
   const accuracy = (categoryRatings["accuracyRating"] as number) || 0;
@@ -778,7 +904,7 @@ function extractReviewsData(reviews: Record<string, unknown>[]) {
     // Extract reviewer data
     const reviewerData = (review["reviewer"] as Record<string, unknown>) || {};
     const reviewerId = (reviewerData["id"] as string) || "";
-    const reviewerName = (reviewerData["name"] as string) || "";
+    const reviewerName = (reviewerData["firstName"] as string) || "";
     const photo = (reviewerData["pictureUrl"] as string) || "";
     const reviewer = {
       id: reviewerId,
