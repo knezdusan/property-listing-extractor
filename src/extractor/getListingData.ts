@@ -60,9 +60,11 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
-  const houseRulesIntro = getNestedValue(apiData, apiResponseSelectors.HOUSE_RULES) as Record<string, unknown>[] | null;
-  if (!houseRulesIntro) {
-    console.error("❌ No house rules intro found");
+  const houseRulesSummary = getNestedValue(apiData, apiResponseSelectors.HOUSE_RULES) as
+    | Record<string, unknown>[]
+    | null;
+  if (!houseRulesSummary) {
+    console.error("❌ No house rules summary found");
     return null;
   }
 
@@ -74,8 +76,10 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
-  const safetyFeaturesIntro = getNestedValue(apiData, apiResponseSelectors.SAFETY) as Record<string, unknown>[] | null;
-  if (!safetyFeaturesIntro) {
+  const safetyFeaturesSummary = getNestedValue(apiData, apiResponseSelectors.SAFETY) as
+    | Record<string, unknown>[]
+    | null;
+  if (!safetyFeaturesSummary) {
     return null;
   }
 
@@ -271,14 +275,14 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
   }
 
   // Extract house rules data ------------------------------------------------------------------------ :
-  const house_rules = extractHouseRulesData(houseRulesIntro, houseRulesSections);
+  const house_rules = extractHouseRulesData(houseRulesSummary, houseRulesSections);
   if (!house_rules) {
     console.error("❌ Failed to extract house rules data");
     return null;
   }
 
   // Extract safety features data -------------------------------------------------------------------- :
-  const safety_property = extractSafetyFeaturesData(safetyFeaturesIntro, safetyFeaturesSections);
+  const safety_property = extractSafetyFeaturesData(safetyFeaturesSummary, safetyFeaturesSections);
   if (!safety_property) {
     console.error("❌ Failed to extract safety features data");
     return null;
@@ -615,11 +619,11 @@ function extractLocationData(locationData: Record<string, unknown>) {
 
 // Extract house rules data from API response ApiData object segment
 export function extractHouseRulesData(
-  houseRulesIntro: Record<string, unknown>[],
+  houseRulesSummary: Record<string, unknown>[],
   houseRulesSections: Record<string, unknown>[]
 ) {
-  // Extract intro items
-  const intro = houseRulesIntro.map((intro) => (intro["title"] as string) || "");
+  // Extract house rules summary items
+  const house_rules_summary = houseRulesSummary.map((summary) => (summary["title"] as string) || "");
 
   // Extract sections with rules
   const sections = houseRulesSections.map((section) => {
@@ -634,23 +638,23 @@ export function extractHouseRulesData(
     };
   });
 
-  if (!intro || !sections) {
+  if (!house_rules_summary || !sections) {
     return null;
   }
 
   return {
-    intro,
+    house_rules_summary,
     sections,
   };
 }
 
 // Extract safety & property features data from API response ApiData object segment
 export function extractSafetyFeaturesData(
-  safetyFeaturesIntro: Record<string, unknown>[],
+  safetyFeaturesSummary: Record<string, unknown>[],
   safetyFeaturesSections: Record<string, unknown>[]
 ) {
-  // Extract intro items
-  const intro = safetyFeaturesIntro.map((intro) => (intro["title"] as string) || "");
+  // Extract safety features summary items
+  const safety_features_summary = safetyFeaturesSummary.map((summary) => (summary["title"] as string) || "");
 
   // Extract sections with rules
   const sections = safetyFeaturesSections.map((section) => {
@@ -665,12 +669,12 @@ export function extractSafetyFeaturesData(
     };
   });
 
-  if (!intro || !sections) {
+  if (!safety_features_summary || !sections) {
     return null;
   }
 
   return {
-    intro,
+    safety_features_summary,
     sections,
   };
 }
@@ -692,7 +696,10 @@ export function extractGalleryPhotosData(
       orientation: (photo["orientation"] as string) || "",
       accessibilityLabel: (photo["accessibilityLabel"] as string) || "",
       baseUrl: (photo["baseUrl"] as string) || "",
-      caption: ((photo["imageMetadata"] as Record<string, unknown>)?.["caption"] as string) || "",
+      caption:
+        ((photo["imageMetadata"] as Record<string, unknown>)?.["localizedCaption"] as string) ||
+        ((photo["imageMetadata"] as Record<string, unknown>)?.["caption"] as string) ||
+        "",
     }));
   const tour = galleryTourSection.map((tourItem) => ({
     title: (tourItem["title"] as string) || "",

@@ -85,13 +85,13 @@ interface RulesSection {
 }
 
 export interface HouseRules {
-  intro: string[];
+  house_rules_summary: string[];
   sections: RulesSection[];
 }
 
 // Safety & property features interfaces -------------------------------------
 export interface SafetyProperty {
-  intro: string[];
+  safety_features_summary: string[];
   sections: RulesSection[];
 }
 

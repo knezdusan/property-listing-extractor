@@ -159,9 +159,9 @@
     "disclaimer": { "type": "string", "description": "Location disclaimer", "optional": true }
   },
   "house_rules": {
-    "intro": {
+    "house_rules_summary": {
       "type": "array",
-      "description": "List of house rules intro items, eg. ['Check-in: 4:00 PM - 11:00 PM', 'Checkout before 11:00 AM', '3 guests maximum']",
+      "description": "List of house rules summary items, eg. ['Check-in: 4:00 PM - 11:00 PM', 'Checkout before 11:00 AM', '3 guests maximum']",
       "items": { "type": "string" }
     },
     "sections": {
@@ -188,9 +188,9 @@
     }
   },
   "safety_features": {
-    "intro": {
+    "safety_features_summary": {
       "type": "array",
-      "description": "List of safety & property intro items, eg. ['Exterior security cameras on property', '24/7 security']",
+      "description": "List of safety & property summary items, eg. ['Exterior security cameras on property', '24/7 security']",
       "items": { "type": "string" }
     },
     "sections": {
