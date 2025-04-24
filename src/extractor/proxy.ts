@@ -30,7 +30,7 @@ export async function getProxyData(): Promise<ProxyData | null> {
   if (randomProxyPool.length === 0) return null;
 
   const singleProxy = randomProxyPool[0];
-  console.log(`➜➜ Fetching single proxy datat from random proxy pool: ${singleProxy}`);
+  console.log(`➜ Fetching single proxy datat from random proxy pool: ${singleProxy}`);
 
   // Extract the server, username, and password from the proxy string -----------------------------
   const [server, username, password] = singleProxy.split("|");
@@ -68,7 +68,7 @@ export async function getProxyData(): Promise<ProxyData | null> {
  * ]
  */
 async function fetchRandomProxies(): Promise<string[]> {
-  console.log("➜➜ Fetching proxy pool...");
+  console.log("➜ Fetching proxy pool...");
 
   // fetch 4 random country proxies
   const proxyPool: string[] = [];

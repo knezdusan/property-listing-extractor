@@ -559,7 +559,7 @@ function extractLocationData(locationData: Record<string, unknown>) {
     country: (locationData["country"] as string) || "",
   };
 
-  if (!locationMain.city || !locationMain.state || !locationMain.country) {
+  if (!locationMain.city || !locationMain.country) {
     console.error("❌ No location data found");
     return null;
   }

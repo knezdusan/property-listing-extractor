@@ -10,7 +10,7 @@ import { EXTRACTION_API_ENDPOINTS_ARRAY, HTML_SELECTORS, EXTRACTION_API_ENDPOINT
  * @returns apiData - intercepted API response data
  */
 export async function getPageData(url: string): Promise<Record<string, unknown> | null> {
-  console.log("➜➜ Setting up Playwright...");
+  console.log("\n➜➜➜➜➜ Setting up Playwright amd Proxies ...");
 
   // Get proxy data { server, username, password, language, locale, timezone, acceptLanguage } ---------
   const proxyData = await getWithRetry(getProxyData, 3, "Getting proxy data");
@@ -23,6 +23,7 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
   const { server, username, password, locale, timezone, acceptLanguage } = proxyData;
 
   // Playwright - Browser -----------------------------------------------------------------------------
+  console.log("\n➜➜➜➜➜ Launching browser and perform page navigation...");
 
   // Launch browser in non-headless mode for visual tracking
   const browser = await firefox.launch({
@@ -238,6 +239,8 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     });
 
     // Find the reviews number on page and log it
+    console.log("\n➜➜➜➜➜ Extracting listing reviews...");
+
     const reviewsNumber = await findReviewsNumber(page);
     if (!reviewsNumber) {
       console.log("❌ Reviews number not found");
@@ -290,7 +293,7 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     return null;
   } finally {
     // Close the browser to avoid resource leaks
-    console.log("☉ Closing browser...");
+    console.log("\n☉➜➜➜➜➜ Closing browser...");
     await context.close();
     await browser.close();
   }

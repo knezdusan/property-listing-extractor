@@ -1,5 +1,7 @@
 import { Page, Locator } from "playwright";
 import { randomDelay } from "@/utils/helpers";
+import { supabaseServer } from "@/utils/supabase";
+import type { ListingData } from "./types";
 
 /**
  * Validates and extracts the Airbnb listing ID from a given URL string.
@@ -446,5 +448,257 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
   if (currentReviewCount === 0) {
     console.error("❌ No reviews found for this listing.");
     return null;
+  }
+}
+
+/**
+ * Persists a complete ListingData object into Supabase tables according to schema.sql.
+ * Deletes existing related rows for this listing to prevent duplicates, then inserts fresh data.
+ */
+export async function saveListingData(listingData: ListingData): Promise<boolean> {
+  const {
+    host,
+    listing,
+    location,
+    house_rules,
+    safety_property,
+    amenities,
+    gallery,
+    availability,
+    category_ratings,
+    reviews,
+  } = listingData;
+  // Track which tables were written to for compensation
+  const completed: { [key: string]: boolean } = {};
+  try {
+    // *** Upsert host
+    const { error: hostError } = await supabaseServer.from("hosts").upsert(
+      {
+        id: host.id,
+        name: host.name,
+        superhost: host.superhost,
+        photo: host.photo,
+        review_count: host.reviews,
+        rating: host.rating,
+        years_hosting: host.years_hosting ?? null,
+        about: host.about,
+        highlights: host.highlights ?? [],
+        details: host.details ?? [],
+        cohosts: host.co_hosts ?? [],
+      },
+      { onConflict: "id" }
+    );
+    if (hostError) throw new Error(`Error upserting host: ${hostError.message}`);
+    completed.host = true;
+
+    // 2. Upsert listing
+    const [lat, lng] = location.coordinates.split(",").map((c) => parseFloat(c.trim()));
+    const { error: listingError } = await supabaseServer.from("listings").upsert(
+      {
+        id: listing.id,
+        host_id: host.id,
+        url: listing.url,
+        type: listing.type,
+        privacy: listing.privacy,
+        title: listing.title,
+        subtitle: listing.subtitle,
+        description: listing.description,
+        highlights: listing.highlights ?? [],
+        hero: listing.hero,
+        average_daily_rate: listing.average_daily_rate,
+        min_nights: availability.minNights,
+        capacity_summary: listing.capacity,
+        house_rules_summary: house_rules.house_rules_summary,
+        safety_features_summary: safety_property.safety_features_summary,
+        tags: listing.tags,
+        city: location.city,
+        state: location.state,
+        country: location.country,
+        latitude: lat,
+        longitude: lng,
+        location_disclaimer: location.disclaimer ?? null,
+        rating_overall: category_ratings.guest_satisfaction,
+        rating_accuracy: category_ratings.accuracy,
+        rating_check_in: category_ratings.check_in,
+        rating_cleanliness: category_ratings.cleanliness,
+        rating_communication: category_ratings.communication,
+        rating_location: category_ratings.location,
+        rating_value: category_ratings.value,
+      },
+      { onConflict: "id" }
+    );
+    if (listingError) throw new Error(`Error upserting listing: ${listingError.message}`);
+    completed.listing = true;
+
+    // *** Sleeping arrangements
+    await supabaseServer.from("sleeping").delete().eq("listing_id", listing.id);
+    if (listing.sleeping_arrangement?.length) {
+      const sleepRows = listing.sleeping_arrangement.map((sa) => ({
+        listing_id: listing.id,
+        title: sa.title,
+        subtitle: sa.subtitle,
+        photos: sa.images ?? [],
+      }));
+      const { error } = await supabaseServer.from("sleeping").insert(sleepRows);
+      if (error) throw new Error(`Error inserting sleeping arrangements: ${error.message}`);
+      completed.sleeping = true;
+    }
+
+    // *** Location details
+    await supabaseServer.from("location_details").delete().eq("listing_id", listing.id);
+    if (location.details?.length) {
+      const locRows = location.details.map((d) => ({
+        listing_id: listing.id,
+        title: d.title,
+        content: d.content,
+      }));
+      const { error } = await supabaseServer.from("location_details").insert(locRows);
+      if (error) throw new Error(`Error inserting location details: ${error.message}`);
+      completed.location_details = true;
+    }
+
+    // *** Amenities
+    await supabaseServer.from("amenities").delete().eq("listing_id", listing.id);
+    if (amenities.length) {
+      const amRows = amenities.flatMap((cat) =>
+        cat.amenities.map((a) => ({
+          listing_id: listing.id,
+          category: cat.category,
+          title: a.title,
+          subtitle: a.subtitle,
+          top: a.top,
+          icon: a.icon,
+          available: a.available,
+        }))
+      );
+      const { error } = await supabaseServer.from("amenities").insert(amRows);
+      if (error) throw new Error(`Error inserting amenities: ${error.message}`);
+      completed.amenities = true;
+    }
+
+    // *** Photos
+    await supabaseServer.from("photos").delete().eq("listing_id", listing.id);
+    if (gallery.photos?.length) {
+      const photoRows = gallery.photos.map((p) => ({
+        id: p.id,
+        listing_id: listing.id,
+        url: p.baseUrl,
+        aspect_ratio: p.aspectRatio ?? null,
+        orientation: p.orientation ?? null,
+        accessibility_label: p.accessibilityLabel ?? null,
+        caption: p.caption ?? null,
+      }));
+      const { error } = await supabaseServer.from("photos").insert(photoRows);
+      if (error) throw new Error(`Error inserting photos: ${error.message}`);
+      completed.photos = true;
+    }
+
+    // *** Tour
+    await supabaseServer.from("tour").delete().eq("listing_id", listing.id);
+    if (gallery.tour?.length) {
+      const tourRows = gallery.tour.map((t) => ({
+        listing_id: listing.id,
+        title: t.title,
+        photos: t.photos,
+        highlights: t.highlights,
+      }));
+      const { error } = await supabaseServer.from("tour").insert(tourRows);
+      if (error) throw new Error(`Error inserting tour: ${error.message}`);
+      completed.tour = true;
+    }
+
+    // *** Availability
+    await supabaseServer.from("availability").delete().eq("listing_id", listing.id);
+    if (availability.booked?.length) {
+      const avRows = availability.booked.map((b) => ({
+        listing_id: listing.id,
+        start_date: b.start,
+        end_date: b.end,
+        checkin: b.checkin,
+        checkout: b.checkout,
+      }));
+      const { error } = await supabaseServer.from("availability").insert(avRows);
+      if (error) throw new Error(`Error inserting availability: ${error.message}`);
+      completed.availability = true;
+    }
+
+    // *** House rules
+    await supabaseServer.from("house_rules").delete().eq("listing_id", listing.id);
+    if (house_rules.sections?.length) {
+      const hrRows = house_rules.sections.flatMap((sec) =>
+        sec.rules.map((r) => ({
+          listing_id: listing.id,
+          section: sec.section,
+          title: r.title,
+          subtitle: r.subtitle,
+          html: r.html,
+        }))
+      );
+      const { error } = await supabaseServer.from("house_rules").insert(hrRows);
+      if (error) throw new Error(`Error inserting house rules: ${error.message}`);
+      completed.house_rules = true;
+    }
+
+    // *** Safety & property features
+    await supabaseServer.from("safety_property").delete().eq("listing_id", listing.id);
+    if (safety_property.sections?.length) {
+      const spRows = safety_property.sections.flatMap((sec) =>
+        sec.rules.map((r) => ({
+          listing_id: listing.id,
+          section: sec.section,
+          title: r.title,
+          subtitle: r.subtitle,
+          html: r.html,
+        }))
+      );
+      const { error } = await supabaseServer.from("safety_property").insert(spRows);
+      if (error) throw new Error(`Error inserting safety_property: ${error.message}`);
+      completed.safety_property = true;
+    }
+
+    // *** Reviews
+    await supabaseServer.from("reviews").delete().eq("listing_id", listing.id);
+    if (reviews?.length) {
+      const rvRows = reviews.map((r) => ({
+        id: r.id,
+        listing_id: listing.id,
+        reviewer_id: r.reviewer.id,
+        name: r.reviewer.name,
+        photo: r.reviewer.photo,
+        language: r.language,
+        comments: r.comments,
+        rating: r.rating,
+        highlight: r.highlight ?? null,
+        period: r.period ?? null,
+        response: r.response ?? null,
+        created_at: r.createdAt,
+      }));
+      const { error } = await supabaseServer.from("reviews").insert(rvRows);
+      if (error) throw new Error(`Error inserting reviews: ${error.message}`);
+      completed.reviews = true;
+    }
+
+    return true;
+  } catch (error) {
+    // Compensation: attempt to delete all previously inserted/updated data for this listing
+    try {
+      const id = listingData.listing.id;
+      if (completed.reviews) await supabaseServer.from("reviews").delete().eq("listing_id", id);
+      if (completed.safety_property) await supabaseServer.from("safety_property").delete().eq("listing_id", id);
+      if (completed.house_rules) await supabaseServer.from("house_rules").delete().eq("listing_id", id);
+      if (completed.availability) await supabaseServer.from("availability").delete().eq("listing_id", id);
+      if (completed.tour) await supabaseServer.from("tour").delete().eq("listing_id", id);
+      if (completed.photos) await supabaseServer.from("photos").delete().eq("listing_id", id);
+      if (completed.amenities) await supabaseServer.from("amenities").delete().eq("listing_id", id);
+      if (completed.location_details) await supabaseServer.from("location_details").delete().eq("listing_id", id);
+      if (completed.sleeping) await supabaseServer.from("sleeping").delete().eq("listing_id", id);
+      if (completed.listing) await supabaseServer.from("listings").delete().eq("id", id);
+      if (completed.host) await supabaseServer.from("hosts").delete().eq("id", listingData.host.id);
+      console.log("✔ Successfully rolled back previous insertions");
+    } catch (compError) {
+      console.error("❌ Compensation (rollback) failed:", compError);
+    }
+    console.error("❌ saveListingData failed:", error);
+    return false;
   }
 }

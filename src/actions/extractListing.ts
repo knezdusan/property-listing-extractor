@@ -4,7 +4,7 @@ import { scrp } from "@/extractor/scrp";
 import { formatListingUrl, validateAirbnbUrl } from "@/extractor/helpers";
 
 export async function extractListing(prevData: string, formData: FormData): Promise<string> {
-  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");
+  console.log("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");
 
   // Use the URL provided by the form, (or fall back if exists to test URL if empty)
   let listingUrl = formData.get("url") as string;
@@ -36,12 +36,9 @@ export async function extractListing(prevData: string, formData: FormData): Prom
     if (!listingData) {
       throw new Error("❌ Failed to extract listing data");
     }
-
-    console.log("✔ Succesfully extracted data from the listing", listingData);
   } catch (error) {
-    console.error("❌ Failed to extract listing data:", error);
-    return "~~~~~~~~~~~~~~~~~~~~~~~~~ false :(";
+    return `❌ Failed to extract listing data: ${error}`;
   }
 
-  return ">>>>>>>>>>>>>>>>>>>>>>>> yes! :)";
+  return "✔ Succesfully extracted data from the listing";
 }

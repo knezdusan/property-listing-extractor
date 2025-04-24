@@ -50,8 +50,10 @@ export interface ListingMain {
   subtitle: string;
   capacity: string[];
   sleeping_arrangement?: SleepingArrangement[];
-  highlights: { title: string; subtitle: string }[];
   description: string;
+  highlights: { title: string; subtitle: string }[];
+  hero: string;
+  average_daily_rate: number;
   tags: string[];
 }
 
@@ -152,6 +154,7 @@ export interface CategoryRatings {
   communication: number;
   location: number;
   value: number;
+  guest_satisfaction: number;
 }
 
 // Reviews interface -------------------------------------

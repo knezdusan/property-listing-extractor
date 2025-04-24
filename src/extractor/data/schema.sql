@@ -11,7 +11,7 @@ CREATE TABLE hosts (
     about TEXT, -- URL
     highlights TEXT[], -- Array of strings ['Lives in Gordona, Italy']
     details TEXT[], -- Array of strings ['Response rate: 100%', 'Responds within an hour']
-    cohosts JSONB,
+    cohosts JSONB, -- JSONB object [{"id": "RGVtYW5kVXNlcjo1NDQxMzcyNA==","name": "Vanesa","photo": "photo_url"}]
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
@@ -26,6 +26,7 @@ CREATE TABLE listings (
     title TEXT,
     subtitle TEXT,
     description TEXT,
+    highlights JSONB, -- JSONB object [{"title": "Self check-in", "subtitle": "Check yourself by keypad."}]
     hero TEXT, -- '1696883311' (references photos table later, or just stores the ID)
     average_daily_rate NUMERIC(10, 5),
     min_nights INTEGER DEFAULT 1,
@@ -57,16 +58,6 @@ CREATE TABLE listings (
 CREATE INDEX IF NOT EXISTS idx_listings_host_id ON listings(host_id);
 
 
--- ========= CO-HOSTS =========
-CREATE TABLE co_hosts (
-    id TEXT, -- Using Airbnb's Host ID 'RGVtYW5kVXNlcjozNDk3ODQ0NjM='
-    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-    name TEXT,
-    photo TEXT -- URL
-);
-CREATE INDEX IF NOT EXISTS idx_co_hosts_listing_id ON co_hosts(listing_id);
-
-
 -- ========= SLEEPING (ARRANGEMENTS) =========
 CREATE TABLE sleeping (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -86,16 +77,6 @@ CREATE TABLE location_details (
     content TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_location_details_listing_id ON location_details(listing_id);
-
-
--- ========= LISTING HIGHLIGHTS (e.g., Great check-in) =========
-CREATE TABLE listing_highlights (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-    title TEXT, -- 'Fun and games for kids'
-    subtitle TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_listing_highlights_listing_id ON listing_highlights(listing_id);
 
 
 -- ========= AMENITIES =========
@@ -124,6 +105,15 @@ CREATE TABLE photos (
 );
 CREATE INDEX IF NOT EXISTS idx_photos_listing_id ON photos(listing_id);
 
+-- ========= TOUR =========
+CREATE TABLE tour (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    title TEXT NOT NULL, -- e.g., 'Living room'
+    photos TEXT[], -- Array of image IDs ['1426890249', '1618559671']
+    highlights TEXT[] -- Array of strings ['Sofa bed']
+);
+CREATE INDEX IF NOT EXISTS idx_tour_listing_id ON tour(listing_id);
 
 -- ========= AVAILABILITY =========
 CREATE TABLE availability (
