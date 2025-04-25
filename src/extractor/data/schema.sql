@@ -111,7 +111,9 @@ CREATE TABLE tour (
     listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
     title TEXT NOT NULL, -- e.g., 'Living room'
     photos TEXT[], -- Array of image IDs ['1426890249', '1618559671']
-    highlights TEXT[] -- Array of strings ['Sofa bed']
+    highlights TEXT[], -- Array of strings ['Sofa bed']
+    order INTEGER NOT NULL, -- Preserves original order as in the page
+    
 );
 CREATE INDEX IF NOT EXISTS idx_tour_listing_id ON tour(listing_id);
 

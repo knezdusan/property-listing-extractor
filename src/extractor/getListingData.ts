@@ -183,9 +183,9 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     "__typename",
     apiResponseNestedSelectors.SLEEPING_ARRANGEMENT
   );
+  // This section is optional, so do not return null if not found
   if (!listingSleepingArrangementSection) {
-    console.error("❌ No listing sleeping arrangement section found");
-    return null;
+    console.warn("⚠ No listing sleeping arrangement section found\nSome types of properties may not have this section");
   }
 
   // Listing Location Section object
@@ -258,7 +258,7 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     listingTitle,
     sbuiData,
     heroImageData,
-    listingSleepingArrangementSection,
+    listingSleepingArrangementSection || {}, // Pass empty object if missing
     listingHighlightsSection,
     listingDescriptionSection
   );
@@ -409,7 +409,7 @@ function extractListingData(
   title: string,
   sbuiData: Record<string, unknown>,
   heroImageData: Record<string, unknown> | null,
-  listingSleepingArrangementSection: Record<string, unknown>,
+  listingSleepingArrangementSection: Record<string, unknown>, // Accepts empty object if section is missing
   listingHighlightsSection: Record<string, unknown>,
   listingDescriptionSection: Record<string, unknown>
 ) {
@@ -471,11 +471,7 @@ function extractListingData(
   // extract listing sleeping arrangement from listingSleepingArrangementSection
   const listingSleepingArrangementItems =
     (listingSleepingArrangementSection?.arrangementDetails as Record<string, unknown>[]) || [];
-  if (!listingSleepingArrangementItems || listingSleepingArrangementItems.length === 0) {
-    console.error("❌ No listing sleeping arrangement found");
-    return null;
-  }
-
+  // Do not treat empty sleeping arrangement as fatal; just set to empty array
   const sleeping_arrangement = listingSleepingArrangementItems.map((arrangement) => {
     const images = (arrangement["images"] as Record<string, unknown>[]) || [];
     return {

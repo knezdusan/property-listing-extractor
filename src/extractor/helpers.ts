@@ -596,11 +596,12 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
     // *** Tour
     await supabaseServer.from("tour").delete().eq("listing_id", listing.id);
     if (gallery.tour?.length) {
-      const tourRows = gallery.tour.map((t) => ({
+      const tourRows = gallery.tour.map((t, idx) => ({
         listing_id: listing.id,
         title: t.title,
         photos: t.photos,
         highlights: t.highlights,
+        position: idx,
       }));
       const { error } = await supabaseServer.from("tour").insert(tourRows);
       if (error) throw new Error(`Error inserting tour: ${error.message}`);
