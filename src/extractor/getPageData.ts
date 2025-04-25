@@ -27,7 +27,7 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
 
   // Launch browser in non-headless mode for visual tracking
   const browser = await firefox.launch({
-    headless: false,
+    headless: true,
     timeout: 30000,
     slowMo: 100,
   });
@@ -87,70 +87,64 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
       }
     });
 
+    // Track all review fetch/retry promises
+    const reviewFetchPromises: Promise<void>[] = [];
+
     page.on("response", async (response) => {
       const url = response.url();
 
       for (const endpoint of apiEndpoints) {
         if (url.includes(endpoint)) {
-          try {
-            // Special handling for the problematic reviews endpoint
-            if (endpoint === EXTRACTION_API_ENDPOINTS.reviews) {
-              // Implement retry logic for direct fetch
-              const maxRetries = 3;
-              let retryCount = 0;
-              let success = false;
+          if (endpoint === EXTRACTION_API_ENDPOINTS.reviews) {
+            // Track review fetch/retry as a promise
+            const fetchPromise = (async () => {
+              try {
+                // Special handling for the problematic reviews endpoint
+                const maxRetries = 3;
+                let retryCount = 0;
+                let success = false;
 
-              while (retryCount < maxRetries && !success) {
-                try {
-                  // Get headers from the original request if available
-                  const headers = originalRequestHeaders[endpoint] || {};
-
-                  // Make a direct request using Playwright's request API
-                  const apiResponse = await page.request.get(url, {
-                    headers: headers,
-                  });
-
-                  // Process the response body
-                  const text = await apiResponse.text();
-                  const json = JSON.parse(text);
-
-                  if (json) {
-                    apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
-                    console.log(
-                      `✓ Successfully fetched and processed ${endpoint} data directly (attempt ${
-                        retryCount + 1
-                      }/${maxRetries})`
-                    );
-                    success = true;
-                  }
-                } catch (directFetchError) {
-                  retryCount++;
-                  if (retryCount < maxRetries) {
-                    console.warn(
-                      `⚠ Attempt ${retryCount}/${maxRetries} failed for ${endpoint}: ${
-                        directFetchError instanceof Error ? directFetchError.message : directFetchError
-                      }`
-                    );
-                    // Exponential backoff with jitter
-                    const backoffTime = Math.min(1000 * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
-                    console.log(`⏱ Retrying in ${Math.round(backoffTime / 1000)} seconds...`);
-                    await page.waitForTimeout(backoffTime);
-                  } else {
-                    console.error(`❌ All ${maxRetries} retry attempts failed for ${endpoint}:`, directFetchError);
+                while (retryCount < maxRetries && !success) {
+                  try {
+                    const headers = originalRequestHeaders[endpoint] || {};
+                    const apiResponse = await page.request.get(url, { headers });
+                    const text = await apiResponse.text();
+                    const json = JSON.parse(text);
+                    if (json) {
+                      apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
+                      success = true;
+                    }
+                  } catch (directFetchError) {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                      console.warn(
+                        `⚠ Attempt ${retryCount}/${maxRetries} failed for ${endpoint}: ${
+                          directFetchError instanceof Error ? directFetchError.message : directFetchError
+                        }`
+                      );
+                      const backoffTime = Math.min(1000 * Math.pow(2, retryCount) + Math.random() * 1000, 10000);
+                      console.log(`⏱ Retrying in ${Math.round(backoffTime / 1000)} seconds...`);
+                      await page.waitForTimeout(backoffTime);
+                    } else {
+                      console.error(`❌ All ${maxRetries} retry attempts failed for ${endpoint}:`, directFetchError);
+                    }
                   }
                 }
+              } catch (error) {
+                console.error(`❌ Error processing response from ${endpoint}:`, error);
               }
-            } else {
-              // Normal handling for other endpoints
-              const json = await response.json().catch(() => null);
+            })();
+            reviewFetchPromises.push(fetchPromise);
+          } else {
+            try {
+              const text = await response.text();
+              const json = JSON.parse(text);
               if (json) {
                 apiData[endpoint] = apiData[endpoint] ? mergeData(apiData[endpoint], json) : json;
-              } else {
-                console.log(`Failed to parse JSON for ${endpoint}, response status: ${response.status()}`);
               }
+            } catch (error) {
+              console.error(`❌ Error processing response from ${endpoint}:`, error);
             }
-          } catch (error) {
-            console.error(`❌ Error processing response from ${endpoint}:`, error);
           }
         }
       }
@@ -283,6 +277,9 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     // Final wait for any triggered lazy-loaded content or modal transitions
     console.log("➜ Final wait before concluding page interaction...");
     await randomDelay(2000, 4000);
+
+    // Ensure all review fetches/retries are complete before closing browser/context
+    await Promise.all(reviewFetchPromises);
 
     return apiData;
   } catch (error) {

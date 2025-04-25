@@ -904,6 +904,14 @@ function extractReviewsData(reviews: Record<string, unknown>[]) {
       comments = ((review["localizedReview"] as Record<string, unknown>)?.["comments"] as string) || "";
     }
 
+    // Extract response according to language
+    let response = "";
+    if (language === "en") {
+      response = (review["response"] as string) || "";
+    } else {
+      response = ((review["localizedReview"] as Record<string, unknown>)?.["response"] as string) || "";
+    }
+
     // Extract reviewer data
     const reviewerData = (review["reviewer"] as Record<string, unknown>) || {};
     const reviewerId = (reviewerData["id"] as string) || "";
@@ -930,7 +938,7 @@ function extractReviewsData(reviews: Record<string, unknown>[]) {
       highlight: (review["reviewHighlight"] as string) || "",
       period,
       reviewer,
-      response: (review["response"] as string) || "",
+      response,
       createdAt: (review["createdAt"] as string) || "",
     };
   });
