@@ -178,6 +178,11 @@ export interface Review {
 
 export type Reviews = Review[];
 
+interface Extra {
+  main_title: string;
+  intro_text: string;
+}
+
 /* ********************************************************************
  * ******* Root listing data interface ********************************
  ******************************************************************* */
@@ -186,22 +191,12 @@ export interface ListingData {
   listing: ListingMain;
   location: Location;
   house_rules: HouseRules;
+  pets: boolean;
   safety_property: SafetyProperty;
   amenities: AmenityCategory[];
   gallery: Gallery;
   availability: Availability;
   category_ratings: CategoryRatings;
   reviews: Reviews;
-  //   capacity: Capacity;
-  //   pricing: Pricing;
-  //   amenities: Amenities;
-  //   images: Image[];
-  //   booking_availability: BookingAvailability;
-  //   cancellation_policy: CancellationPolicy;
-  //   check_in_instructions?: string;
-  //   accessibility_features?: string[];
-  //   listing_expectations?: string;
-  //   locale_details: LocaleDetails;
-  //   seo: Seo;
-  //   additional_rules?: string;
+  extra: Extra;
 }

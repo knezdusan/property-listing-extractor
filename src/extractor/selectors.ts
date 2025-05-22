@@ -40,6 +40,7 @@ export const apiResponseSelectors = {
   AMENITIES_HIGHLIGHTS: "previewAmenitiesGroups", // amenities highlights - top amenities
   AMENITIES_ALL: "seeAllAmenitiesGroups", // amenities see all - categorized amenities
   GALLERY_TOUR: "roomTourItems", // gallery tour
+  SECTIONS_ARRAY: "/api/v3/StaysPdpSections.data.presentation.stayProductDetailPage.sections.sections", // Path to sections array
   // api endpoint: /api/v3/PdpAvailabilityCalendar
   AVAILABILITY: "calendarMonths", // availability data - per month per day
   MIN_NIGHTS: "constantMinNights", // A default minimum night stay for the listing
@@ -53,6 +54,7 @@ export const apiResponseNestedSelectors = {
   SLEEPING_ARRANGEMENT: "SleepingArrangementSection",
   GALLERY_PHOTOS: "PhotoTourModalSection",
   LISTING_REVIEWS: "PdpReviews",
+  BOOK_IT_CALENDAR: "BookItSection", // Extracting Pets allowed from this section
 };
 
 // Data layer API endpoint selectors ****************************************

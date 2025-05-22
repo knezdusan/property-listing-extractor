@@ -1,6 +1,340 @@
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
 
+// US States abbreviations to names
+export const US_STATES = {
+  AL: "Alabama",
+  AK: "Alaska",
+  AZ: "Arizona",
+  AR: "Arkansas",
+  CA: "California",
+  CO: "Colorado",
+  CT: "Connecticut",
+  DE: "Delaware",
+  FL: "Florida",
+  GA: "Georgia",
+  HI: "Hawaii",
+  ID: "Idaho",
+  IL: "Illinois",
+  IN: "Indiana",
+  IA: "Iowa",
+  KS: "Kansas",
+  KY: "Kentucky",
+  LA: "Louisiana",
+  ME: "Maine",
+  MD: "Maryland",
+  MA: "Massachusetts",
+  MI: "Michigan",
+  MN: "Minnesota",
+  MS: "Mississippi",
+  MO: "Missouri",
+  MT: "Montana",
+  NE: "Nebraska",
+  NV: "Nevada",
+  NH: "New Hampshire",
+  NJ: "New Jersey",
+  NM: "New Mexico",
+  NY: "New York",
+  NC: "North Carolina",
+  ND: "North Dakota",
+  OH: "Ohio",
+  OK: "Oklahoma",
+  OR: "Oregon",
+  PA: "Pennsylvania",
+  RI: "Rhode Island",
+  SC: "South Carolina",
+  SD: "South Dakota",
+  TN: "Tennessee",
+  TX: "Texas",
+  UT: "Utah",
+  VT: "Vermont",
+  VA: "Virginia",
+  WA: "Washington",
+  WV: "West Virginia",
+  WI: "Wisconsin",
+  WY: "Wyoming",
+  DC: "District of Columbia",
+  AS: "American Samoa",
+  GU: "Guam",
+  MP: "Northern Mariana Islands",
+  PR: "Puerto Rico",
+  UM: "U.S. Minor Outlying Islands",
+  VI: "U.S. Virgin Islands",
+};
+
+export const COUNTRIES = {
+  AD: "Andorra",
+  AE: "United Arab Emirates",
+  AF: "Afghanistan",
+  AG: "Antigua and Barbuda",
+  AI: "Anguilla",
+  AL: "Albania",
+  AM: "Armenia",
+  AO: "Angola",
+  AQ: "Antarctica",
+  AR: "Argentina",
+  AS: "American Samoa",
+  AT: "Austria",
+  AU: "Australia",
+  AW: "Aruba",
+  AX: "Åland Islands",
+  AZ: "Azerbaijan",
+  BA: "Bosnia and Herzegovina",
+  BB: "Barbados",
+  BD: "Bangladesh",
+  BE: "Belgium",
+  BF: "Burkina Faso",
+  BG: "Bulgaria",
+  BH: "Bahrain",
+  BI: "Burundi",
+  BJ: "Benin",
+  BL: "Saint Barthélemy",
+  BM: "Bermuda",
+  BN: "Brunei Darussalam",
+  BO: "Bolivia (Plurinational State of)",
+  BQ: "Bonaire, Sint Eustatius and Saba",
+  BR: "Brazil",
+  BS: "Bahamas",
+  BT: "Bhutan",
+  BV: "Bouvet Island",
+  BW: "Botswana",
+  BY: "Belarus",
+  BZ: "Belize",
+  CA: "Canada",
+  CC: "Cocos (Keeling) Islands",
+  CD: "Congo, Democratic Republic of the",
+  CF: "Central African Republic",
+  CG: "Congo",
+  CH: "Switzerland",
+  CI: "Côte d'Ivoire",
+  CK: "Cook Islands",
+  CL: "Chile",
+  CM: "Cameroon",
+  CN: "China",
+  CO: "Colombia",
+  CR: "Costa Rica",
+  CU: "Cuba",
+  CV: "Cabo Verde",
+  CW: "Curaçao",
+  CX: "Christmas Island",
+  CY: "Cyprus",
+  CZ: "Czechia",
+  DE: "Germany",
+  DJ: "Djibouti",
+  DK: "Denmark",
+  DM: "Dominica",
+  DO: "Dominican Republic",
+  DZ: "Algeria",
+  EC: "Ecuador",
+  EE: "Estonia",
+  EG: "Egypt",
+  EH: "Western Sahara",
+  ER: "Eritrea",
+  ES: "Spain",
+  ET: "Ethiopia",
+  FI: "Finland",
+  FJ: "Fiji",
+  FK: "Falkland Islands (Malvinas)",
+  FM: "Micronesia (Federated States of)",
+  FO: "Faroe Islands",
+  FR: "France",
+  GA: "Gabon",
+  GB: "United Kingdom of Great Britain and Northern Ireland",
+  GD: "Grenada",
+  GE: "Georgia",
+  GF: "French Guiana",
+  GG: "Guernsey",
+  GH: "Ghana",
+  GI: "Gibraltar",
+  GL: "Greenland",
+  GM: "Gambia",
+  GN: "Guinea",
+  GP: "Guadeloupe",
+  GQ: "Equatorial Guinea",
+  GR: "Greece",
+  GS: "South Georgia and the South Sandwich Islands",
+  GT: "Guatemala",
+  GU: "Guam",
+  GW: "Guinea-Bissau",
+  GY: "Guyana",
+  HK: "Hong Kong",
+  HM: "Heard Island and McDonald Islands",
+  HN: "Honduras",
+  HR: "Croatia",
+  HT: "Haiti",
+  HU: "Hungary",
+  ID: "Indonesia",
+  IE: "Ireland",
+  IL: "Israel",
+  IM: "Isle of Man",
+  IN: "India",
+  IO: "British Indian Ocean Territory",
+  IQ: "Iraq",
+  IR: "Iran (Islamic Republic of)",
+  IS: "Iceland",
+  IT: "Italy",
+  JE: "Jersey",
+  JM: "Jamaica",
+  JO: "Jordan",
+  JP: "Japan",
+  KE: "Kenya",
+  KG: "Kyrgyzstan",
+  KH: "Cambodia",
+  KI: "Kiribati",
+  KM: "Comoros",
+  KN: "Saint Kitts and Nevis",
+  KP: "Korea (Democratic People's Republic of)",
+  KR: "Korea, Republic of",
+  KW: "Kuwait",
+  KY: "Cayman Islands",
+  KZ: "Kazakhstan",
+  LA: "Lao People's Democratic Republic",
+  LB: "Lebanon",
+  LC: "Saint Lucia",
+  LI: "Liechtenstein",
+  LK: "Sri Lanka",
+  LR: "Liberia",
+  LS: "Lesotho",
+  LT: "Lithuania",
+  LU: "Luxembourg",
+  LV: "Latvia",
+  LY: "Libya",
+  MA: "Morocco",
+  MC: "Monaco",
+  MD: "Moldova, Republic of",
+  ME: "Montenegro",
+  MF: "Saint Martin (French part)",
+  MG: "Madagascar",
+  MH: "Marshall Islands",
+  MK: "North Macedonia",
+  ML: "Mali",
+  MM: "Myanmar",
+  MN: "Mongolia",
+  MO: "Macao",
+  MP: "Northern Mariana Islands",
+  MQ: "Martinique",
+  MR: "Mauritania",
+  MS: "Montserrat",
+  MT: "Malta",
+  MU: "Mauritius",
+  MV: "Maldives",
+  MW: "Malawi",
+  MX: "Mexico",
+  MY: "Malaysia",
+  MZ: "Mozambique",
+  NA: "Namibia",
+  NC: "New Caledonia",
+  NE: "Niger",
+  NF: "Norfolk Island",
+  NG: "Nigeria",
+  NI: "Nicaragua",
+  NL: "Netherlands",
+  NO: "Norway",
+  NP: "Nepal",
+  NR: "Nauru",
+  NU: "Niue",
+  NZ: "New Zealand",
+  OM: "Oman",
+  PA: "Panama",
+  PE: "Peru",
+  PF: "French Polynesia",
+  PG: "Papua New Guinea",
+  PH: "Philippines",
+  PK: "Pakistan",
+  PL: "Poland",
+  PM: "Saint Pierre and Miquelon",
+  PN: "Pitcairn",
+  PR: "Puerto Rico",
+  PS: "Palestine, State of",
+  PT: "Portugal",
+  PW: "Palau",
+  PY: "Paraguay",
+  QA: "Qatar",
+  RE: "Réunion",
+  RO: "Romania",
+  RS: "Serbia",
+  RU: "Russian Federation",
+  RW: "Rwanda",
+  SA: "Saudi Arabia",
+  SB: "Solomon Islands",
+  SC: "Seychelles",
+  SD: "Sudan",
+  SE: "Sweden",
+  SG: "Singapore",
+  SH: "Saint Helena, Ascension and Tristan da Cunha",
+  SI: "Slovenia",
+  SJ: "Svalbard and Jan Mayen",
+  SK: "Slovakia",
+  SL: "Sierra Leone",
+  SM: "San Marino",
+  SN: "Senegal",
+  SO: "Somalia",
+  SR: "Suriname",
+  SS: "South Sudan",
+  ST: "Sao Tome and Principe",
+  SV: "El Salvador",
+  SX: "Sint Maarten (Dutch part)",
+  SY: "Syrian Arab Republic",
+  SZ: "Eswatini",
+  TC: "Turks and Caicos Islands",
+  TD: "Chad",
+  TF: "French Southern Territories",
+  TG: "Togo",
+  TH: "Thailand",
+  TJ: "Tajikistan",
+  TK: "Tokelau",
+  TL: "Timor-Leste",
+  TM: "Turkmenistan",
+  TN: "Tunisia",
+  TO: "Tonga",
+  TR: "Turkey",
+  TT: "Trinidad and Tobago",
+  TV: "Tuvalu",
+  TW: "Taiwan, Province of China",
+  TZ: "Tanzania, United Republic of",
+  UA: "Ukraine",
+  UG: "Uganda",
+  UM: "United States Minor Outlying Islands",
+  US: "United States of America",
+  UY: "Uruguay",
+  UZ: "Uzbekistan",
+  VA: "Holy See",
+  VC: "Saint Vincent and the Grenadines",
+  VE: "Venezuela (Bolivarian Republic of)",
+  VG: "Virgin Islands (British)",
+  VI: "Virgin Islands (U.S.)",
+  VN: "Viet Nam",
+  VU: "Vanuatu",
+  WF: "Wallis and Futuna",
+  WS: "Samoa",
+  YE: "Yemen",
+  YT: "Mayotte",
+  ZA: "South Africa",
+  ZM: "Zambia",
+  ZW: "Zimbabwe",
+};
+
+export type StateAbbreviation = keyof typeof US_STATES;
+export type CountryCode = keyof typeof COUNTRIES;
+
+// Helper function: Slugify a string (no input validation version)
+export function slugify(string: string) {
+  const a = "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;";
+  const b = "aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuwnxyyzzz------";
+  const p = new RegExp(a.split("").join("|"), "g");
+
+  return string
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(p, (c) => b.charAt(a.indexOf(c))) // Replace special chars
+    .replace(/&/g, "-and-") // Replace & with 'and'
+    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
+    .replace(/\-\-+/g, "-") // Replace multiple - with single -
+    .replace(/^-+/, "") // Trim - from start of text
+    .replace(/-+$/, ""); // Trim - from end of text
+}
+
 // Override console.warn and console.error to color warnings and errors
 const RESET = "\x1b[0m";
 const YELLOW = "\x1b[33m";
@@ -171,233 +505,43 @@ export function isArray(value: unknown): value is unknown[] {
 }
 
 /**
- * Finds the value of the first property matching the given name in a deeply nested structure
- * using an iterative Breadth-First Search (BFS) approach. Handles circular references.
- *
- * @param obj The complex object to search within.
- * @param propName The name of the property to find.
- * @returns The value of the found property (can be primitive, object, or array),
- *          or `null` if the property is not found. The return type is `unknown`
- *          as the value's type isn't known at compile time.
+ * Returns the full name of a US state given its abbreviation.
+ * @param abbreviation The 2-letter abbreviation of the state.
+ * @returns The full name of the state, or throws an error if the abbreviation is invalid.
  */
-export function getNestedValue(obj: Record<string, unknown>, propName: string): unknown {
-  // Base case: If obj is not a searchable object/array, return null.
-  if (typeof obj !== "object" || obj === null) {
+export function getStateName(abbreviation: string): string | null {
+  // Validate input
+  if (typeof abbreviation !== "string" || abbreviation.length !== 2) {
     return null;
   }
 
-  // Queue holds items (objects/arrays) to explore. 'unknown' is used as elements can be anything.
-  const queue: unknown[] = [obj];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  // We only add non-null objects to this set.
-  const visited = new Set<object>();
+  const normalizedAbbr = abbreviation.toUpperCase();
 
-  while (queue.length > 0) {
-    // Dequeue the next item. It's 'unknown' until we inspect it.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited in this path.
-    // Need the type check again because the queue holds 'unknown'.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-    // --- Type Assertion Point ---
-    // At this point, TypeScript knows `current` is a non-null `object`.
-    // We add it to visited.
-    visited.add(current);
-
-    // 1. Check if the property exists directly on the current object/array.
-    //    Use Object.prototype.hasOwnProperty.call for safety.
-    if (Object.prototype.hasOwnProperty.call(current, propName)) {
-      // Property found! Return its value.
-      // We need to assert the type of `current` to allow indexing.
-      // Using a Record with string keys is more specific than 'keyof any'
-      return (current as Record<string, unknown>)[propName];
-    }
-
-    // 2. Add nested objects/arrays to the queue for later exploration.
-    //    Iterate over keys for objects or indices (as strings) for arrays.
-    //    `key` is `string` in a for...in loop.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // Access the value. Need type assertion again to index `current`.
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue actual objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          // --- Type Assertion Point ---
-          // Here, TypeScript knows `value` is a non-null `object`.
-          // Optimization: Check visited *before* pushing to potentially avoid growing the queue unnecessarily.
-          if (!visited.has(value)) {
-            queue.push(value); // Add nested structures to the end of the queue
-          }
-        }
-      }
-    }
-  }
-
-  // 3. If the queue is empty and the property wasn't found anywhere.
-  return null;
-}
-
-/**
- * Finds and removes the first occurrence of a property with the given name
- * in a deeply nested structure using an iterative Breadth-First Search (BFS) approach.
- * Modifies the original object/array in place. Handles circular references.
- * @param obj The complex object or array to search within and modify. Can be any structure.
- * @param propName The name of the property to find and remove.
- * @returns `true` if the property was found and removed, `false` otherwise.
- */
-export function removeNestedValue(obj: unknown, propName: string): boolean {
-  // Base case: If obj is not a searchable/modifiable object/array, do nothing.
-  if (typeof obj !== "object" || obj === null) {
-    return false;
-  }
-
-  // Queue holds items (objects/arrays) to explore.
-  const queue: unknown[] = [obj];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  const visited = new Set<object>();
-
-  while (queue.length > 0) {
-    // Dequeue the next item.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-    // --- Type Assertion Point ---
-    // `current` is a non-null `object`.
-    visited.add(current);
-
-    // Iterate through the keys/indices of the current object/array.
-    // `key` will be a string, even for array indices.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // --- Check if the CURRENT key is the one to remove ---
-        if (key === propName) {
-          // Found the property on the 'current' object/array. Now remove it.
-          if (Array.isArray(current)) {
-            // Use splice for arrays. Need to convert string key to number.
-            const index = parseInt(key, 10);
-            // Ensure it's a valid number index before splicing
-            if (!isNaN(index) && index >= 0 && index < current.length) {
-              current.splice(index, 1);
-              return true; // Property found and removed
-            } else {
-              // This case is unlikely if hasOwnProperty passed for a standard array,
-              // but handle defensively. Maybe it's a non-index property on an array?
-              // Treat as object deletion.
-              delete (current as unknown as Record<string, unknown>)[key]; // Less ideal for arrays, but covers edge cases
-              return true;
-            }
-          } else {
-            // Use delete for objects.
-            // Type assertion needed to satisfy TypeScript's index signature rules.
-            delete (current as Record<string, unknown>)[key];
-            return true; // Property found and removed
-          }
-        }
-
-        // --- If not the target key, check the VALUE for queueing ---
-        // Access the value associated with the key. Assertion needed.
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue nested objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          // --- Type Assertion Point ---
-          // `value` is a non-null `object`.
-          // Add to queue only if not already visited.
-          if (!visited.has(value)) {
-            queue.push(value);
-          }
-        }
-      }
-    }
-  }
-
-  // 3. If the queue is empty and the property wasn't found anywhere.
-  return false;
-}
-
-/**
- * Finds the first nested object (of object array) with specific key (`targetKeyName`), eg "section"
- * where that object has a specific property (`checkPropName`) matching a given value (`checkPropValue`), eg "__typename": "someValue".
- * Uses an iterative Breadth-First Search (BFS) and handles circular references.
- *
- * @param objToSearch The complex object or array (like apiData) to search within.
- * @param targetKeyName The name of the key whose value is the potential target object (e.g., "section").
- * @param checkPropName The name of the property within the target object to check (e.g., "__typename").
- * @param checkPropValue The value that the `checkPropName` property must match.
- * @returns The first matching target object found, or `null` if no match is found.
- *          The return type is `Record<string, unknown> | null`.
- */
-export function findNestedObjectByPropValue(
-  objToSearch: unknown,
-  targetKeyName: string,
-  checkPropName: string,
-  checkPropValue: string
-): Record<string, unknown> | null {
-  // Base case: If obj is not a searchable object/array, return null.
-  if (typeof objToSearch !== "object" || objToSearch === null) {
+  if (!(normalizedAbbr in US_STATES)) {
     return null;
   }
 
-  // Queue holds items (objects/arrays) to explore.
-  const queue: unknown[] = [objToSearch];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  const visited = new Set<object>();
+  // Type assertion is safe after the check above
+  return US_STATES[normalizedAbbr as StateAbbreviation];
+}
 
-  while (queue.length > 0) {
-    // Dequeue the next item.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-    // --- Type Assertion Point ---
-    // `current` is a non-null `object`.
-    visited.add(current);
-
-    // Iterate through the keys/indices of the current object/array.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // --- Core Logic: Check if this key matches targetKeyName ---
-        if (key === targetKeyName) {
-          const potentialTarget = (current as Record<string, unknown>)[key];
-
-          // --- Check if the value is an object and has the target property/value ---
-          if (
-            typeof potentialTarget === "object" && // Is it an object?
-            potentialTarget !== null && // Is it not null?
-            Object.prototype.hasOwnProperty.call(potentialTarget, checkPropName) && // Does it have the check property?
-            (potentialTarget as Record<string, unknown>)[checkPropName] === checkPropValue // Does the value match?
-          ) {
-            // Found it! Return the target object itself.
-            return potentialTarget as Record<string, unknown>;
-          }
-        }
-
-        // --- Queueing Logic: If the current *value* is an object/array, queue it ---
-        // Access the value associated with the key. Assertion needed.
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue nested non-null objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          if (!visited.has(value)) {
-            // Check visited before push (minor optimization)
-            queue.push(value);
-          }
-        }
-      }
-    }
+/**
+ * Returns the full name of a country given its abbreviation.
+ * @param abbreviation The 2-letter abbreviation of the country.
+ * @returns The full name of the country, or throws an error if the abbreviation is invalid.
+ */
+export function getCountryName(abbreviation: string): string | null {
+  // Validate input
+  if (typeof abbreviation !== "string" || abbreviation.length !== 2) {
+    return null;
   }
 
-  // If the queue is empty and the target object wasn't found.
-  return null;
+  const normalizedAbbr = abbreviation.toUpperCase();
+
+  if (!(normalizedAbbr in COUNTRIES)) {
+    return null;
+  }
+
+  // Type assertion is safe after the check above
+  return COUNTRIES[normalizedAbbr as CountryCode];
 }

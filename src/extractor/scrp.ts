@@ -1,8 +1,8 @@
 import { getListingData } from "./getListingData";
 import { getPageData } from "./getPageData";
-import { getWithRetry, removeNestedValue, saveToFile } from "@/utils/helpers";
+import { getWithRetry, saveToFile } from "@/utils/helpers";
 import { LISTING_DATA_PATHS } from "./selectors";
-import { saveListingData } from "./helpers";
+import { saveListingData, removeNestedValue } from "./helpers";
 
 /**
  * function scrp(url: string): Promise<string | null>

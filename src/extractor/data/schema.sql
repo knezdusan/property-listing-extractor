@@ -1,4 +1,3 @@
-
 -- ========= HOSTS =========
 CREATE TABLE hosts (
     id TEXT PRIMARY KEY, -- Using Airbnb's Host ID 'RGVtYW5kVXNlcjozNDk3ODQ0NjM='
@@ -32,6 +31,7 @@ CREATE TABLE listings (
     min_nights INTEGER DEFAULT 1,
     capacity_summary TEXT[], -- Array-like ['2 guests', 'Studio', '1 bed', '1 bath']
     house_rules_summary TEXT[], -- Array-like ["Check-in: 3:00 PM - 12:00 AM", "Checkout before 10:00 AM", "4 guests maximum"]
+    pets_allowed BOOLEAN, -- True if pets are allowed
     safety_features_summary TEXT[], -- Array-like ["No smoke alarm", "Nearby lake, river, other body of water"]
     tags TEXT[],
 
@@ -112,8 +112,7 @@ CREATE TABLE tour (
     title TEXT NOT NULL, -- e.g., 'Living room'
     photos TEXT[], -- Array of image IDs ['1426890249', '1618559671']
     highlights TEXT[], -- Array of strings ['Sofa bed']
-    order INTEGER NOT NULL, -- Preserves original order as in the page
-    
+    position INTEGER NOT NULL -- Preserves original order as in the page   
 );
 CREATE INDEX IF NOT EXISTS idx_tour_listing_id ON tour(listing_id);
 
@@ -169,3 +168,14 @@ CREATE TABLE reviews (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 CREATE INDEX IF NOT EXISTS idx_reviews_listing_id ON reviews(listing_id);
+
+-- ========= EXTRA =========
+CREATE TABLE extra (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    main_title TEXT,
+    intro_text TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+CREATE INDEX IF NOT EXISTS idx_extra_listing_id ON extra(listing_id);

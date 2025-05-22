@@ -1,6 +1,7 @@
 // Import all types from the types file
-import { getNestedValue, findNestedObjectByPropValue, isValidMonthYear } from "@/utils/helpers";
-import { AirbnbApiData, ListingData, Availability, UnavailableRange } from "./types";
+import { getCountryName, getStateName, isValidMonthYear } from "@/utils/helpers";
+import { getNestedValue, findNestedObjectByPropValue } from "./helpers";
+import { AirbnbApiData, ListingData, Availability, UnavailableRange, ListingMain } from "./types";
 
 import { apiResponseNestedSelectors, apiResponseSelectors, dataLayerSelectors } from "./selectors";
 
@@ -238,6 +239,69 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  // Extract pets allowed property using a recursive search function
+  let pets = false;
+
+  // Function to recursively search for petsAllowed boolean property in any object
+  const findPetsAllowedBoolean = (obj: unknown): boolean | undefined => {
+    // Base case: not an object or null
+    if (!obj || typeof obj !== "object") {
+      return undefined;
+    }
+
+    // If this is an array, search each item
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        const result = findPetsAllowedBoolean(item);
+        if (result !== undefined) {
+          return result;
+        }
+      }
+      return undefined;
+    }
+
+    // Check if this object has a petsAllowed boolean property
+    if ("petsAllowed" in obj && typeof obj.petsAllowed === "boolean") {
+      // If we find it in a BookItSection specifically, prioritize that
+      if ("__typename" in obj && obj.__typename === apiResponseNestedSelectors.BOOK_IT_CALENDAR) {
+        console.log("✔ Pets allowed status found in BookItSection:", obj.petsAllowed);
+        return obj.petsAllowed as boolean;
+      }
+
+      // If we find a property nearby called petDetails, guestDisclaimer, etc. that references pets
+      // this is likely the correct petsAllowed boolean
+      if (
+        "petDetails" in obj ||
+        ("guestDisclaimer" in obj &&
+          typeof obj.guestDisclaimer === "string" &&
+          obj.guestDisclaimer.toLowerCase().includes("pet"))
+      ) {
+        console.log("✔ Pets allowed status found with pet context:", obj.petsAllowed);
+        return obj.petsAllowed as boolean;
+      }
+    }
+
+    // If this point is reached, check all properties of the object
+    for (const key in obj) {
+      // Safe indexing with string key using type assertion
+      const value = obj[key as keyof typeof obj];
+      const result = findPetsAllowedBoolean(value);
+      if (result !== undefined) {
+        return result;
+      }
+    }
+
+    return undefined;
+  };
+
+  // Search for petsAllowed in the entire API data
+  const petsAllowed = findPetsAllowedBoolean(apiData);
+  if (petsAllowed !== undefined) {
+    pets = petsAllowed;
+  } else {
+    console.warn("⚠ No petsAllowed boolean property found in API data");
+  }
+
   /* ********************************************************************************************
    *************************************** Extract API Sections Data *****************************
    ******************************************************************************************** */
@@ -323,17 +387,42 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  /* ********************************************************************************************
+   ********** Extra Inherited Data (like site main tile, and intro text..) ************************
+   ******************************************************************************************** */
+
+  // Main Site Title
+  const mainTitle = getMainSiteTitle(mainListing.type, location.city, location.state, location.country);
+  if (!mainTitle) {
+    console.error("❌ Failed to extract main title data");
+    return null;
+  }
+
+  // Intro Text
+  //  const introText = extractIntroTextData(introTextData);
+  //  if (!introText) {
+  //    console.error("❌ Failed to extract intro text data");
+  //    return null;
+  //  }
+
+  const extra = {
+    main_title: mainTitle,
+    intro_text: "",
+  };
+
   const listingData: ListingData = {
     host: hostData,
     listing: mainListing,
     location,
     house_rules,
+    pets,
     safety_property,
     amenities,
     gallery,
     availability,
     category_ratings,
     reviews,
+    extra,
   };
 
   return listingData;
@@ -412,7 +501,7 @@ function extractListingData(
   listingSleepingArrangementSection: Record<string, unknown>, // Accepts empty object if section is missing
   listingHighlightsSection: Record<string, unknown>,
   listingDescriptionSection: Record<string, unknown>
-) {
+): ListingMain | null {
   // extract listing canonicalUrl (e.g. https://www.airbnb.com/rooms/30397973)
   const url = (seoFeaturesData["canonicalUrl"] as string) || "";
   if (!url) {
@@ -944,4 +1033,63 @@ function extractReviewsData(reviews: Record<string, unknown>[]) {
   });
 
   return reviewsData;
+}
+
+// Extract main site title from listing and location data (eg. "Beautiful Apartment in Praha 4, Czechia")
+function getMainSiteTitle(type: string, city: string, state: string, country: string) {
+  const adjectives = [
+    "Stunning",
+    "Cozy",
+    "Charming",
+    "Modern",
+    "Elegant",
+    "Beautiful",
+    "Inviting",
+    "Stylish",
+    "Comfortable",
+    "Luxurious",
+    "Welcoming",
+    "Gorgeous",
+    "Lovely",
+    "Vibrant",
+    "Delightful",
+    "Sleek",
+    "Chic",
+    "Classy",
+    "Trendy",
+    "Exquisite",
+    "Refined",
+    "Attractive",
+    "Enchanting",
+    "Polished",
+    "Captivating",
+    "Fabulous",
+    "Alluring",
+    "Sophisticated",
+    "Splendid",
+    "Ravishing",
+  ];
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+
+  type = type.replace(/\b\w/g, (char) => char.toUpperCase());
+
+  if (country === "US") {
+    if (!state) {
+      console.error("❌ No US state found");
+      return null;
+    }
+    const stateName = getStateName(state);
+    if (!stateName) {
+      console.error("❌ Failed to get US state name");
+      return null;
+    }
+    return `${adjective} ${type} in ${city}, ${stateName}`;
+  }
+
+  const countryName = getCountryName(country);
+  if (!countryName) {
+    console.error("❌ Failed to get country name");
+    return null;
+  }
+  return `${adjective} ${type} in ${city}, ${countryName}`;
 }

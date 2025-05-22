@@ -2,18 +2,23 @@ import type { Metadata } from "next";
 import "@/styles/global.css";
 
 export const metadata: Metadata = {
-  title: "Airbnb Listing Extractor",
-  description: "Use puppeteer to extract listing data from Airbnb",
+  title: "Site homepage",
+  description: "Site homepage",
 };
 
-export default function RootLayout({
+export default function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <header>
+          <h1>Site homepage</h1>
+        </header>
+        {children}
+      </body>
     </html>
   );
 }
