@@ -1,9 +1,11 @@
 // Import all types from the types file
 import { getCountryName, getStateName, isValidMonthYear } from "@/utils/helpers";
-import { getNestedValue, findNestedObjectByPropValue } from "./helpers";
-import { AirbnbApiData, ListingData, Availability, UnavailableRange, ListingMain } from "./types";
+import { getNestedValue, findNestedObjectByPropValue, findFirstNestedObjectNotNullOrUndefined } from "./helpers";
+import { AirbnbApiData, ListingData, Availability, UnavailableRange, ListingMain, Accessibility } from "./types";
 
 import { apiResponseNestedSelectors, apiResponseSelectors, dataLayerSelectors } from "./selectors";
+import { generateAiText } from "@/utils/ai";
+import { fetchAttractions } from "@/utils/google";
 
 /**
  * Transforms raw Airbnb API data into structured property listing data
@@ -11,7 +13,7 @@ import { apiResponseNestedSelectors, apiResponseSelectors, dataLayerSelectors } 
  * @param apiData The raw API data from Airbnb endpoints
  * @returns Structured property listing data matching our schema.json or null if transformation fails
  */
-export function getListingData(apiData: AirbnbApiData): ListingData | null {
+export async function getListingData(apiData: AirbnbApiData): Promise<ListingData | null> {
   // ApiData nested objects and selectors used for extraction -------------------------------------------- :
 
   // Direct selectors - return primitive value or null **********
@@ -239,6 +241,17 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
+  // Accessiblity last Section object array
+  const accessibilityFeatureGroupsArray = findFirstNestedObjectNotNullOrUndefined(
+    apiData,
+    apiResponseNestedSelectors.ACCESSIBILITY
+  );
+  if (!accessibilityFeatureGroupsArray) {
+    console.log("⚠ No accessibility feature groups found - Property may not have accessibility features");
+  } else {
+    console.log("✔ Accessibility feature groups found");
+  }
+
   // Extract pets allowed property using a recursive search function
   let pets = false;
 
@@ -380,34 +393,70 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     return null;
   }
 
-  // Extract reviews data ---------------- :
+  // Extract reviews data ----------------------------------------------------------------------------- :
   const reviews = extractReviewsData(reviewsData);
   if (!reviews) {
     console.error("❌ Failed to extract reviews data");
     return null;
   }
 
-  /* ********************************************************************************************
-   ********** Extra Inherited Data (like site main tile, and intro text..) ************************
-   ******************************************************************************************** */
+  // Extract accessibility data ---------------------------------------------------------------------- :
+  // Ensure we're passing an array to extractAccessibilityData
+  const accessibilityArray = accessibilityFeatureGroupsArray
+    ? Array.isArray(accessibilityFeatureGroupsArray)
+      ? accessibilityFeatureGroupsArray
+      : [accessibilityFeatureGroupsArray as Record<string, unknown>]
+    : null;
 
-  // Main Site Title
-  const mainTitle = getMainSiteTitle(mainListing.type, location.city, location.state, location.country);
-  if (!mainTitle) {
-    console.error("❌ Failed to extract main title data");
+  // Initialize accessibility variable with undefined
+  let accessibility: Accessibility[] | undefined;
+
+  if (!accessibilityArray) {
+    console.log("⚠ No accessibility data found");
+  } else {
+    accessibility = extractAccessibilityData(accessibilityArray);
+    if (!accessibility) {
+      console.log("⚠ No accessibility data found");
+    }
+  }
+
+  /* ***********************************************************************************************
+   ********** Fetch nearby Attractions - POIs (Points of Interest) using Google Places API ***********
+   *********************************************************************************************** */
+  const [latitudeStr, longitudeStr] = location.coordinates.split(",");
+  const attractions_latitude = parseFloat(latitudeStr);
+  const attractions_longitude = parseFloat(longitudeStr);
+
+  const attractions = await fetchAttractions({
+    latitude: attractions_latitude,
+    longitude: attractions_longitude,
+  });
+
+  if (!attractions) {
+    console.error("❌ Failed to fetch nearby attractions");
+  }
+
+  /* ***********************************************************************************************
+   ********** Extra Inherited Data (like site main tile, and intro text..) *************************
+   *********************************************************************************************** */
+
+  // Intro Title
+  const introTitle = getIntroTitle(mainListing.type, location.city, location.state, location.country);
+  if (!introTitle) {
+    console.error("❌ Failed to extract intro title data");
     return null;
   }
 
   // Intro Text
-  //  const introText = extractIntroTextData(introTextData);
-  //  if (!introText) {
-  //    console.error("❌ Failed to extract intro text data");
-  //    return null;
-  //  }
+  const introText = await generateIntroText(mainListing.title, mainListing.description, mainListing.tags);
+  if (!introText) {
+    console.error("❌ Failed to extract intro text data");
+    return null;
+  }
 
   const extra = {
-    main_title: mainTitle,
-    intro_text: "",
+    intro_title: introTitle,
+    intro_text: introText,
   };
 
   const listingData: ListingData = {
@@ -422,6 +471,8 @@ export function getListingData(apiData: AirbnbApiData): ListingData | null {
     availability,
     category_ratings,
     reviews,
+    attractions,
+    accessibility,
     extra,
   };
 
@@ -561,7 +612,7 @@ function extractListingData(
   const listingSleepingArrangementItems =
     (listingSleepingArrangementSection?.arrangementDetails as Record<string, unknown>[]) || [];
   // Do not treat empty sleeping arrangement as fatal; just set to empty array
-  const sleeping_arrangement = listingSleepingArrangementItems.map((arrangement) => {
+  const sleeping = listingSleepingArrangementItems.map((arrangement) => {
     const images = (arrangement["images"] as Record<string, unknown>[]) || [];
     return {
       title: (arrangement["title"] as string) || "",
@@ -628,7 +679,7 @@ function extractListingData(
     subtitle,
     hero,
     capacity,
-    sleeping_arrangement,
+    sleeping,
     highlights,
     description,
     average_daily_rate,
@@ -660,7 +711,7 @@ function extractLocationData(locationData: Record<string, unknown>) {
     addressTitle: (locationDetailsObject["addressTitle"] as string) || undefined,
   };
   if (!addressData.address || !addressData.addressTitle) {
-    console.warn("⚠ No address information found");
+    console.info("⚠ No address information found");
   }
 
   // Extract coordinates
@@ -1035,8 +1086,62 @@ function extractReviewsData(reviews: Record<string, unknown>[]) {
   return reviewsData;
 }
 
-// Extract main site title from listing and location data (eg. "Beautiful Apartment in Praha 4, Czechia")
-function getMainSiteTitle(type: string, city: string, state: string, country: string) {
+// Extract accessibility data from accessibilityDataGroupArray
+function extractAccessibilityData(
+  accessibilityDataGroupsArray: Record<string, unknown>[]
+): Accessibility[] | undefined {
+  if (!accessibilityDataGroupsArray || accessibilityDataGroupsArray.length === 0) {
+    console.log("⚠ No accessibilityDataGroupsArray found or empty array");
+    return undefined;
+  }
+
+  // Filter out any null or undefined groups first
+  const validGroups = accessibilityDataGroupsArray.filter((group) => group && typeof group === "object");
+
+  if (validGroups.length === 0) {
+    console.log("⚠ No valid accessibility data groups found");
+    return undefined;
+  }
+
+  // Create a properly typed array by mapping and filtering
+  const accessibilityItems: Accessibility[] = [];
+
+  for (const accessibilityDataGroup of validGroups) {
+    // Check if accessibilityFeatures exists and is an array
+    const accessibilityFeatures = accessibilityDataGroup["accessibilityFeatures"];
+    if (!accessibilityFeatures || !Array.isArray(accessibilityFeatures) || accessibilityFeatures.length === 0) {
+      console.log("⚠ Skipping group with no valid accessibilityFeatures");
+      continue;
+    }
+
+    // Loop through each feature and collect accessibility data
+    for (const feature of accessibilityFeatures) {
+      // Extract images if available
+      let images: string[] = [];
+      const featureImages = feature["images"];
+      if (featureImages && Array.isArray(featureImages)) {
+        images = featureImages
+          .filter((img) => img && typeof img === "object")
+          .map((image: Record<string, unknown>) => (image["baseUrl"] as string) || "")
+          .filter((url) => url !== "");
+      }
+
+      // Create a properly typed Accessibility object
+      accessibilityItems.push({
+        type: (accessibilityDataGroup["title"] as string) || "",
+        title: (feature["title"] as string) || "",
+        subtitle: (feature["subtitle"] as string) || "", // Using content instead of subtitle to match interface
+        available: (feature["available"] as boolean) || false,
+        images: images,
+      });
+    }
+  }
+
+  return accessibilityItems.length > 0 ? accessibilityItems : undefined;
+}
+
+// Extract property intro title from listing and location data (eg. "Beautiful Apartment in Praha 4, Czechia")
+function getIntroTitle(type: string, city: string, state: string, country: string) {
   const adjectives = [
     "Stunning",
     "Cozy",
@@ -1092,4 +1197,24 @@ function getMainSiteTitle(type: string, city: string, state: string, country: st
     return null;
   }
   return `${adjective} ${type} in ${city}, ${countryName}`;
+}
+
+// Generate intro text for listing using LLM function generateAiText
+async function generateIntroText(title: string, description: string, tags: string[]) {
+  const prompt = `You are a creative copywriter tasked with generating a one-sentence introductory text for a property listing website's header section, based on the provided title, description, and tags. The intro text must:
+- Be a single, concise sentence (15-20 words).
+- Be affirmative and engaging, acting as a teaser to encourage visitors to stay on the page.
+- Avoid using personal names, brand names, or specific details (e.g., locations, metro stations, or contact information) from the title or description to prevent repetition.
+- Use the tags to highlight the property’s inviting nature for a short or long stay.
+- Be original, focusing on the general appeal or vibe of the property (e.g., comfort, relaxation, or suitability for guests) without repeating specific details like "spacious," "private," "quiet area," or "basic necessities" from the description.
+
+Input:
+Title: ${title}
+Description: ${description}
+Tags: ${tags.join(", ")}
+
+Output a single sentence that meets these criteria.`;
+
+  const introText = await generateAiText(prompt);
+  return introText;
 }

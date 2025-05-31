@@ -31,7 +31,7 @@ export async function scrp(url: string): Promise<string | null> {
     await saveToFile(JSON.stringify(apiData), LISTING_DATA_PATHS.apiData);
 
     // Transform the apiData to listing data and save listingData JSON to data folder
-    const listingData = getListingData(apiData);
+    const listingData = await getListingData(apiData);
     if (listingData) {
       console.log("✔ Successfully transformed property listing data from apiData JSON to listingData JSON");
 

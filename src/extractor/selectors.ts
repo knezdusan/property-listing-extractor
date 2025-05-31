@@ -55,6 +55,7 @@ export const apiResponseNestedSelectors = {
   GALLERY_PHOTOS: "PhotoTourModalSection",
   LISTING_REVIEWS: "PdpReviews",
   BOOK_IT_CALENDAR: "BookItSection", // Extracting Pets allowed from this section
+  ACCESSIBILITY: "seeAllAccessibilityFeaturesGroups",
 };
 
 // Data layer API endpoint selectors ****************************************

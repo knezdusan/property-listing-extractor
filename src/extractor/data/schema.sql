@@ -1,7 +1,21 @@
+
+-- ========= USER ACCOUNT =========
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+
 -- ========= HOSTS =========
 CREATE TABLE hosts (
     id TEXT PRIMARY KEY, -- Using Airbnb's Host ID 'RGVtYW5kVXNlcjozNDk3ODQ0NjM='
+    user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE, -- Ensure one-to-one
     name TEXT NOT NULL,
+    email TEXT, -- can be same as user
+    phone TEXT,
     superhost BOOLEAN,
     photo TEXT,
     review_count INTEGER,
@@ -10,15 +24,33 @@ CREATE TABLE hosts (
     about TEXT, -- URL
     highlights TEXT[], -- Array of strings ['Lives in Gordona, Italy']
     details TEXT[], -- Array of strings ['Response rate: 100%', 'Responds within an hour']
-    cohosts JSONB, -- JSONB object [{"id": "RGVtYW5kVXNlcjo1NDQxMzcyNA==","name": "Vanesa","photo": "photo_url"}]
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+
+-- ========= SITES =========
+CREATE TABLE sites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    host_id TEXT NOT NULL REFERENCES hosts(id) ON DELETE CASCADE,
+    cohosts JSONB, -- JSONB object [{"id": "RGVtYW5kVXNlcjo1NDQxMzcyNA==","name": "Vanesa","photo": "photo_url"}]
+    type TEXT NOT NULL CHECK (type IN ('single', 'multi')), -- single or multiple property listings site
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    domain TEXT UNIQUE, -- if hosted on domain (e.g., 'jane-single-property.com')
+    description TEXT,
+    theme TEXT, -- e.g., 'modern', 'classic'
+    settings JSONB, -- Custom settings (e.g., logo, colors)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+CREATE INDEX IF NOT EXISTS idx_sites_host_id ON sites(host_id);
+
+
 -- ========= LISTINGS =========
 CREATE TABLE listings (
     id TEXT PRIMARY KEY, -- Using Airbnb's Listing ID '44517879'
-    host_id TEXT NOT NULL REFERENCES hosts(id) ON DELETE CASCADE,
+    site_id UUID NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
     url TEXT,
     type TEXT, -- 'apartment'
     privacy TEXT, -- 'entire_home'
@@ -27,12 +59,15 @@ CREATE TABLE listings (
     description TEXT,
     highlights JSONB, -- JSONB object [{"title": "Self check-in", "subtitle": "Check yourself by keypad."}]
     hero TEXT, -- '1696883311' (references photos table later, or just stores the ID)
+    intro_title TEXT,
+    intro_text TEXT,
     average_daily_rate NUMERIC(10, 5),
     min_nights INTEGER DEFAULT 1,
     capacity_summary TEXT[], -- Array-like ['2 guests', 'Studio', '1 bed', '1 bath']
     house_rules_summary TEXT[], -- Array-like ["Check-in: 3:00 PM - 12:00 AM", "Checkout before 10:00 AM", "4 guests maximum"]
-    pets_allowed BOOLEAN, -- True if pets are allowed
     safety_features_summary TEXT[], -- Array-like ["No smoke alarm", "Nearby lake, river, other body of water"]
+    sleeping JSONB, -- JSONB object [{"title": "Bedroom 1", "subtitle": "1 queen bed", "photos": ["1678135503"]}]    
+    pets BOOLEAN, -- True if pets are allowed
     tags TEXT[],
 
     -- Location Data (Embedded for simplicity as it's 1:1)
@@ -44,37 +79,23 @@ CREATE TABLE listings (
     location_disclaimer TEXT,
 
     -- Category Ratings
-    rating_overall NUMERIC(3, 2), -- guest_satisfaction
-    rating_accuracy NUMERIC(3, 2),
-    rating_check_in NUMERIC(3, 2),
-    rating_cleanliness NUMERIC(3, 2),
-    rating_communication NUMERIC(3, 2),
-    rating_location NUMERIC(3, 2),
-    rating_value NUMERIC(3, 2),
+    ratings JSONB,
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
-CREATE INDEX IF NOT EXISTS idx_listings_host_id ON listings(host_id);
+CREATE INDEX IF NOT EXISTS idx_listings_site_id ON listings(site_id);
 
 
--- ========= SLEEPING (ARRANGEMENTS) =========
-CREATE TABLE sleeping (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-    title TEXT, -- e.g., 'Living area'
-    subtitle TEXT, -- e.g., '1 sofa bed'
-    photos TEXT[] -- Array of image IDs ['1680367404'] (references photos table)
-);
-CREATE INDEX IF NOT EXISTS idx_sleeping_listing_id ON sleeping(listing_id);
-
-
--- ========= LOCATION DETAILS (e.g., Getting around =========
+-- ========= LOCATION DETAILS (e.g., Getting around) =========
 CREATE TABLE location_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
     title TEXT,
-    content TEXT
+    content TEXT,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 CREATE INDEX IF NOT EXISTS idx_location_details_listing_id ON location_details(listing_id);
 
@@ -101,7 +122,10 @@ CREATE TABLE photos (
     aspect_ratio NUMERIC(10, 8),
     orientation TEXT, -- 'LANDSCAPE', 'PORTRAIT'
     accessibility_label TEXT,
-    caption TEXT
+    caption TEXT,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 CREATE INDEX IF NOT EXISTS idx_photos_listing_id ON photos(listing_id);
 
@@ -169,13 +193,50 @@ CREATE TABLE reviews (
 );
 CREATE INDEX IF NOT EXISTS idx_reviews_listing_id ON reviews(listing_id);
 
--- ========= EXTRA =========
-CREATE TABLE extra (
+-- ========= Attractions (Points of Interest) =========
+CREATE TABLE attractions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
-    main_title TEXT,
-    intro_text TEXT,
+    name TEXT,
+    types TEXT[],
+    location JSONB,
+    description TEXT,
+    photos TEXT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
-CREATE INDEX IF NOT EXISTS idx_extra_listing_id ON extra(listing_id);
+CREATE INDEX IF NOT EXISTS idx_attractions_listing_id ON attractions(listing_id);
+
+-- ========= Accessibility =========
+CREATE TABLE accessibility (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    type TEXT,
+    title TEXT,
+    subtitle TEXT,
+    available BOOLEAN,
+    images TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+CREATE INDEX IF NOT EXISTS idx_accessibility_listing_id ON accessibility(listing_id);
+
+
+-- ========= TRIGGERS ===============================================================================
+-- Enforce single-property sites can only have one listing
+CREATE OR REPLACE FUNCTION enforce_single_site_listing_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (SELECT site_type FROM sites WHERE id = NEW.site_id) = 'single' THEN
+        IF (SELECT COUNT(*) FROM site_listings WHERE site_id = NEW.site_id) >= 1 THEN
+            RAISE EXCEPTION 'Single-property sites can only have one listing';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_single_site_listing
+BEFORE INSERT ON site_listings
+FOR EACH ROW
+EXECUTE FUNCTION enforce_single_site_listing_limit();

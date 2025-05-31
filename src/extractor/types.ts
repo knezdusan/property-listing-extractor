@@ -3,6 +3,15 @@ export interface AirbnbApiData {
   [key: string]: unknown;
 }
 
+// User interfaces -------------------------------------
+interface User {
+  id: string;
+  email: string;
+  password: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Host interfaces -------------------------------------
 interface CoHost {
   id: string;
@@ -33,6 +42,18 @@ export interface Host {
   other_listings?: OtherListing[];
 }
 
+// Site interfaces -------------------------------------
+interface Site {
+  id: string;
+  host_id: string;
+  type: string;
+  name: string;
+  slug: string;
+  domain: string;
+  theme: string;
+  settings: string;
+}
+
 // Listing main interface -------------------------------------
 
 interface SleepingArrangement {
@@ -49,7 +70,7 @@ export interface ListingMain {
   title: string;
   subtitle: string;
   capacity: string[];
-  sleeping_arrangement?: SleepingArrangement[];
+  sleeping?: SleepingArrangement[];
   description: string;
   highlights: { title: string; subtitle: string }[];
   hero: string;
@@ -178,8 +199,25 @@ export interface Review {
 
 export type Reviews = Review[];
 
-interface Extra {
-  main_title: string;
+export interface AttractionResult {
+  id: string;
+  name: string;
+  types: string[];
+  location: { lat: number; lng: number };
+  description: string;
+  photos: string[];
+}
+
+export interface Accessibility {
+  type: string;
+  title: string;
+  subtitle: string;
+  available: boolean;
+  images: string[];
+}
+
+export interface Extra {
+  intro_title: string;
   intro_text: string;
 }
 
@@ -187,7 +225,9 @@ interface Extra {
  * ******* Root listing data interface ********************************
  ******************************************************************* */
 export interface ListingData {
+  user: User;
   host: Host;
+  site: Site;
   listing: ListingMain;
   location: Location;
   house_rules: HouseRules;
@@ -198,5 +238,7 @@ export interface ListingData {
   availability: Availability;
   category_ratings: CategoryRatings;
   reviews: Reviews;
+  attractions: AttractionResult[];
+  accessibility?: Accessibility[];
   extra: Extra;
 }

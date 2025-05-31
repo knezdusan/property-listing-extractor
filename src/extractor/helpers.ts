@@ -457,7 +457,9 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
  */
 export async function saveListingData(listingData: ListingData): Promise<boolean> {
   const {
+    user,
     host,
+    site,
     listing,
     location,
     house_rules,
@@ -468,11 +470,27 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
     availability,
     category_ratings,
     reviews,
+    attractions,
+    accessibility,
     extra,
   } = listingData;
   // Track which tables were written to for compensation
   const completed: { [key: string]: boolean } = {};
   try {
+    // *** Upsert user
+    const { error: userError } = await supabaseServer.from("users").upsert(
+      {
+        id: user.id,
+        email: user.email,
+        password: user.password,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      },
+      { onConflict: "id" }
+    );
+    if (userError) throw new Error(`Error upserting user: ${userError.message}`);
+    completed.user = true;
+
     // *** Upsert host
     const { error: hostError } = await supabaseServer.from("hosts").upsert(
       {
@@ -486,19 +504,36 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
         about: host.about,
         highlights: host.highlights ?? [],
         details: host.details ?? [],
-        cohosts: host.co_hosts ?? [],
       },
       { onConflict: "id" }
     );
     if (hostError) throw new Error(`Error upserting host: ${hostError.message}`);
     completed.host = true;
 
-    // 2. Upsert listing
+    // *** Upsert site
+    const { error: siteError } = await supabaseServer.from("sites").upsert(
+      {
+        id: site.id,
+        host_id: host.id,
+        type: site.type,
+        name: site.name,
+        slug: site.slug,
+        domain: site.domain,
+        theme: site.theme,
+        settings: site.settings,
+      },
+      { onConflict: "id" }
+    );
+    if (siteError) throw new Error(`Error upserting site: ${siteError.message}`);
+    completed.site = true;
+
+    // *** Upsert listing
     const [lat, lng] = location.coordinates.split(",").map((c) => parseFloat(c.trim()));
     const { error: listingError } = await supabaseServer.from("listings").upsert(
       {
         id: listing.id,
         host_id: host.id,
+        cohosts: host.co_hosts ?? [],
         url: listing.url,
         type: listing.type,
         privacy: listing.privacy,
@@ -507,12 +542,15 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
         description: listing.description,
         highlights: listing.highlights ?? [],
         hero: listing.hero,
+        intro_title: extra.intro_title,
+        intro_text: extra.intro_text,
         average_daily_rate: listing.average_daily_rate,
         min_nights: availability.minNights,
         capacity_summary: listing.capacity,
         house_rules_summary: house_rules.house_rules_summary,
-        pets_allowed: pets,
+        sleeping: listing.sleeping,
         safety_features_summary: safety_property.safety_features_summary,
+        pets: pets,
         tags: listing.tags,
         city: location.city,
         state: location.state,
@@ -520,32 +558,12 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
         latitude: lat,
         longitude: lng,
         location_disclaimer: location.disclaimer ?? null,
-        rating_overall: category_ratings.guest_satisfaction,
-        rating_accuracy: category_ratings.accuracy,
-        rating_check_in: category_ratings.check_in,
-        rating_cleanliness: category_ratings.cleanliness,
-        rating_communication: category_ratings.communication,
-        rating_location: category_ratings.location,
-        rating_value: category_ratings.value,
+        ratings: category_ratings,
       },
       { onConflict: "id" }
     );
     if (listingError) throw new Error(`Error upserting listing: ${listingError.message}`);
     completed.listing = true;
-
-    // *** Sleeping arrangements
-    await supabaseServer.from("sleeping").delete().eq("listing_id", listing.id);
-    if (listing.sleeping_arrangement?.length) {
-      const sleepRows = listing.sleeping_arrangement.map((sa) => ({
-        listing_id: listing.id,
-        title: sa.title,
-        subtitle: sa.subtitle,
-        photos: sa.images ?? [],
-      }));
-      const { error } = await supabaseServer.from("sleeping").insert(sleepRows);
-      if (error) throw new Error(`Error inserting sleeping arrangements: ${error.message}`);
-      completed.sleeping = true;
-    }
 
     // *** Location details
     await supabaseServer.from("location_details").delete().eq("listing_id", listing.id);
@@ -682,17 +700,36 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
       completed.reviews = true;
     }
 
-    // *** Extra
-    await supabaseServer.from("extra").delete().eq("listing_id", listing.id);
-    if (extra) {
-      const exRow = {
+    // *** Attractions (Points of Interest)
+    await supabaseServer.from("attractions").delete().eq("listing_id", listing.id);
+    if (attractions?.length) {
+      const attractionRows = attractions.map((a) => ({
         listing_id: listing.id,
-        main_title: extra.main_title,
-        intro_text: extra.intro_text,
-      };
-      const { error } = await supabaseServer.from("extra").insert([exRow]);
-      if (error) throw new Error(`Error inserting extra: ${error.message}`);
-      completed.extra = true;
+        name: a.name,
+        types: a.types,
+        location: a.location,
+        description: a.description,
+        photos: a.photos,
+      }));
+      const { error } = await supabaseServer.from("attractions").insert(attractionRows);
+      if (error) throw new Error(`Error inserting attractions: ${error.message}`);
+      completed.attractions = true;
+    }
+
+    // *** Accessibility
+    await supabaseServer.from("accessibility").delete().eq("listing_id", listing.id);
+    if (accessibility?.length) {
+      const accRows = accessibility.map((a) => ({
+        listing_id: listing.id,
+        type: a.type,
+        title: a.title,
+        subtitle: a.subtitle,
+        available: a.available,
+        images: a.images,
+      }));
+      const { error } = await supabaseServer.from("accessibility").insert(accRows);
+      if (error) throw new Error(`Error inserting accessibility: ${error.message}`);
+      completed.accessibility = true;
     }
 
     return true;
@@ -708,10 +745,10 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
       if (completed.photos) await supabaseServer.from("photos").delete().eq("listing_id", id);
       if (completed.amenities) await supabaseServer.from("amenities").delete().eq("listing_id", id);
       if (completed.location_details) await supabaseServer.from("location_details").delete().eq("listing_id", id);
-      if (completed.sleeping) await supabaseServer.from("sleeping").delete().eq("listing_id", id);
       if (completed.listing) await supabaseServer.from("listings").delete().eq("id", id);
       if (completed.host) await supabaseServer.from("hosts").delete().eq("id", listingData.host.id);
-      if (completed.extra) await supabaseServer.from("extra").delete().eq("listing_id", id);
+      if (completed.attractions) await supabaseServer.from("attractions").delete().eq("listing_id", id);
+      if (completed.accessibility) await supabaseServer.from("accessibility").delete().eq("listing_id", id);
       console.log("✔ Successfully rolled back previous insertions");
     } catch (compError) {
       console.error("❌ Compensation (rollback) failed:", compError);
@@ -950,5 +987,74 @@ export function findNestedObjectByPropValue(
   }
 
   // If the queue is empty and the target object wasn't found.
+  return null;
+}
+
+/**
+ * Finds all nested object (of object array) with specific key (`targetKeyName`), eg "section"
+ * and return the first one that is not null or undefined.
+ *
+ * @param objToSearch The complex object or array (like apiData) to search within.
+ * @param targetKeyName The name of the key whose value is the potential target object (e.g., "section").
+ * @returns The first matching target object found that is not null or undefined, or `null` if no match is found.
+ *          The return type is `Record<string, unknown> | null` or `Record<string, unknown>[]` | `null`.
+ */
+
+export function findFirstNestedObjectNotNullOrUndefined(
+  objToSearch: unknown,
+  targetKeyName: string
+): Record<string, unknown> | Record<string, unknown>[] | null {
+  // Base case: If obj is not a searchable object/array, return null.
+  if (typeof objToSearch !== "object" || objToSearch === null) {
+    return null;
+  }
+
+  // Queue holds items (objects/arrays) to explore.
+  const queue: unknown[] = [objToSearch];
+  // Visited tracks object references to prevent infinite loops in circular structures.
+  const visited = new Set<object>();
+
+  while (queue.length > 0) {
+    // Dequeue the next item.
+    const current = queue.shift();
+
+    // Skip primitives, null, or objects/arrays already visited.
+    if (typeof current !== "object" || current === null || visited.has(current)) {
+      continue;
+    }
+
+    // Mark as visited to prevent circular reference issues
+    visited.add(current);
+
+    // Iterate through the keys/indices of the current object/array.
+    for (const key in current) {
+      // Ensure we only process own properties.
+      if (Object.prototype.hasOwnProperty.call(current, key)) {
+        // Check if this key matches targetKeyName
+        if (key === targetKeyName) {
+          const potentialTarget = (current as Record<string, unknown>)[key];
+
+          // Check if the value is not null or undefined
+          if (potentialTarget !== null && potentialTarget !== undefined) {
+            // Found a non-null, non-undefined value for the target key
+            return potentialTarget as Record<string, unknown> | Record<string, unknown>[];
+          }
+        }
+
+        // Queue nested objects/arrays for further exploration
+        const value = (current as Record<string, unknown>)[key];
+
+        // Only queue nested non-null objects or arrays for further searching.
+        if (typeof value === "object" && value !== null) {
+          if (!visited.has(value)) {
+            // Check visited before push (optimization)
+            queue.push(value);
+          }
+        }
+      }
+    }
+  }
+
+  // If the queue is empty and no non-null/undefined target was found.
   return null;
 }

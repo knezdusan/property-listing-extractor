@@ -13,12 +13,7 @@ export default function Layout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <header>
-          <h1>Site homepage</h1>
-        </header>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
