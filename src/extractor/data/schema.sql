@@ -3,16 +3,19 @@
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
+    password TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('active', 'inactive', 'deleted')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 
 
 -- ========= HOSTS =========
 CREATE TABLE hosts (
     id TEXT PRIMARY KEY, -- Using Airbnb's Host ID 'RGVtYW5kVXNlcjozNDk3ODQ0NjM='
-    user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE, -- Ensure one-to-one
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE, -- Ensure one-to-one
     name TEXT NOT NULL,
     email TEXT, -- can be same as user
     phone TEXT,
@@ -85,6 +88,7 @@ CREATE TABLE listings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 CREATE INDEX IF NOT EXISTS idx_listings_site_id ON listings(site_id);
+CREATE INDEX IF NOT EXISTS idx_listings_url ON listings(url);
 
 
 -- ========= LOCATION DETAILS (e.g., Getting around) =========

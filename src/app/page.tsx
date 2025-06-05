@@ -1,7 +1,7 @@
 export default function Home() {
   return (
-    <div>
-      <h1>Property Sites Homepage</h1>
-    </div>
+    <main className="app-main">
+      <h1>App Home</h1>
+    </main>
   );
 }
