@@ -22,7 +22,9 @@
     margin: 0;
     min-height: 100vh;
     font-family: var(--ff-base);
-    line-height: var(--base-lh);
+    line-height: var(--lh-base);
+    color: var(--clr-txt-prm);
+    background-color: var(--clr-bck-body);
   }
 
   /* Remove default margin in favour of better control in authored CSS */
@@ -111,11 +113,20 @@
     text-wrap: pretty;
   }
 
+  a {
+    color: var(--clr-txt-link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--clr-txt-link-hover);
+  }
+
   /* A elements that don't have a class get default styles */
-  a:not([class]) {
+  /* a:not([class]) {
     text-decoration-skip-ink: auto;
     color: currentColor;
-  }
+  } */
 
   /* svg images should have the same color as the text */
   svg {
@@ -130,6 +141,28 @@
     display: block;
   }
 
+  /* Make consistent dialog element styles accross browsers */
+  dialog {
+    padding: 0;
+    border: none;
+
+    /* Ensures the dialog is constrained to the viewport, with scrolling for large content */
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    &::backdrop {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    article {
+      /* Ensure content container scrolls if needed */
+      max-height: 100%;
+      overflow-y: auto;
+    }
+  }
+
   /* Make sure textareas without a rows attribute are not tiny */
   textarea:not([rows]) {
     min-height: 10em;
@@ -138,6 +171,12 @@
   /* Set cursor for buttons that are not disabled */
   button:not(:disabled) {
     cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--clr-focus-ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--clr-focus-ring); /* Fallback/alternative */
   }
 
   /* Anything that has been anchored to should have extra scroll margin */

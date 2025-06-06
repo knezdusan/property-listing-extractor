@@ -1,5 +1,8 @@
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+@layer vars, reset, utils, layout, base, components;
+
+@import "./vars.css";
+@import "./reset.css";
+@import "./utils.css";
+@import "./layout.css";
+@import "./base.css";
+@import "./components.css";

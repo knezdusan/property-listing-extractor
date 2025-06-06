@@ -1,34 +1,111 @@
-/* ---------------------------------------- */
-/* Custom properties                        */
-/* ---------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*  Defines all CSS Custom Properties (variables) for the default theme.      */
+/*  These variables are consumed by utility classes and component styles.     */
+/* -------------------------------------------------------------------------- */
 @layer vars {
   :root {
-    /* Colors */
-    --clr-text-light: 220 100% 50%;
-    --clr-text-dark: 100% 100% 50%;
-    --clr-text-accent: 220 100% 50%;
+    /* -------------------------------------------------------------------------- */
+    /*  1. COLOR PALETTE                                                          */
+    /*  Defines base HSL values for primary, secondary, and accent colors,        */
+    /*  allowing for easy generation of shades and dynamic theming.               */
+    /*  Also includes semantic colors and a grayscale palette.                    */
+    /* -------------------------------------------------------------------------- */
 
-    --clr-bg-light: 220 100% 50%;
-    --clr-bg-dark: 100% 100% 50%;
-    --clr-bg-accent: 220 100% 50%;
+    /* -- HSL Base Colors -------------------------------------------------------- */
+    /* Primary Color: The dominant brand color used most frequently for main CTAs, headers, navigation, and key interactive elements. */
+    /* Secondary Color: A complementary color to distinguishes specific elements without overpowering the primary, for less prominent buttons and highlighting. */
+    /* Accent Color: A vibrant color used sparingly for small, attention-grabbing elements like links, checkboxes, and focus states. */
+    /* -------------------------------------------------------------------------- */
+    --clr-prm: hsl(210 100% 50%);
+    --clr-sec: hsl(160 70% 45%);
+    --clr-acc: hsl(30 100% 50%);
 
-    /* Font families */
-    --ff-base: "Inter", "system-ui", "sans-serif";
-    --ff-heading: "Inter", "system-ui", "sans-serif";
-    --ff-code: "Fira Code", "Fira Sans", "system-ui", "sans-serif";
+    --l-step: 15; /* Unitless number for calc() with 'l' channel */
 
-    /* Font sizes */
-    --fs-900: 9.375rem; /* 150px */
-    --fs-800: 6.25rem; /* 100px */
-    --fs-700: 3.5rem; /* 56px */
-    --fs-600: 2rem; /* 32px */
-    --fs-500: 1.75rem; /* 28px */
-    --fs-400: 1.125rem; /* 18px */
-    --fs-300: 1rem; /* 16px */
-    --fs-200: 0.875rem; /* 14px */
+    --clr-prm-lht: hsl(from var(--clr-prm) h s calc(l + var(--l-step)));
+    --clr-prm-drk: hsl(from var(--clr-prm) h s calc(l - var(--l-step)));
 
-    /* Line heights */
-    --base-lh: 1.6;
-    --heading-lh: 1.1;
-  }
+    --clr-sec-lht: hsl(from var(--clr-sec) h s calc(l + var(--l-step)));
+    --clr-sec-drk: hsl(from var(--clr-sec) h s calc(l - var(--l-step)));
+
+    --clr-acc-lht: hsl(from var(--clr-acc) h s calc(l + var(--l-step)));
+    --clr-acc-drk: hsl(from var(--clr-acc) h s calc(l - var(--l-step)));
+
+    /* -- Semantic Colors for UI states ------------------------------------------ */
+    /* Success Color: A color used for positive messages, such as successful actions or completed tasks. */
+    /* Warning Color: A color used for warning messages, such as potential issues or errors. */
+    /* Error Color: A color used for error messages, such as critical issues or failures. */
+    /* Info Color: A color used for information messages, such as general information or updates. */
+    /* -------------------------------------------------------------------------- */
+    --clr-sxs: hsl(120 70% 40%);
+    --clr-wrn: hsl(45 100% 50%);
+    --clr-dng: hsl(0 80% 50%);
+    --clr-inf: hsl(200 70% 50%);
+
+    --clr-sxs-lht: hsl(from var(--clr-sxs) h s calc(l + var(--l-step)));
+    --clr-sxs-drk: hsl(from var(--clr-sxs) h s calc(l - var(--l-step)));
+
+    --clr-wrn-lht: hsl(from var(--clr-wrn) h s calc(l + var(--l-step)));
+    --clr-wrn-drk: hsl(from var(--clr-wrn) h s calc(l - var(--l-step)));
+
+    --clr-dng-lht: hsl(from var(--clr-dng) h s calc(l + var(--l-step)));
+    --clr-dng-drk: hsl(from var(--clr-dng) h s calc(l - var(--l-step)));
+
+    --clr-inf-lht: hsl(from var(--clr-inf) h s calc(l + var(--l-step)));
+    --clr-inf-drk: hsl(from var(--clr-inf) h s calc(l - var(--l-step)));
+
+    /* -- Grayscale & Neutral Colors --------------------------------------------- */
+    /* Used for text, backgrounds, borders, UI elements. */
+    /* Derived from the main (primary) brand color */
+    /* -------------------------------------------------------------------------- */
+    --clr-wht: #ffffff;
+    --clr-gry-50: hsl(from var(--clr-prm) h 10% 98%); /* Off-wht */
+    --clr-gry-100: hsl(from var(--clr-prm) h 10% 95%); /* Very light gray */
+    --clr-gry-200: hsl(from var(--clr-prm) h 10% 92%); /* Light gray */
+    --clr-gry-300: hsl(from var(--clr-prm) h 10% 88%); /* Gray */
+    --clr-gry-400: hsl(from var(--clr-prm) h 10% 82%); /* Medium gray */
+    --clr-gry-500: hsl(from var(--clr-prm) h 10% 70%); /* Dark gray */
+    --clr-gry-600: hsl(from var(--clr-prm) h 10% 55%); /* Darker gray */
+    --clr-gry-700: hsl(from var(--clr-prm) h 10% 30%); /* Very dark gray */
+    --clr-gry-800: hsl(from var(--clr-prm) h 10% 22%); /* Near black */
+    --clr-gry-900: hsl(from var(--clr-prm) h 10% 15%); /* Blackish */
+    --clr-blk: #000000;
+
+    /* -- Main Colors ---------------------------------------------------------- */
+    /* text, background, ui elements */
+    /* These map to specific roles in the UI, making it easy to theme. */
+    /* -------------------------------------------------------------------------- */
+    --clr-bck-body: var(--clr-wht); /* Main page background */
+    --clr-bck-elm: var(--clr-gry-50); /* Background for cards, modals, etc. */
+    --clr-bck-elm-alt: var(--clr-gry-100); /* Alternate component background */
+
+    --clr-txt-dark: var(--clr-gry-800); /* Primary text color */
+    --clr-txt-light: var(--clr-gry-200); /* Secondary, less important text */
+    --clr-txt-muted: var(--clr-gry-600); /* Muted text, less important, hints */
+    --clr-txt-disabled: var(--clr-gry-400); /* Disabled text */
+    --clr-txt-link: var(--clr-prm); /* Link text color */
+    --clr-txt-link-hover: var(--clr-prm-drk); /* Link text color on hover */
+
+    --clr-dvd: var(--clr-gry-200); /* Color for dividers/separators */
+
+    --clr-focus-ring: hsla(from var(--clr-prm) h s l 0.35); /* Focus ring, typically for accessibility */
+
+    /* -------------------------------------------------------------------------- */
+    /*  2. TYPOGRAPHY                                                             */
+    /*  Defines font families, sizes, weights, and line heights.                  */
+    /* -------------------------------------------------------------------------- */
+
+    /* Font families: Fallbacks for robustness */
+    --ff-base: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+      "Open Sans", "Helvetica Neue", sans-serif;
+    --ff-heading: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+      Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --ff-accent: "Playfair Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+      Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --ff-code: "Fira Code", "SF Mono", "Consolas", "Menlo", "Courier New", monospace;
+
+    /* -- Base and Heading Line Height -- */
+    --lh-base: 1.5;
+    --lh-heading: 1.1;
+  } /* End of :root */
 }

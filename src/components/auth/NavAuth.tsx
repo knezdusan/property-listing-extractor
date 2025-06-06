@@ -1,6 +1,7 @@
 "use client";
 
 import { useAppContext } from "../contexts/AppContext";
+import { MdPerson, MdPersonAdd } from "react-icons/md";
 
 type NavAuthProps = {
   className?: string;
@@ -13,11 +14,23 @@ export default function NavAuth({ className }: NavAuthProps) {
   return (
     <>
       <div className={className}>
-        <a href="#" className="nav-auth__sign-in" onClick={() => setAppModalComponentName("FormSignIn")}>
-          Sign In
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setAppModalComponentName("FormSignIn");
+          }}
+        >
+          <MdPerson /> {"  "}Sign In
         </a>
-        <a href="#" className="nav-auth__sign-up" onClick={() => setAppModalComponentName("FormSignUp")}>
-          Sign Up
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setAppModalComponentName("FormSignUp");
+          }}
+        >
+          <MdPersonAdd /> {"  "} Sign Up
         </a>
       </div>
     </>
