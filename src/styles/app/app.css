@@ -21,3 +21,13 @@
     margin-right: auto;
   }
 }
+
+.frm-auth {
+  .btn-auth {
+    margin: auto;
+  }
+
+  .btn-auth-sign-up {
+    padding-inline: 5rem;
+  }
+}

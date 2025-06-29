@@ -23,7 +23,7 @@
     min-height: 100vh;
     font-family: var(--ff-base);
     line-height: var(--lh-base);
-    color: var(--clr-txt-prm);
+    color: var(--clr-txt-drk);
     background-color: var(--clr-bck-body);
   }
 
@@ -86,21 +86,13 @@
     line-height: var(--heading-lh);
   }
 
-  /* Inherit fonts for inputs and buttons */
-  input,
-  button,
-  textarea,
-  select {
-    font-family: inherit;
-    font-size: inherit;
-  }
-
   /* Balance text wrapping on headings */
   h1,
   h2,
   h3,
   h4 {
     text-wrap: balance;
+    font-weight: 500;
   }
 
   /* Balance text wrapping on paragraphs and list items */
@@ -141,31 +133,17 @@
     display: block;
   }
 
-  /* Make consistent dialog element styles accross browsers */
-  dialog {
-    padding: 0;
-    border: none;
-
-    /* Ensures the dialog is constrained to the viewport, with scrolling for large content */
-    max-width: 90vw;
-    max-height: 80vh;
-    overflow-x: hidden;
-    overflow-y: auto;
-
-    &::backdrop {
-      background-color: rgba(0, 0, 0, 0.3);
-    }
-
-    article {
-      /* Ensure content container scrolls if needed */
-      max-height: 100%;
-      overflow-y: auto;
-    }
+  /** ----------  Basic form resets  ---------- */
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    margin: 0;
   }
 
-  /* Make sure textareas without a rows attribute are not tiny */
-  textarea:not([rows]) {
-    min-height: 10em;
+  button {
+    font: inherit;
   }
 
   /* Set cursor for buttons that are not disabled */
@@ -174,9 +152,8 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--clr-focus-ring);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px var(--clr-focus-ring); /* Fallback/alternative */
+    outline: none;
+    box-shadow: 0 0 0 var(--frm-p) var(--clr-focus-ring);
   }
 
   /* Anything that has been anchored to should have extra scroll margin */

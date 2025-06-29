@@ -1,8 +1,8 @@
-@layer vars, reset, utils, layout, base, components;
+@layer vars, reset, base, theme, utils, components;
 
 @import "./vars.css";
 @import "./reset.css";
-@import "./utils.css";
-@import "./layout.css";
 @import "./base.css";
+@import "./theme.css";
+@import "./utils.css";
 @import "./components.css";

@@ -20,6 +20,67 @@
     max-width: 80rem;
   }
 
+  .glass-modal {
+    background-color: hsl(from var(--clr-wht) h s l / 0.1);
+    backdrop-filter: blur(5px);
+    /* For Safari support */
+    -webkit-backdrop-filter: blur(5px);
+    /* Other styles... */
+
+    /* &::backdrop {
+      backdrop-filter: blur(5px);
+    } */
+
+    .modal-close {
+      color: var(--clr-wht);
+    }
+
+    form {
+      color: var(--clr-wht);
+
+      input,
+      textarea,
+      select {
+        border: 1px solid var(--clr-wht);
+        color: var(--clr-wht);
+      }
+
+      button {
+        border: 1px solid var(--clr-wht);
+        background-color: var(--clr-wht);
+      }
+
+      button:hover {
+        background-color: transparent;
+        color: var(--clr-wht);
+        border: 1px solid var(--clr-wht);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--clr-gry-50) !important;
+      }
+
+      label small a {
+        color: var(--clr-wht);
+        font-weight: bold;
+      }
+
+      label small a:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  /* Remove all button styling */
+  .btn-none {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;
@@ -36,283 +97,171 @@
     margin-top: var(--flow-space, 1rem);
   }
 
-  /* -------------------------------------------------------------------------- */
-  /*  1. BACKGROUND COLOR UTILITIES                                             */
-  /*  Classes to set background colors. e.g., .bkg-prm, .bkg-gry-100    */
-  /* -------------------------------------------------------------------------- */
-
-  /* --- Background Base Colors (Primary, Secondary, Accent) ----------------------------- */
-  .bkg-prm {
-    /* Background Primary */
-    background-color: var(--clr-prm);
-  }
-  .bkg-prm-lht {
-    /* Background Primary Light */
-    background-color: var(--clr-prm-lht);
-  }
-  .bkg-prm-drk {
-    /* Background Primary Dark */
-    background-color: var(--clr-prm-drk);
-  }
-
-  .bkg-sec {
-    /* Background Secondary */
-    background-color: var(--clr-sec);
-  }
-  .bkg-sec-lht {
-    /* Background Secondary Light */
-    background-color: var(--clr-sec-lht);
-  }
-  .bkg-sec-drk {
-    /* Background Secondary Dark */
-    background-color: var(--clr-sec-drk);
-  }
-
-  .bkg-acc {
-    /* Background Accent */
-    background-color: var(--clr-acc);
-  }
-  .bkg-acc-lht {
-    /* Background Accent Light */
-    background-color: var(--clr-acc-lht);
-  }
-  .bkg-acc-drk {
-    /* Background Accent Dark */
-    background-color: var(--clr-acc-drk);
-  }
-
-  /* --- Background Semantic Colors (Success, Warning, Danger, Info) ---------------------- */
-  .bkg-sxs {
-    /* Background Success */
-    background-color: var(--clr-sxs);
-  }
-  .bkg-sxs-lht {
-    /* Background Success Light */
-    background-color: var(--clr-sxs-lht);
-  }
-  .bkg-sxs-drk {
-    /* Background Success Dark */
-    background-color: var(--clr-sxs-drk);
-  }
-
-  .bkg-wrn {
-    /* Background Warning */
-    background-color: var(--clr-wrn);
-  }
-  .bkg-wrn-lht {
-    /* Background Warning Light */
-    background-color: var(--clr-wrn-lht);
-  }
-  .bkg-wrn-drk {
-    /* Background Warning Dark */
-    background-color: var(--clr-wrn-drk);
-  }
-  .bkg-dng {
-    /* Background Danger */
-    background-color: var(--clr-dng);
-  }
-  .bkg-dng-lht {
-    /* Background Danger Light */
-    background-color: var(--clr-dng-lht);
-  }
-  .bkg-dng-drk {
-    /* Background Danger Dark */
-    background-color: var(--clr-dng-drk);
-  }
-  .bkg-inf {
-    /* Background Info */
-    background-color: var(--clr-inf);
-  }
-  .bkg-inf-lht {
-    /* Background Info Light */
-    background-color: var(--clr-inf-lht);
-  }
-  .bkg-inf-drk {
-    /* Background Info Dark */
-    background-color: var(--clr-inf-drk);
-  }
-
-  /* --- Background Grayscale Colors ------------------------------------------------------ */
-
-  .bkg-wht {
-    /* Background White */
-    background-color: var(--clr-wht);
-  }
-  .bkg-gry-50 {
-    /* Background Gray 50 */
-    background-color: var(--clr-gry-50);
-  }
-  .bkg-gry-100 {
-    /* Background Gray 100 */
-    background-color: var(--clr-gry-100);
-  }
-  .bkg-gry-200 {
-    /* Background Gray 200 */
-    background-color: var(--clr-gry-200);
-  }
-  .bkg-gry-300 {
-    /* Background Gray 300 */
-    background-color: var(--clr-gry-300);
-  }
-  .bkg-gry-400 {
-    /* Background Gray 400 */
-    background-color: var(--clr-gry-400);
-  }
-  .bkg-gry-500 {
-    /* Background Gray 500 */
-    background-color: var(--clr-gry-500);
-  }
-  .bkg-gry-600 {
-    /* Background Gray 600 */
-    background-color: var(--clr-gry-600);
-  }
-  .bkg-gry-700 {
-    /* Background Gray 700 */
-    background-color: var(--clr-gry-700);
-  }
-  .bkg-gry-800 {
-    /* Background Gray 800 */
-    background-color: var(--clr-gry-800);
-  }
-  .bkg-gry-900 {
-    /* Background Gray 900 */
-    background-color: var(--clr-gry-900);
-  }
-  .bkg-blk {
-    /* Background Black */
-    background-color: var(--clr-blk);
-  }
-
-  /* --- Background UI Element Colors ----------------------------------------------------- */
-
-  .bkg-body {
-    /* Background Body */
-    background-color: var(--clr-bck-body);
-  }
-  .bkg-elm {
-    /* Background Element */
-    background-color: var(--clr-bck-elm);
-  }
-  .bkg-elm-alt {
-    /* Background Element Alternate */
-    background-color: var(--clr-bck-elm-alt);
-  }
-  .bkg-none {
-    background-color: transparent;
-  }
-
-  /* -------------------------------------------------------------------------- */
-  /*  2. TEXT COLOR UTILITIES                                                   */
-  /*  Classes to set text colors. e.g., .txt-prm, .txt-gry-600       */
-  /* -------------------------------------------------------------------------- */
-
-  /* --- Base Text colors - (Base / Main, Fade, Muted, Disabled, Link) --- */
-  .txt-light {
-    /* Main (Base) Text Color */
-    color: var(--clr-txt-light);
-  }
-  .txt-dark {
-    /* Secondary (Fade) Text Color */
-    color: var(--clr-txt-dark);
-  }
-  .txt-muted {
-    /* Muted Text Color */
-    color: var(--clr-txt-muted);
-  }
-  .txt-disabled {
-    /* Disabled Text Color */
-    color: var(--clr-txt-disabled);
-  }
-  .txt-link {
-    /* Link Text Color */
-    color: var(--clr-txt-link);
-  }
-  .txt-link:hover {
-    /* Link Text on hover */
-    color: var(--clr-txt-link-hover);
-  }
-
-  /* --- Brand Text Colors --- */
-  .txt-prm {
-    /* Primary (Brand) Text Color */
-    color: var(--clr-prm);
-  }
-  .txt-sec {
-    /* Secondary (Brand) Text Color */
-    color: var(--clr-sec);
-  }
-  .txt-acc {
-    /* Accent Text Color */
-    color: var(--clr-acc);
-  }
-  .txt-sxs {
-    /* Success Text Color */
-    color: var(--clr-sxs);
-  }
-  .txt-wrn {
-    /* Warning Text Color */
-    color: var(--clr-wrn);
-  }
-  .txt-dng {
-    /* Danger Text Color */
+  .input-error {
     color: var(--clr-dng);
-  }
-  .txt-inf {
-    /* Info Text Color */
-    color: var(--clr-inf);
+    font-size: 0.8rem;
+    margin: 0;
   }
 
-  /* --- Grayscale Text Colors --- */
-  .txt-wht {
-    /* White Text Color */
-    color: var(--clr-wht);
+  /** ----------  Button utility classes  ---------- */
+  .btn {
+    --btn-shadow: 0 0 5px 0;
+    background: var(--clr-btn);
+    border: 1px solid var(--clr-btn-drk);
+    padding: 0.5em 2em;
+    border-radius: var(--br-sm);
+
+    /* Default hover/focus state */
+    &:hover,
+    &:focus-visible {
+      background-color: var(--clr-btn-drk);
+      box-shadow: var(--btn-shadow) var(--clr-btn-drk);
+    }
+
+    /* Color variants */
+    &.btn-primary {
+      background-color: var(--clr-prm);
+      border-color: var(--clr-prm-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-prm-drk);
+        box-shadow: var(--btn-shadow) var(--clr-prm-drk);
+      }
+    }
+
+    &.btn-secondary {
+      background-color: var(--clr-sec);
+      border-color: var(--clr-sec-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-sec-drk);
+        box-shadow: var(--btn-shadow) var(--clr-sec-drk);
+      }
+    }
+
+    &.btn-accent {
+      background-color: var(--clr-acc);
+      border-color: var(--clr-acc-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-acc-drk);
+        box-shadow: var(--btn-shadow) var(--clr-acc-drk);
+      }
+    }
+
+    &.btn-sxs {
+      background-color: var(--clr-sxs);
+      border-color: var(--clr-sxs-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-sxs-drk);
+        box-shadow: var(--btn-shadow) var(--clr-sxs-drk);
+      }
+    }
+
+    &.btn-wrn {
+      background-color: var(--clr-wrn);
+      border-color: var(--clr-wrn-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-wrn-drk);
+        box-shadow: var(--btn-shadow) var(--clr-wrn-drk);
+      }
+    }
+
+    &.btn-dng {
+      background-color: var(--clr-dng);
+      border-color: var(--clr-dng-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-dng-drk);
+        box-shadow: var(--btn-shadow) var(--clr-dng-drk);
+      }
+    }
+
+    &.btn-inf {
+      background-color: var(--clr-inf);
+      border-color: var(--clr-inf-drk);
+      color: white;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-inf-drk);
+        box-shadow: var(--btn-shadow) var(--clr-inf-drk);
+      }
+    }
+
+    &.btn-transparent {
+      background-color: transparent;
+      color: var(--clr-prm);
+      border-color: var(--clr-prm);
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--clr-prm);
+        color: white;
+        box-shadow: var(--btn-shadow) var(--clr-prm);
+      }
+    }
+
+    /* Size variants */
+    &.btn-large {
+      font-size: 1.25rem;
+    }
+
+    &.btn-small {
+      font-size: 0.75rem;
+    }
+
+    /* Shape variants */
+    &.btn-pill {
+      border-radius: 999999px;
+    }
   }
-  .txt-gry-50 {
-    /* Gray 50 Text Color */
-    color: var(--clr-gry-50);
-  }
-  .txt-gry-100 {
-    /* Gray 100 Text Color */
-    color: var(--clr-gry-100);
-  }
-  .txt-gry-200 {
-    /* Gray 200 Text Color */
-    color: var(--clr-gry-200);
-  }
-  .txt-gry-300 {
-    /* Gray 300 Text Color */
-    color: var(--clr-gry-300);
-  }
-  .txt-gry-400 {
-    /* Gray 400 Text Color */
-    color: var(--clr-gry-400);
-  }
-  .txt-gry-500 {
-    /* Gray 500 Text Color */
-    color: var(--clr-gry-500);
-  }
-  .txt-gry-600 {
-    /* Gray 600 Text Color */
-    color: var(--clr-gry-600);
-  }
-  .txt-gry-700 {
-    /* Gray 700 Text Color */
-    color: var(--clr-gry-700);
-  }
-  .txt-gry-800 {
-    /* Gray 800 Text Color */
-    color: var(--clr-gry-800);
-  }
-  .txt-gry-900 {
-    /* Gray 900 Text Color */
-    color: var(--clr-gry-900);
-  }
-  .txt-blk {
-    /* Black Text Color */
-    color: var(--clr-blk);
-  }
-  .txt-none {
-    /* No Text Color */
-    color: transparent;
+
+  /** --- Form Notification (error, warning, success) --- */
+  .frm-ntf {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--clr-brd);
+    border-radius: var(--br-sm);
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+
+    &.frm-ntf-error {
+      border-color: var(--clr-dng-lht);
+      color: var(--clr-dng);
+    }
+
+    &.frm-ntf-warning {
+      border-color: var(--clr-wrn-lht);
+      color: var(--clr-wrn);
+    }
+
+    &.frm-ntf-success {
+      border-color: var(--clr-sxs-lht);
+      color: var(--clr-sxs);
+    }
+
+    .frm-ntf-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
   }
 }

@@ -1,4 +1,6 @@
+import IconTooltip from "@/components/ui/IconTooltip";
 import React from "react";
+import { BsQuestionLg } from "react-icons/bs";
 import {
   MdPalette,
   MdTextFields,
@@ -14,6 +16,7 @@ import {
   MdDataObject,
   MdGridOn,
   MdViewQuilt,
+  MdClose,
 } from "react-icons/md";
 
 const ThemeTestPage = () => {
@@ -54,8 +57,8 @@ const ThemeTestPage = () => {
             colorVar.includes("-50") ||
             colorVar.includes("-100") ||
             colorVar.includes("-wht")
-          ? "var(--clr-txt-dark)"
-          : "var(--clr-txt-light)",
+          ? "var(--clr-txt-drk)"
+          : "var(--clr-txt-lht)",
       }}
     >
       {children ? (
@@ -85,6 +88,39 @@ const ThemeTestPage = () => {
       </header>
 
       {/* Analysis Section */}
+      <section>
+        <IconTooltip
+          tooltip="Close this window with much elaborate explanation of what this icon does"
+          href="http://readsomnia.com"
+          size="1.5rem"
+          padding="0.5rem"
+          color="var(--clr-txt-drk)"
+          colorHover="#e7d6d6"
+          bckColor="var(--clr-prm)"
+        >
+          <MdClose />
+        </IconTooltip>
+      </section>
+      <section>
+        <IconTooltip tooltip="Close" href="#">
+          <BsQuestionLg />
+        </IconTooltip>
+      </section>
+      <div>-----------------------</div>
+      <section>
+        <button className="btn">Default</button>
+        <button className="btn btn-primary">Primary</button>
+        <button className="btn btn-secondary">Secondary</button>
+        <button className="btn btn-accent">Accent</button>
+        <button className="btn btn-sxs">Success</button>
+        <button className="btn btn-wrn">Warning</button>
+        <button className="btn btn-dng">Danger</button>
+        <button className="btn btn-inf">Info</button>
+        <button className="btn btn-large">Large</button>
+        <button className="btn btn-small">Small</button>
+        <button className="btn btn-pill">Pill</button>
+        <button className="btn btn-transparent">Transparent</button>
+      </section>
       <section className="mb-12 p-6 bkg-elm rounded-lg shadow-lg">
         <h2 className="text-2xl font-semibold mb-4 txt-prm flex items-center">
           <MdInfoOutline className="mr-2" /> CSS Theme Analysis & Recommendations
@@ -143,13 +179,13 @@ const ThemeTestPage = () => {
         <div className="mb-8">
           <h3 className="text-xl font-medium mb-4 txt-sec">Brand Colors</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ColorSwatch colorVar="--clr-prm-lht" name="Primary Light" textColorVar="--clr-txt-dark" />
+            <ColorSwatch colorVar="--clr-prm-lht" name="Primary Light" textColorVar="--clr-txt-drk" />
             <ColorSwatch colorVar="--clr-prm" name="Primary" />
             <ColorSwatch colorVar="--clr-prm-drk" name="Primary Dark" />
-            <ColorSwatch colorVar="--clr-sec-lht" name="Secondary Light" textColorVar="--clr-txt-dark" />
+            <ColorSwatch colorVar="--clr-sec-lht" name="Secondary Light" textColorVar="--clr-txt-drk" />
             <ColorSwatch colorVar="--clr-sec" name="Secondary" />
             <ColorSwatch colorVar="--clr-sec-drk" name="Secondary Dark" />
-            <ColorSwatch colorVar="--clr-acc-lht" name="Accent Light" textColorVar="--clr-txt-dark" />
+            <ColorSwatch colorVar="--clr-acc-lht" name="Accent Light" textColorVar="--clr-txt-drk" />
             <ColorSwatch colorVar="--clr-acc" name="Accent" />
             <ColorSwatch colorVar="--clr-acc-drk" name="Accent Dark" />
           </div>
@@ -198,7 +234,7 @@ const ThemeTestPage = () => {
             <ColorSwatch colorVar="--clr-bck-body" name="Body Background" />
             <ColorSwatch colorVar="--clr-bck-elm" name="Element Background" />
             <ColorSwatch colorVar="--clr-bck-elm-alt" name="Alt Element Background" />
-            <ColorSwatch colorVar="--clr-dvd" name="Divider" textColorVar="--clr-txt-dark" />
+            <ColorSwatch colorVar="--clr-dvd" name="Divider" textColorVar="--clr-txt-drk" />
             <div
               className="p-4 rounded-md shadow-sm text-center txt-dark"
               style={{ border: "2px solid var(--clr-focus-ring)" }}
@@ -361,7 +397,7 @@ const ThemeTestPage = () => {
         <UtilityDescription
           title="Text Color Utilities"
           items={[
-            { class: "txt-dark", property: "--clr-txt-dark" },
+            { class: "txt-dark", property: "--clr-txt-drk" },
             { class: "txt-prm", property: "--clr-prm" },
             { class: "txt-gry-500", property: "--clr-gry-500" },
             { class: "txt-link", property: "--clr-txt-link" },

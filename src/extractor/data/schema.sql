@@ -1,10 +1,13 @@
 
 -- ========= USER ACCOUNT =========
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id TEXT PRIMARY KEY, -- Using Airbnb's property listing ID eg. '898017173185586261'
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    status TEXT NOT NULL CHECK (status IN ('active', 'inactive', 'deleted')),
+    main_url TEXT, -- For tracking purposes
+    status TEXT NOT NULL CHECK (status IN ('active', 'inactive') OR length(status) = 10),
+    retries INTEGER DEFAULT 0,
+    comment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
@@ -15,7 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 -- ========= HOSTS =========
 CREATE TABLE hosts (
     id TEXT PRIMARY KEY, -- Using Airbnb's Host ID 'RGVtYW5kVXNlcjozNDk3ODQ0NjM='
-    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE, -- Ensure one-to-one
+    user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE, -- Ensure one-to-one
     name TEXT NOT NULL,
     email TEXT, -- can be same as user
     phone TEXT,
@@ -231,9 +234,11 @@ CREATE INDEX IF NOT EXISTS idx_accessibility_listing_id ON accessibility(listing
 CREATE OR REPLACE FUNCTION enforce_single_site_listing_limit()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF (SELECT site_type FROM sites WHERE id = NEW.site_id) = 'single' THEN
-        IF (SELECT COUNT(*) FROM site_listings WHERE site_id = NEW.site_id) >= 1 THEN
-            RAISE EXCEPTION 'Single-property sites can only have one listing';
+    -- Check if the site is of type 'single'
+    IF (SELECT type FROM sites WHERE id = NEW.site_id) = 'single' THEN
+        -- Check if there's already a listing for this site
+        IF (SELECT COUNT(*) FROM listings WHERE site_id = NEW.site_id) >= 1 THEN
+            RAISE EXCEPTION 'Single-property sites can only have one listing. Site ID: %', NEW.site_id;
         END IF;
     END IF;
     RETURN NEW;
@@ -241,6 +246,61 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_single_site_listing
-BEFORE INSERT ON site_listings
+BEFORE INSERT ON listings
 FOR EACH ROW
 EXECUTE FUNCTION enforce_single_site_listing_limit();
+
+-- Automatically update the updated_at timestamp when a row is modified
+CREATE OR REPLACE FUNCTION update_modified_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply the update_modified_timestamp trigger to all tables with updated_at columns
+CREATE TRIGGER update_users_timestamp
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_hosts_timestamp
+    BEFORE UPDATE ON hosts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_sites_timestamp
+    BEFORE UPDATE ON sites
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_listings_timestamp
+    BEFORE UPDATE ON listings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_location_details_timestamp
+    BEFORE UPDATE ON location_details
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_photos_timestamp
+    BEFORE UPDATE ON photos
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_reviews_timestamp
+    BEFORE UPDATE ON reviews
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_attractions_timestamp
+    BEFORE UPDATE ON attractions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_accessibility_timestamp
+    BEFORE UPDATE ON accessibility
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();

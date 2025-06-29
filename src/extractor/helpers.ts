@@ -452,6 +452,307 @@ export async function loadAllReviews(page: Page, modalSelector: string, reviewSe
 }
 
 /**
+ * Finds the value of the first property matching the given name in a deeply nested structure
+ * using an iterative Breadth-First Search (BFS) approach. Handles circular references.
+ *
+ * @param obj The complex object to search within.
+ * @param propName The name of the property to find.
+ * @returns The value of the found property (can be primitive, object, or array),
+ *          or `null` if the property is not found. The return type is `unknown`
+ *          as the value's type isn't known at compile time.
+ */
+export function getNestedValue(obj: Record<string, unknown>, propName: string): unknown {
+  // Base case: If obj is not a searchable object/array, return null.
+  if (typeof obj !== "object" || obj === null) {
+    return null;
+  }
+
+  // Queue holds items (objects/arrays) to explore. 'unknown' is used as elements can be anything.
+  const queue: unknown[] = [obj];
+  // Visited tracks object references to prevent infinite loops in circular structures.
+  // We only add non-null objects to this set.
+  const visited = new Set<object>();
+
+  while (queue.length > 0) {
+    // Dequeue the next item. It's 'unknown' until we inspect it.
+    const current = queue.shift();
+
+    // Skip primitives, null, or objects/arrays already visited in this path.
+    // Need the type check again because the queue holds 'unknown'.
+    if (typeof current !== "object" || current === null || visited.has(current)) {
+      continue;
+    }
+    // --- Type Assertion Point ---
+    // At this point, TypeScript knows `current` is a non-null `object`.
+    // We add it to visited.
+    visited.add(current);
+
+    // 1. Check if the property exists directly on the current object/array.
+    //    Use Object.prototype.hasOwnProperty.call for safety.
+    if (Object.prototype.hasOwnProperty.call(current, propName)) {
+      // Property found! Return its value.
+      // We need to assert the type of `current` to allow indexing.
+      // Using a Record with string keys is more specific than 'keyof any'
+      return (current as Record<string, unknown>)[propName];
+    }
+
+    // 2. Add nested objects/arrays to the queue for later exploration.
+    //    Iterate over keys for objects or indices (as strings) for arrays.
+    //    `key` is `string` in a for...in loop.
+    for (const key in current) {
+      // Ensure we only process own properties.
+      if (Object.prototype.hasOwnProperty.call(current, key)) {
+        // Access the value. Need type assertion again to index `current`.
+        const value = (current as Record<string, unknown>)[key];
+
+        // Only queue actual objects or arrays for further searching.
+        if (typeof value === "object" && value !== null) {
+          // --- Type Assertion Point ---
+          // Here, TypeScript knows `value` is a non-null `object`.
+          // Optimization: Check visited *before* pushing to potentially avoid growing the queue unnecessarily.
+          if (!visited.has(value)) {
+            queue.push(value); // Add nested structures to the end of the queue
+          }
+        }
+      }
+    }
+  }
+
+  // 3. If the queue is empty and the property wasn't found anywhere.
+  return null;
+}
+
+/**
+ * Finds and removes the first occurrence of a property with the given name
+ * in a deeply nested structure using an iterative Breadth-First Search (BFS) approach.
+ * Modifies the original object/array in place. Handles circular references.
+ * @param obj The complex object or array to search within and modify. Can be any structure.
+ * @param propName The name of the property to find and remove.
+ * @returns `true` if the property was found and removed, `false` otherwise.
+ */
+export function removeNestedValue(obj: unknown, propName: string): boolean {
+  // Base case: If obj is not a searchable/modifiable object/array, do nothing.
+  if (typeof obj !== "object" || obj === null) {
+    return false;
+  }
+
+  // Queue holds items (objects/arrays) to explore.
+  const queue: unknown[] = [obj];
+  // Visited tracks object references to prevent infinite loops in circular structures.
+  const visited = new Set<object>();
+
+  while (queue.length > 0) {
+    // Dequeue the next item.
+    const current = queue.shift();
+
+    // Skip primitives, null, or objects/arrays already visited.
+    if (typeof current !== "object" || current === null || visited.has(current)) {
+      continue;
+    }
+    // --- Type Assertion Point ---
+    // `current` is a non-null `object`.
+    visited.add(current);
+
+    // Iterate through the keys/indices of the current object/array.
+    // `key` will be a string, even for array indices.
+    for (const key in current) {
+      // Ensure we only process own properties.
+      if (Object.prototype.hasOwnProperty.call(current, key)) {
+        // --- Check if the CURRENT key is the one to remove ---
+        if (key === propName) {
+          // Found the property on the 'current' object/array. Now remove it.
+          if (Array.isArray(current)) {
+            // Use splice for arrays. Need to convert string key to number.
+            const index = parseInt(key, 10);
+            // Ensure it's a valid number index before splicing
+            if (!isNaN(index) && index >= 0 && index < current.length) {
+              current.splice(index, 1);
+              return true; // Property found and removed
+            } else {
+              // This case is unlikely if hasOwnProperty passed for a standard array,
+              // but handle defensively. Maybe it's a non-index property on an array?
+              // Treat as object deletion.
+              delete (current as unknown as Record<string, unknown>)[key]; // Less ideal for arrays, but covers edge cases
+              return true;
+            }
+          } else {
+            // Use delete for objects.
+            // Type assertion needed to satisfy TypeScript's index signature rules.
+            delete (current as Record<string, unknown>)[key];
+            return true; // Property found and removed
+          }
+        }
+
+        // --- If not the target key, check the VALUE for queueing ---
+        // Access the value associated with the key. Assertion needed.
+        const value = (current as Record<string, unknown>)[key];
+
+        // Only queue nested objects or arrays for further searching.
+        if (typeof value === "object" && value !== null) {
+          // --- Type Assertion Point ---
+          // `value` is a non-null `object`.
+          // Add to queue only if not already visited.
+          if (!visited.has(value)) {
+            queue.push(value);
+          }
+        }
+      }
+    }
+  }
+
+  // 3. If the queue is empty and the property wasn't found anywhere.
+  return false;
+}
+
+/**
+ * Finds the first nested object (of object array) with specific key (`targetKeyName`), eg "section"
+ * where that object has a specific property (`checkPropName`) matching a given value (`checkPropValue`), eg "__typename": "someValue".
+ * Uses an iterative Breadth-First Search (BFS) and handles circular references.
+ *
+ * @param objToSearch The complex object or array (like apiData) to search within.
+ * @param targetKeyName The name of the key whose value is the potential target object (e.g., "section").
+ * @param checkPropName The name of the property within the target object to check (e.g., "__typename").
+ * @param checkPropValue The value that the `checkPropName` property must match.
+ * @returns The first matching target object found, or `null` if no match is found.
+ *          The return type is `Record<string, unknown> | null`.
+ */
+export function findNestedObjectByPropValue(
+  objToSearch: unknown,
+  targetKeyName: string,
+  checkPropName: string,
+  checkPropValue: string
+): Record<string, unknown> | null {
+  // Base case: If obj is not a searchable object/array, return null.
+  if (typeof objToSearch !== "object" || objToSearch === null) {
+    return null;
+  }
+
+  // Queue holds items (objects/arrays) to explore.
+  const queue: unknown[] = [objToSearch];
+  // Visited tracks object references to prevent infinite loops in circular structures.
+  const visited = new Set<object>();
+
+  while (queue.length > 0) {
+    // Dequeue the next item.
+    const current = queue.shift();
+
+    // Skip primitives, null, or objects/arrays already visited.
+    if (typeof current !== "object" || current === null || visited.has(current)) {
+      continue;
+    }
+    // --- Type Assertion Point ---
+    // `current` is a non-null `object`.
+    visited.add(current);
+
+    // Iterate through the keys/indices of the current object/array.
+    for (const key in current) {
+      // Ensure we only process own properties.
+      if (Object.prototype.hasOwnProperty.call(current, key)) {
+        // --- Core Logic: Check if this key matches targetKeyName ---
+        if (key === targetKeyName) {
+          const potentialTarget = (current as Record<string, unknown>)[key];
+
+          // --- Check if the value is an object and has the target property/value ---
+          if (
+            typeof potentialTarget === "object" && // Is it an object?
+            potentialTarget !== null && // Is it not null?
+            Object.prototype.hasOwnProperty.call(potentialTarget, checkPropName) && // Does it have the check property?
+            (potentialTarget as Record<string, unknown>)[checkPropName] === checkPropValue // Does the value match?
+          ) {
+            // Found it! Return the target object itself.
+            return potentialTarget as Record<string, unknown>;
+          }
+        }
+
+        // --- Queueing Logic: If the current *value* is an object/array, queue it ---
+        // Access the value associated with the key. Assertion needed.
+        const value = (current as Record<string, unknown>)[key];
+
+        // Only queue nested non-null objects or arrays for further searching.
+        if (typeof value === "object" && value !== null) {
+          if (!visited.has(value)) {
+            // Check visited before push (minor optimization)
+            queue.push(value);
+          }
+        }
+      }
+    }
+  }
+
+  // If the queue is empty and the target object wasn't found.
+  return null;
+}
+
+/**
+ * Finds all nested object (of object array) with specific key (`targetKeyName`), eg "section"
+ * and return the first one that is not null or undefined.
+ *
+ * @param objToSearch The complex object or array (like apiData) to search within.
+ * @param targetKeyName The name of the key whose value is the potential target object (e.g., "section").
+ * @returns The first matching target object found that is not null or undefined, or `null` if no match is found.
+ *          The return type is `Record<string, unknown> | null` or `Record<string, unknown>[]` | `null`.
+ */
+
+export function findFirstNestedObjectNotNullOrUndefined(
+  objToSearch: unknown,
+  targetKeyName: string
+): Record<string, unknown> | Record<string, unknown>[] | null {
+  // Base case: If obj is not a searchable object/array, return null.
+  if (typeof objToSearch !== "object" || objToSearch === null) {
+    return null;
+  }
+
+  // Queue holds items (objects/arrays) to explore.
+  const queue: unknown[] = [objToSearch];
+  // Visited tracks object references to prevent infinite loops in circular structures.
+  const visited = new Set<object>();
+
+  while (queue.length > 0) {
+    // Dequeue the next item.
+    const current = queue.shift();
+
+    // Skip primitives, null, or objects/arrays already visited.
+    if (typeof current !== "object" || current === null || visited.has(current)) {
+      continue;
+    }
+
+    // Mark as visited to prevent circular reference issues
+    visited.add(current);
+
+    // Iterate through the keys/indices of the current object/array.
+    for (const key in current) {
+      // Ensure we only process own properties.
+      if (Object.prototype.hasOwnProperty.call(current, key)) {
+        // Check if this key matches targetKeyName
+        if (key === targetKeyName) {
+          const potentialTarget = (current as Record<string, unknown>)[key];
+
+          // Check if the value is not null or undefined
+          if (potentialTarget !== null && potentialTarget !== undefined) {
+            // Found a non-null, non-undefined value for the target key
+            return potentialTarget as Record<string, unknown> | Record<string, unknown>[];
+          }
+        }
+
+        // Queue nested objects/arrays for further exploration
+        const value = (current as Record<string, unknown>)[key];
+
+        // Only queue nested non-null objects or arrays for further searching.
+        if (typeof value === "object" && value !== null) {
+          if (!visited.has(value)) {
+            // Check visited before push (optimization)
+            queue.push(value);
+          }
+        }
+      }
+    }
+  }
+
+  // If the queue is empty and no non-null/undefined target was found.
+  return null;
+}
+
+/**
  * Persists a complete ListingData object into Supabase tables according to schema.sql.
  * Deletes existing related rows for this listing to prevent duplicates, then inserts fresh data.
  */
@@ -756,305 +1057,4 @@ export async function saveListingData(listingData: ListingData): Promise<boolean
     console.error("❌ saveListingData failed:", error);
     return false;
   }
-}
-
-/**
- * Finds the value of the first property matching the given name in a deeply nested structure
- * using an iterative Breadth-First Search (BFS) approach. Handles circular references.
- *
- * @param obj The complex object to search within.
- * @param propName The name of the property to find.
- * @returns The value of the found property (can be primitive, object, or array),
- *          or `null` if the property is not found. The return type is `unknown`
- *          as the value's type isn't known at compile time.
- */
-export function getNestedValue(obj: Record<string, unknown>, propName: string): unknown {
-  // Base case: If obj is not a searchable object/array, return null.
-  if (typeof obj !== "object" || obj === null) {
-    return null;
-  }
-
-  // Queue holds items (objects/arrays) to explore. 'unknown' is used as elements can be anything.
-  const queue: unknown[] = [obj];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  // We only add non-null objects to this set.
-  const visited = new Set<object>();
-
-  while (queue.length > 0) {
-    // Dequeue the next item. It's 'unknown' until we inspect it.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited in this path.
-    // Need the type check again because the queue holds 'unknown'.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-    // --- Type Assertion Point ---
-    // At this point, TypeScript knows `current` is a non-null `object`.
-    // We add it to visited.
-    visited.add(current);
-
-    // 1. Check if the property exists directly on the current object/array.
-    //    Use Object.prototype.hasOwnProperty.call for safety.
-    if (Object.prototype.hasOwnProperty.call(current, propName)) {
-      // Property found! Return its value.
-      // We need to assert the type of `current` to allow indexing.
-      // Using a Record with string keys is more specific than 'keyof any'
-      return (current as Record<string, unknown>)[propName];
-    }
-
-    // 2. Add nested objects/arrays to the queue for later exploration.
-    //    Iterate over keys for objects or indices (as strings) for arrays.
-    //    `key` is `string` in a for...in loop.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // Access the value. Need type assertion again to index `current`.
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue actual objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          // --- Type Assertion Point ---
-          // Here, TypeScript knows `value` is a non-null `object`.
-          // Optimization: Check visited *before* pushing to potentially avoid growing the queue unnecessarily.
-          if (!visited.has(value)) {
-            queue.push(value); // Add nested structures to the end of the queue
-          }
-        }
-      }
-    }
-  }
-
-  // 3. If the queue is empty and the property wasn't found anywhere.
-  return null;
-}
-
-/**
- * Finds and removes the first occurrence of a property with the given name
- * in a deeply nested structure using an iterative Breadth-First Search (BFS) approach.
- * Modifies the original object/array in place. Handles circular references.
- * @param obj The complex object or array to search within and modify. Can be any structure.
- * @param propName The name of the property to find and remove.
- * @returns `true` if the property was found and removed, `false` otherwise.
- */
-export function removeNestedValue(obj: unknown, propName: string): boolean {
-  // Base case: If obj is not a searchable/modifiable object/array, do nothing.
-  if (typeof obj !== "object" || obj === null) {
-    return false;
-  }
-
-  // Queue holds items (objects/arrays) to explore.
-  const queue: unknown[] = [obj];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  const visited = new Set<object>();
-
-  while (queue.length > 0) {
-    // Dequeue the next item.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-    // --- Type Assertion Point ---
-    // `current` is a non-null `object`.
-    visited.add(current);
-
-    // Iterate through the keys/indices of the current object/array.
-    // `key` will be a string, even for array indices.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // --- Check if the CURRENT key is the one to remove ---
-        if (key === propName) {
-          // Found the property on the 'current' object/array. Now remove it.
-          if (Array.isArray(current)) {
-            // Use splice for arrays. Need to convert string key to number.
-            const index = parseInt(key, 10);
-            // Ensure it's a valid number index before splicing
-            if (!isNaN(index) && index >= 0 && index < current.length) {
-              current.splice(index, 1);
-              return true; // Property found and removed
-            } else {
-              // This case is unlikely if hasOwnProperty passed for a standard array,
-              // but handle defensively. Maybe it's a non-index property on an array?
-              // Treat as object deletion.
-              delete (current as unknown as Record<string, unknown>)[key]; // Less ideal for arrays, but covers edge cases
-              return true;
-            }
-          } else {
-            // Use delete for objects.
-            // Type assertion needed to satisfy TypeScript's index signature rules.
-            delete (current as Record<string, unknown>)[key];
-            return true; // Property found and removed
-          }
-        }
-
-        // --- If not the target key, check the VALUE for queueing ---
-        // Access the value associated with the key. Assertion needed.
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue nested objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          // --- Type Assertion Point ---
-          // `value` is a non-null `object`.
-          // Add to queue only if not already visited.
-          if (!visited.has(value)) {
-            queue.push(value);
-          }
-        }
-      }
-    }
-  }
-
-  // 3. If the queue is empty and the property wasn't found anywhere.
-  return false;
-}
-
-/**
- * Finds the first nested object (of object array) with specific key (`targetKeyName`), eg "section"
- * where that object has a specific property (`checkPropName`) matching a given value (`checkPropValue`), eg "__typename": "someValue".
- * Uses an iterative Breadth-First Search (BFS) and handles circular references.
- *
- * @param objToSearch The complex object or array (like apiData) to search within.
- * @param targetKeyName The name of the key whose value is the potential target object (e.g., "section").
- * @param checkPropName The name of the property within the target object to check (e.g., "__typename").
- * @param checkPropValue The value that the `checkPropName` property must match.
- * @returns The first matching target object found, or `null` if no match is found.
- *          The return type is `Record<string, unknown> | null`.
- */
-export function findNestedObjectByPropValue(
-  objToSearch: unknown,
-  targetKeyName: string,
-  checkPropName: string,
-  checkPropValue: string
-): Record<string, unknown> | null {
-  // Base case: If obj is not a searchable object/array, return null.
-  if (typeof objToSearch !== "object" || objToSearch === null) {
-    return null;
-  }
-
-  // Queue holds items (objects/arrays) to explore.
-  const queue: unknown[] = [objToSearch];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  const visited = new Set<object>();
-
-  while (queue.length > 0) {
-    // Dequeue the next item.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-    // --- Type Assertion Point ---
-    // `current` is a non-null `object`.
-    visited.add(current);
-
-    // Iterate through the keys/indices of the current object/array.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // --- Core Logic: Check if this key matches targetKeyName ---
-        if (key === targetKeyName) {
-          const potentialTarget = (current as Record<string, unknown>)[key];
-
-          // --- Check if the value is an object and has the target property/value ---
-          if (
-            typeof potentialTarget === "object" && // Is it an object?
-            potentialTarget !== null && // Is it not null?
-            Object.prototype.hasOwnProperty.call(potentialTarget, checkPropName) && // Does it have the check property?
-            (potentialTarget as Record<string, unknown>)[checkPropName] === checkPropValue // Does the value match?
-          ) {
-            // Found it! Return the target object itself.
-            return potentialTarget as Record<string, unknown>;
-          }
-        }
-
-        // --- Queueing Logic: If the current *value* is an object/array, queue it ---
-        // Access the value associated with the key. Assertion needed.
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue nested non-null objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          if (!visited.has(value)) {
-            // Check visited before push (minor optimization)
-            queue.push(value);
-          }
-        }
-      }
-    }
-  }
-
-  // If the queue is empty and the target object wasn't found.
-  return null;
-}
-
-/**
- * Finds all nested object (of object array) with specific key (`targetKeyName`), eg "section"
- * and return the first one that is not null or undefined.
- *
- * @param objToSearch The complex object or array (like apiData) to search within.
- * @param targetKeyName The name of the key whose value is the potential target object (e.g., "section").
- * @returns The first matching target object found that is not null or undefined, or `null` if no match is found.
- *          The return type is `Record<string, unknown> | null` or `Record<string, unknown>[]` | `null`.
- */
-
-export function findFirstNestedObjectNotNullOrUndefined(
-  objToSearch: unknown,
-  targetKeyName: string
-): Record<string, unknown> | Record<string, unknown>[] | null {
-  // Base case: If obj is not a searchable object/array, return null.
-  if (typeof objToSearch !== "object" || objToSearch === null) {
-    return null;
-  }
-
-  // Queue holds items (objects/arrays) to explore.
-  const queue: unknown[] = [objToSearch];
-  // Visited tracks object references to prevent infinite loops in circular structures.
-  const visited = new Set<object>();
-
-  while (queue.length > 0) {
-    // Dequeue the next item.
-    const current = queue.shift();
-
-    // Skip primitives, null, or objects/arrays already visited.
-    if (typeof current !== "object" || current === null || visited.has(current)) {
-      continue;
-    }
-
-    // Mark as visited to prevent circular reference issues
-    visited.add(current);
-
-    // Iterate through the keys/indices of the current object/array.
-    for (const key in current) {
-      // Ensure we only process own properties.
-      if (Object.prototype.hasOwnProperty.call(current, key)) {
-        // Check if this key matches targetKeyName
-        if (key === targetKeyName) {
-          const potentialTarget = (current as Record<string, unknown>)[key];
-
-          // Check if the value is not null or undefined
-          if (potentialTarget !== null && potentialTarget !== undefined) {
-            // Found a non-null, non-undefined value for the target key
-            return potentialTarget as Record<string, unknown> | Record<string, unknown>[];
-          }
-        }
-
-        // Queue nested objects/arrays for further exploration
-        const value = (current as Record<string, unknown>)[key];
-
-        // Only queue nested non-null objects or arrays for further searching.
-        if (typeof value === "object" && value !== null) {
-          if (!visited.has(value)) {
-            // Check visited before push (optimization)
-            queue.push(value);
-          }
-        }
-      }
-    }
-  }
-
-  // If the queue is empty and no non-null/undefined target was found.
-  return null;
 }

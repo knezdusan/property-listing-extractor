@@ -6,12 +6,12 @@
   :root {
     /* -------------------------------------------------------------------------- */
     /*  1. COLOR PALETTE                                                          */
-    /*  Defines base HSL values for primary, secondary, and accent colors,        */
+    /*  Defines base HSL values for brand: primary, secondary, and accent colors,        */
     /*  allowing for easy generation of shades and dynamic theming.               */
     /*  Also includes semantic colors and a grayscale palette.                    */
     /* -------------------------------------------------------------------------- */
 
-    /* -- HSL Base Colors -------------------------------------------------------- */
+    /* -- Brand HSL Base Colors -------------------------------------------------------- */
     /* Primary Color: The dominant brand color used most frequently for main CTAs, headers, navigation, and key interactive elements. */
     /* Secondary Color: A complementary color to distinguishes specific elements without overpowering the primary, for less prominent buttons and highlighting. */
     /* Accent Color: A vibrant color used sparingly for small, attention-grabbing elements like links, checkboxes, and focus states. */
@@ -19,8 +19,9 @@
     --clr-prm: hsl(210 100% 50%);
     --clr-sec: hsl(160 70% 45%);
     --clr-acc: hsl(30 100% 50%);
+    --clr-btn: hsl(0 0% 90%);
 
-    --l-step: 15; /* Unitless number for calc() with 'l' channel */
+    --l-step: 20; /* Unitless number for calc() with 'l' channel */
 
     --clr-prm-lht: hsl(from var(--clr-prm) h s calc(l + var(--l-step)));
     --clr-prm-drk: hsl(from var(--clr-prm) h s calc(l - var(--l-step)));
@@ -30,6 +31,9 @@
 
     --clr-acc-lht: hsl(from var(--clr-acc) h s calc(l + var(--l-step)));
     --clr-acc-drk: hsl(from var(--clr-acc) h s calc(l - var(--l-step)));
+
+    --clr-btn-drk: hsl(from var(--clr-btn) h s calc(l - var(--l-step)));
+    --clr-btn-lht: hsl(from var(--clr-btn) h s calc(l + var(--l-step)));
 
     /* -- Semantic Colors for UI states ------------------------------------------ */
     /* Success Color: A color used for positive messages, such as successful actions or completed tasks. */
@@ -71,24 +75,28 @@
     --clr-gry-900: hsl(from var(--clr-prm) h 10% 15%); /* Blackish */
     --clr-blk: #000000;
 
-    /* -- Main Colors ---------------------------------------------------------- */
-    /* text, background, ui elements */
-    /* These map to specific roles in the UI, making it easy to theme. */
-    /* -------------------------------------------------------------------------- */
+    /* -- Main UI Colors (derived) --------------------------------------------- */
+    /* text, background, buttons, ui elements                                             */
+    /* These map to specific roles in the UI, making it easy to theme.           */
+    /* ------------------------------------------------------------------------- */
     --clr-bck-body: var(--clr-wht); /* Main page background */
     --clr-bck-elm: var(--clr-gry-50); /* Background for cards, modals, etc. */
     --clr-bck-elm-alt: var(--clr-gry-100); /* Alternate component background */
 
-    --clr-txt-dark: var(--clr-gry-800); /* Primary text color */
-    --clr-txt-light: var(--clr-gry-200); /* Secondary, less important text */
+    --clr-txt-drk: var(--clr-gry-800); /* Primary text color */
     --clr-txt-muted: var(--clr-gry-600); /* Muted text, less important, hints */
     --clr-txt-disabled: var(--clr-gry-400); /* Disabled text */
+    --clr-txt-lht: var(--clr-gry-200); /* Secondary, less important text */
     --clr-txt-link: var(--clr-prm); /* Link text color */
     --clr-txt-link-hover: var(--clr-prm-drk); /* Link text color on hover */
 
+    --clr-bck-btn: var(--clr-btn);
+
     --clr-dvd: var(--clr-gry-200); /* Color for dividers/separators */
 
-    --clr-focus-ring: hsla(from var(--clr-prm) h s l 0.35); /* Focus ring, typically for accessibility */
+    --clr-focus-ring: hsla(
+      from var(--clr-prm) h s l / 0.35
+    ); /* Form inputs on focus ring, typically for accessibility */
 
     /* -------------------------------------------------------------------------- */
     /*  2. TYPOGRAPHY                                                             */
@@ -107,5 +115,29 @@
     /* -- Base and Heading Line Height -- */
     --lh-base: 1.5;
     --lh-heading: 1.1;
+
+    /* -------------------------------------------------------------------------- */
+    /*  2. BORDER and BORDER RADII                                                */
+    /*  Defines border radius values for consistent styling.                      */
+    /* -------------------------------------------------------------------------- */
+
+    --clr-brd: var(--clr-gry-300);
+    --clr-brd-drk: var(--clr-gry-400);
+
+    --br-xs: 0.25em; /* 4px */
+    --br-sm: 0.5em; /* 6px */
+    --br-md: 0.75em; /* 8px */
+    --br-lg: 1em; /* 12px */
+    --br-xl: 1.5em; /* 18px */
+    --br-2xl: 2em; /* 24px */
+    --br-3xl: 2.5em; /* 32px */
+    --br-4xl: 3em; /* 48px */
+    --br-full: 9999px;
+
+    /* -------------------------------------------------------------------------- */
+    /*  3. FORMS                                                                    */
+    /*  Defines form values for consistent styling.                               */
+    /* -------------------------------------------------------------------------- */
+    --frm-p: 0.2rem; /* 4px */
   } /* End of :root */
 }

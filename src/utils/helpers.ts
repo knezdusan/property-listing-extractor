@@ -1,6 +1,283 @@
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
 
+// Helper function: Slugify a string (no input validation version)
+export function slugify(string: string) {
+  const a = "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;";
+  const b = "aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuwnxyyzzz------";
+  const p = new RegExp(a.split("").join("|"), "g");
+
+  return string
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(p, (c) => b.charAt(a.indexOf(c))) // Replace special chars
+    .replace(/&/g, "-and-") // Replace & with 'and'
+    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
+    .replace(/\-\-+/g, "-") // Replace multiple - with single -
+    .replace(/^-+/, "") // Trim - from start of text
+    .replace(/-+$/, ""); // Trim - from end of text
+}
+
+/**
+ * Pauses execution for the given number of seconds.
+ * @param seconds Number of seconds to pause (can be fractional).
+ * @returns Promise that resolves after the specified delay.
+ */
+export async function wait(seconds: number): Promise<void> {
+  if (seconds < 1) {
+    return;
+  }
+  const ms = Math.max(0, seconds * 1000);
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Helper function: Random delay to mimic human behavior
+export const randomDelay = (min = 500, max = 3000) => {
+  const delay = Math.floor(Math.random() * (max - min + 1)) + min;
+  return new Promise((resolve) => setTimeout(resolve, delay));
+};
+
+// Helper function: Generate a random string - for the activation code
+export const generateActivationCode = () => {
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let result = "";
+  for (let i = 0; i < 10; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+
+// Helper function: Shuffles an array randomly
+export function shuffleArray<T>(array: T[]): T[] {
+  // Create a copy to avoid mutating the original array
+  const shuffled = [...array];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
+  }
+
+  return shuffled;
+}
+
+// Helper function: Checks if a string is a valid month-year format like "June 2023"
+export function isValidMonthYear(monthYearString: string) {
+  const parts = monthYearString.split(" ");
+  if (parts.length !== 2) {
+    return false; // Incorrect format
+  }
+
+  const monthName = parts[0];
+  const yearString = parts[1];
+  const year = parseInt(yearString, 10);
+
+  if (isNaN(year) || year < 1000 || year > 9999) {
+    return false; // Invalid year format
+  }
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const monthIndex = monthNames.indexOf(monthName);
+
+  return monthIndex !== -1; // Month name is valid
+}
+
+// Helper function getWithRetry
+export async function getWithRetry<T>(getFunction: () => Promise<T>, MAX_RETRIES = 3, getWhat: string) {
+  let result = null;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    console.log(`➜ ${getWhat} - (attempt ${attempt}/${MAX_RETRIES})...`);
+    result = await getFunction();
+
+    if (result) {
+      console.log(`✔ ${getWhat} succesfull - on attempt ${attempt}`);
+      break;
+    }
+
+    if (attempt < MAX_RETRIES) {
+      // Wait with increasing backoff between retries (1s, 2s, 4s...)
+      const delayMs = 1000 * Math.pow(2, attempt - 1);
+      console.log(`⏱ Waiting ${delayMs}ms before retry ${attempt + 1}...`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+
+  if (!result) {
+    console.error(`❌ ${getWhat} failed after ${MAX_RETRIES} attempts`);
+    return null;
+  }
+  return result;
+}
+
+// Helper function: Save string content to file
+export async function saveToFile(content: string, filePath: string) {
+  const filePathFull = path.join(process.cwd(), filePath);
+  try {
+    await writeFile(filePathFull, content, "utf-8");
+    console.log(`✔ Saved content to ${filePath}`);
+  } catch (error) {
+    console.error(`❌ Failed to save content to ${filePath}:`, error);
+  }
+}
+
+// Helper function: Read string content from file
+export async function readFromFile(filePath: string) {
+  const filePathFull = path.join(process.cwd(), filePath);
+  try {
+    const content = await readFile(filePathFull, "utf-8");
+    console.log(`✔ Read content from ${filePath}`);
+    return content;
+  } catch (error) {
+    console.error(`❌ Failed to read content from ${filePath}:`, error);
+    return null;
+  }
+}
+
+// Check data structure type (object, array, primitive or null)
+export function checkStructureType(structure: unknown): string | null {
+  // Check if the structure is empty
+  if (!structure) {
+    return null;
+  }
+
+  // Check if the structure is an object
+  if (typeof structure === "object") {
+    return "object";
+  }
+
+  // Check if the structure is an array
+  if (Array.isArray(structure)) {
+    return "array";
+  }
+
+  // If structure is a primitive
+  return "primitive";
+}
+
+/**
+ * Checks if a value is a plain JavaScript object (excluding arrays and null).
+ * Uses a type predicate for type narrowing.
+ * @param value The value to check.
+ * @returns `true` if the value is a non-null object and not an array, `false` otherwise.
+ *          If true, TypeScript knows `value` is a `Record<keyof string, unknown>` within the conditional block.
+ */
+export function isObject(value: unknown): value is Record<keyof string, unknown> {
+  // 1. Check if it's an object type
+  // 2. Ensure it's not null (typeof null === 'object')
+  // 3. Ensure it's not an array (arrays are objects too)
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Checks if a value is an array.
+ * Uses a type predicate for type narrowing.
+ * @param value The value to check.
+ * @returns `true` if the value is an array, `false` otherwise.
+ *          If true, TypeScript knows `value` is `unknown[]` within the conditional block.
+ */
+export function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+/**
+ * Returns the full name of a US state given its abbreviation.
+ * @param abbreviation The 2-letter abbreviation of the state.
+ * @returns The full name of the state, or throws an error if the abbreviation is invalid.
+ */
+export function getStateName(abbreviation: string): string | null {
+  // Validate input
+  if (typeof abbreviation !== "string" || abbreviation.length !== 2) {
+    return null;
+  }
+
+  const normalizedAbbr = abbreviation.toUpperCase();
+
+  if (!(normalizedAbbr in US_STATES)) {
+    return null;
+  }
+
+  // Type assertion is safe after the check above
+  return US_STATES[normalizedAbbr as StateAbbreviation];
+}
+
+/**
+ * Returns the full name of a country given its abbreviation.
+ * @param abbreviation The 2-letter abbreviation of the country.
+ * @returns The full name of the country, or throws an error if the abbreviation is invalid.
+ */
+export function getCountryName(abbreviation: string): string | null {
+  // Validate input
+  if (typeof abbreviation !== "string" || abbreviation.length !== 2) {
+    return null;
+  }
+
+  const normalizedAbbr = abbreviation.toUpperCase();
+
+  if (!(normalizedAbbr in COUNTRIES)) {
+    return null;
+  }
+
+  // Type assertion is safe after the check above
+  return COUNTRIES[normalizedAbbr as CountryCode];
+}
+
+/**
+ * Parses an Airbnb URL to extract the listing ID and type.
+ * @param url The Airbnb URL to parse.
+ * @returns An object containing the parsed URL, listing ID, and type (room or home).
+ * eg. { url: 'https://www.airbnb.com/rooms/123456', id: '123456', type: 'room' }
+ */
+export function parseAirbnbUrl(airbnbUrl: string): { url: string; id: string; type: string; tld: string } {
+  let id: string = "";
+  let type: string = "room"; // Default to room type
+
+  // Extract URL without query parameters
+  const url = airbnbUrl.split("?")[0];
+
+  // Extract listing ID and type
+  if (url.includes("/rooms/")) {
+    id = url.split("/rooms/")[1].split("?")[0];
+    type = "room";
+  } else if (url.includes("/h/")) {
+    id = url.split("/h/")[1].split("?")[0];
+    type = "home";
+  } else {
+    // If URL format is unrecognized, attempt to extract any numeric sequence as ID
+    const numericMatch = url.match(/[0-9]{6,25}/);
+    if (numericMatch) {
+      id = numericMatch[0];
+    }
+  }
+
+  // Extract TLD (e.g., 'com', 'co.uk', 'fr')
+  const tldMatch = url.match(/\.([a-z]{2,6})(\/|$)/i);
+  const tld = tldMatch ? tldMatch[1].toLowerCase() : "com"; // Default to 'com' if no match
+
+  return {
+    url,
+    id,
+    type,
+    tld,
+  };
+}
+
+/* -------------------------------------- Helper Constants and Types --------------------------------------- */
+
 // US States abbreviations to names
 export const US_STATES = {
   AL: "Alabama",
@@ -317,24 +594,6 @@ export const COUNTRIES = {
 export type StateAbbreviation = keyof typeof US_STATES;
 export type CountryCode = keyof typeof COUNTRIES;
 
-// Helper function: Slugify a string (no input validation version)
-export function slugify(string: string) {
-  const a = "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;";
-  const b = "aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuwnxyyzzz------";
-  const p = new RegExp(a.split("").join("|"), "g");
-
-  return string
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(p, (c) => b.charAt(a.indexOf(c))) // Replace special chars
-    .replace(/&/g, "-and-") // Replace & with 'and'
-    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-    .replace(/\-\-+/g, "-") // Replace multiple - with single -
-    .replace(/^-+/, "") // Trim - from start of text
-    .replace(/-+$/, ""); // Trim - from end of text
-}
-
 // Override console.warn and console.error to color warnings and errors
 const RESET = "\x1b[0m";
 const YELLOW = "\x1b[33m";
@@ -351,197 +610,3 @@ console.error = (...args: unknown[]) => {
   console.log(...args);
   process.stdout.write(RESET);
 };
-
-// Helper function: Random delay to mimic human behavior
-export const randomDelay = (min = 500, max = 3000) => {
-  const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-  return new Promise((resolve) => setTimeout(resolve, delay));
-};
-
-// Helper function: Shuffles an array randomly
-export function shuffleArray<T>(array: T[]): T[] {
-  // Create a copy to avoid mutating the original array
-  const shuffled = [...array];
-
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
-  }
-
-  return shuffled;
-}
-
-// Helper function: Checks if a string is a valid month-year format like "June 2023"
-export function isValidMonthYear(monthYearString: string) {
-  const parts = monthYearString.split(" ");
-  if (parts.length !== 2) {
-    return false; // Incorrect format
-  }
-
-  const monthName = parts[0];
-  const yearString = parts[1];
-  const year = parseInt(yearString, 10);
-
-  if (isNaN(year) || year < 1000 || year > 9999) {
-    return false; // Invalid year format
-  }
-
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const monthIndex = monthNames.indexOf(monthName);
-
-  return monthIndex !== -1; // Month name is valid
-}
-
-// Helper function getWithRetry
-export async function getWithRetry<T>(getFunction: () => Promise<T>, MAX_RETRIES = 3, getWhat: string) {
-  let result = null;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    console.log(`➜ ${getWhat} - (attempt ${attempt}/${MAX_RETRIES})...`);
-    result = await getFunction();
-
-    if (result) {
-      console.log(`✔ ${getWhat} succesfull - on attempt ${attempt}`);
-      break;
-    }
-
-    if (attempt < MAX_RETRIES) {
-      // Wait with increasing backoff between retries (1s, 2s, 4s...)
-      const delayMs = 1000 * Math.pow(2, attempt - 1);
-      console.log(`⏱ Waiting ${delayMs}ms before retry ${attempt + 1}...`);
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
-  }
-
-  if (!result) {
-    console.error(`❌ ${getWhat} failed after ${MAX_RETRIES} attempts`);
-    return null;
-  }
-  return result;
-}
-
-// Helper function: Save string content to file
-export async function saveToFile(content: string, filePath: string) {
-  const filePathFull = path.join(process.cwd(), filePath);
-  try {
-    await writeFile(filePathFull, content, "utf-8");
-    console.log(`✔ Saved content to ${filePath}`);
-  } catch (error) {
-    console.error(`❌ Failed to save content to ${filePath}:`, error);
-  }
-}
-
-// Helper function: Read string content from file
-export async function readFromFile(filePath: string) {
-  const filePathFull = path.join(process.cwd(), filePath);
-  try {
-    const content = await readFile(filePathFull, "utf-8");
-    console.log(`✔ Read content from ${filePath}`);
-    return content;
-  } catch (error) {
-    console.error(`❌ Failed to read content from ${filePath}:`, error);
-    return null;
-  }
-}
-
-// Check data structure type (object, array, primitive or null)
-export function checkStructureType(structure: unknown): string | null {
-  // Check if the structure is empty
-  if (!structure) {
-    return null;
-  }
-
-  // Check if the structure is an object
-  if (typeof structure === "object") {
-    return "object";
-  }
-
-  // Check if the structure is an array
-  if (Array.isArray(structure)) {
-    return "array";
-  }
-
-  // If structure is a primitive
-  return "primitive";
-}
-
-/**
- * Checks if a value is a plain JavaScript object (excluding arrays and null).
- * Uses a type predicate for type narrowing.
- * @param value The value to check.
- * @returns `true` if the value is a non-null object and not an array, `false` otherwise.
- *          If true, TypeScript knows `value` is a `Record<keyof string, unknown>` within the conditional block.
- */
-export function isObject(value: unknown): value is Record<keyof string, unknown> {
-  // 1. Check if it's an object type
-  // 2. Ensure it's not null (typeof null === 'object')
-  // 3. Ensure it's not an array (arrays are objects too)
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/**
- * Checks if a value is an array.
- * Uses a type predicate for type narrowing.
- * @param value The value to check.
- * @returns `true` if the value is an array, `false` otherwise.
- *          If true, TypeScript knows `value` is `unknown[]` within the conditional block.
- */
-export function isArray(value: unknown): value is unknown[] {
-  return Array.isArray(value);
-}
-
-/**
- * Returns the full name of a US state given its abbreviation.
- * @param abbreviation The 2-letter abbreviation of the state.
- * @returns The full name of the state, or throws an error if the abbreviation is invalid.
- */
-export function getStateName(abbreviation: string): string | null {
-  // Validate input
-  if (typeof abbreviation !== "string" || abbreviation.length !== 2) {
-    return null;
-  }
-
-  const normalizedAbbr = abbreviation.toUpperCase();
-
-  if (!(normalizedAbbr in US_STATES)) {
-    return null;
-  }
-
-  // Type assertion is safe after the check above
-  return US_STATES[normalizedAbbr as StateAbbreviation];
-}
-
-/**
- * Returns the full name of a country given its abbreviation.
- * @param abbreviation The 2-letter abbreviation of the country.
- * @returns The full name of the country, or throws an error if the abbreviation is invalid.
- */
-export function getCountryName(abbreviation: string): string | null {
-  // Validate input
-  if (typeof abbreviation !== "string" || abbreviation.length !== 2) {
-    return null;
-  }
-
-  const normalizedAbbr = abbreviation.toUpperCase();
-
-  if (!(normalizedAbbr in COUNTRIES)) {
-    return null;
-  }
-
-  // Type assertion is safe after the check above
-  return COUNTRIES[normalizedAbbr as CountryCode];
-}

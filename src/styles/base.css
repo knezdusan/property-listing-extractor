@@ -2,4 +2,258 @@
 /* Common styles app-wide                   */
 /* ---------------------------------------- */
 @layer base {
+  /** ----------  Form styles  ---------- */
+  form {
+    display: grid;
+    gap: 2.2rem;
+    /* grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); */
+
+    max-width: 80rem;
+    min-width: 320px;
+    margin-inline: auto;
+
+    /* Ensure focus styles don't get clipped */
+    padding: var(--frm-p);
+    overflow-x: visible;
+
+    /* Make sure the form buttons and headings span the full width and align to the start */
+    & :is(button, h1, h2, h3, h4, h5, h6) {
+      grid-column: 1 / -1;
+      justify-self: center;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 1cap;
+    }
+
+    /* Select .form-group with small content eg checkbox + label */
+    :has(> input[type="checkbox"]),
+    :has(> input[type="radio"]) {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Label styling */
+    label {
+      font-size: 0.9rem;
+      text-box-trim: trim-both;
+      text-box-edge: cap alphabetic;
+    }
+
+    /* Form controls base styling */
+    input,
+    textarea,
+    select {
+      font: inherit;
+      padding: 0.75rem;
+      border: 1px solid var(--clr-brd);
+      border-radius: var(--br-md);
+      background-color: transparent;
+    }
+
+    /* Input-specific styling */
+    input {
+      accent-color: var(--clr-prm);
+
+      &:not([type="checkbox"], [type="radio"]) {
+        width: 100%;
+      }
+
+      &:focus-visible {
+        border-color: transparent;
+      }
+
+      &:user-valid {
+        border-color: var(--clr-sxs);
+      }
+
+      &:user-invalid {
+        border-color: var(--clr-dng);
+      }
+
+      &::placeholder {
+        color: var(--clr-txt-muted) !important;
+      }
+    }
+
+    /* select input of type checkbox */
+    input[type="checkbox"] {
+      /* 1. Reset default appearance */
+      appearance: none;
+      -webkit-appearance: none; /* For older WebKit browsers */
+
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 1px solid var(--clr-brd-drk);
+      position: relative;
+
+      display: inline-block; /* Ensure it behaves like a block for sizing */
+      vertical-align: middle; /* Align with text if in a line */
+      cursor: pointer;
+
+      border-radius: var(--br-sm);
+      transition: all 0.2s ease-in-out;
+    }
+
+    /* Styling for the checked state */
+    input[type="checkbox"]:checked {
+      background-color: var(--clr-prm);
+    }
+
+    /* Styling for the checkmark using a pseudo-element */
+    input[type="checkbox"]:checked::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("/icons/check.svg");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 90%;
+    }
+
+    /* Other form element placeholders */
+    textarea::placeholder,
+    select > option[data-placeholder] {
+      color: var(--clr-txt-muted) !important;
+    }
+
+    /* Make sure textareas without a rows attribute are not tiny */
+    textarea:not([rows]) {
+      min-height: 10em;
+    }
+
+    /* Style for input fields *inside* an inert form */
+    /* Note: While you can target them, they won't be interactive */
+    &[inert] input,
+    &[inert] button,
+    &[inert] select,
+    &[inert] textarea {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: var(--clr-brd);
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  /* Standard modal dialog */
+  .modal {
+    /* Visibility states */
+    &.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    /* Modal variables for consistent styling */
+    --mod-pad: 3rem 1.5rem;
+    --mod-brd: 1px solid var(--clr-brd);
+    --mod-rad: var(--br-lg);
+    --mod-shd: 0 4px 6px hsl(from var(--clr-gry-900) h s l / 0.1);
+    --mod-max-wth: 90vw;
+    --mod-max-hgt: 80vh;
+    --mdl-backdrop: rgba(0, 0, 0, 0.4);
+
+    /* Core properties */
+    overflow: visible;
+    padding: var(--mod-pad);
+    border: var(--mod-brd);
+    color: var(--clr-txt-drk);
+    background-color: var(--clr-bck-elm);
+    box-shadow: var(--mod-shd);
+    border-radius: var(--mod-rad);
+
+    /* Size constraints */
+    max-width: var(--mod-max-wth);
+    max-height: var(--mdl-max-hgt);
+
+    /* Backdrop styling */
+    &::backdrop {
+      background-color: var(--mdl-backdrop);
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    &.visible::backdrop {
+      opacity: 1;
+    }
+
+    /* Close button positioning */
+    .icon-tooltip {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      z-index: 1;
+
+      /* Use the font-size directly in the modifier class */
+      font-size: 1.5rem;
+    }
+
+    /* Content container */
+    .app-modal-content {
+      max-height: 100%;
+      overflow-y: auto;
+    }
+
+    /* Loading indicator */
+    .loading-indicator {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+      padding: var(--mod-pad);
+      color: var(--clr-txt-drk);
+      font-size: 1rem;
+    }
+
+    /* Error state */
+    .modal-error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1rem;
+      padding: var(--mod-pad);
+      min-height: 200px;
+
+      /* Error icon styling */
+      svg {
+        color: var(--clr-err);
+        margin-bottom: 0.5rem;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0;
+        color: var(--clr-txt-med);
+      }
+
+      button {
+        margin-top: 1rem;
+      }
+    }
+  }
 }

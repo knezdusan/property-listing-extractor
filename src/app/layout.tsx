@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Montserrat, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "@/styles/global.css";
-import "@/styles/reset.css";
 import "@/styles/app/app.css";
 import AppHeader from "@/components/app/AppHeader";
 import AppModal from "@/components/app/AppModal";
 import { AppContextProvider } from "@/components/contexts/AppContext";
+import { getAuth } from "@/utils/auth";
 
 // Initialize fonts
 
@@ -15,7 +15,7 @@ const inter = Inter({
   variable: "--font-base", // CSS variable name
 });
 
-const montserrat = Montserrat({
+const interHeading = Inter({
   subsets: ["latin"],
   variable: "--font-heading",
 });
@@ -30,15 +30,18 @@ export const metadata: Metadata = {
   description: "Use puppeteer to extract listing data from Airbnb",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get user auth data {id, email}
+  const auth = await getAuth();
+
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable} ${playfair.variable}`}>
+    <html lang="en" className={`${inter.variable} ${interHeading.variable} ${playfair.variable}`}>
       <body>
-        <AppContextProvider>
+        <AppContextProvider auth={auth}>
           <div className="app-wrapper">
             <AppHeader />
             {children}

@@ -1,0 +1,103 @@
+/* ---------------------------------------- */
+/* Component-specific styles                */
+/* ---------------------------------------- */
+@layer components {
+  /* IconTooltip */
+  .icon-tooltip {
+    /* Consolidated icon-tooltip variables */
+    --icn-padding: var(--icn-tlt-p, 0.5rem);
+    --icn-size: var(--icn-tlt-wth, 1.5rem);
+    --icn-font-size: calc(var(--icn-size) - var(--icn-padding));
+    --icn-color: var(--icn-tlt-clr, var(--clr-txt-drk));
+    --icn-color-hover: var(--icn-tlt-clr-hover, var(--clr-txt-lht));
+    --icn-background: var(--icn-tlt-bck, var(--clr-txt-drk));
+
+    max-width: var(--icn-size);
+    z-index: 10;
+
+    .icon-tooltip-wrapper {
+      position: relative;
+
+      a {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        aspect-ratio: 1;
+        color: var(--icn-color);
+        border: 1px solid var(--icn-color);
+        border-radius: 100%;
+        text-decoration: none;
+        outline: none;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+
+        .icon {
+          display: flex;
+          z-index: 10;
+          font-size: var(--icn-font-size);
+          padding: var(--icn-padding);
+        }
+      }
+
+      /* icon dynamic background */
+      a::after {
+        position: absolute;
+        content: "";
+        inset: 100% 0 0;
+        background: var(--icn-background);
+        pointer-events: none;
+        transition: inset 0.3s ease-in-out;
+      }
+
+      a:hover,
+      a:focus-visible {
+        color: var(--icn-color-hover);
+        /* No need for commented out code */
+      }
+
+      a:hover::after,
+      a:focus-visible::after {
+        inset-block-start: 0;
+      }
+
+      /* ----- Tooltip ----- */
+      .tooltip {
+        position: absolute;
+        inset: -15% auto auto 50%;
+        z-index: 15;
+        translate: -50%;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+        line-height: 1.2;
+        color: var(--icn-color-hover);
+        background: var(--icn-background);
+        border-radius: 0.25rem;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: inset 0.4s cubic-bezier(0.47, 2, 0.41, 1.5), opacity 0.4s ease-in-out;
+
+        /* Make tooltip fit content but max 200px */
+        width: max-content;
+        max-width: 150px;
+        white-space: normal;
+        word-wrap: break-word;
+        text-align: center;
+      }
+
+      &:hover .tooltip,
+      &:focus-within .tooltip {
+        opacity: 1;
+        visibility: visible;
+        inset-block-start: 110%;
+      }
+
+      /* Elevate the parent on hover/focus to ensure its tooltip is on top of subsequent elements */
+      &:hover,
+      &:focus-within {
+        z-index: 20;
+      }
+    }
+  }
+}

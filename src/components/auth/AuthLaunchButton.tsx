@@ -8,8 +8,8 @@ export default function AuthLaunchButton() {
 
   return (
     <button
-      className="btn bkg-gry-900 txt-sec"
-      style={{ margin: "5rem auto", display: "block", padding: "1rem" }}
+      className="btn btn-large btn-transparent"
+      style={{ margin: "5rem auto", display: "block", padding: "1rem 5rem" }}
       onClick={() => {
         setAppModalComponentName("FormSignUp");
       }}

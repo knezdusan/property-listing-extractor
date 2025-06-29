@@ -1,14 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
-import type { AppContext } from "@/types";
+import type { AppContext, User } from "@/types";
 
 const AppContext = createContext<AppContext | null>(null);
 
-export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+export const AppContextProvider = ({ auth, children }: { auth: User | null; children: ReactNode }) => {
   const [appModalComponentName, setAppModalComponentName] = useState<string | null>(null);
 
   const appState = {
+    auth,
     appModal: {
       appModalComponentName,
       setAppModalComponentName,
