@@ -2,10 +2,10 @@
 
 import styles from "./page.module.css";
 import { useActionState } from "react";
-import { extractListing } from "@/actions/extractListing";
+import { extractListingAction } from "@/actions/extractListingAction";
 
 export default function Extractor() {
-  const [state, formAction, isPending] = useActionState(extractListing, "");
+  const [state, formAction, isPending] = useActionState(extractListingAction, { success: false, message: "" });
 
   return (
     <div className={styles.page}>
@@ -19,7 +19,7 @@ export default function Extractor() {
 
           {isPending && <p>Extracting listing data...</p>}
 
-          {state && <p>{state}</p>}
+          {state && <p>{state.message}</p>}
         </form>
       </main>
     </div>

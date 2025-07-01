@@ -276,6 +276,15 @@ export function parseAirbnbUrl(airbnbUrl: string): { url: string; id: string; ty
   };
 }
 
+/**
+ * Checks if a string is a valid UUID.
+ * @param uuid The string to check.
+ * @returns `true` if the string is a valid UUID, `false` otherwise.
+ */
+export function isValidUUID(uuid: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
+}
+
 /* -------------------------------------- Helper Constants and Types --------------------------------------- */
 
 // US States abbreviations to names

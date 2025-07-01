@@ -3,20 +3,11 @@ export interface AirbnbApiData {
   [key: string]: unknown;
 }
 
-// User interfaces -------------------------------------
-interface User {
-  id: string;
-  email: string;
-  password: string;
-  created_at: string;
-  updated_at: string;
-}
-
 // Host interfaces -------------------------------------
 interface CoHost {
   id: string;
   name: string;
-  rating?: number;
+  photo: string;
 }
 
 interface OtherListing {
@@ -38,21 +29,22 @@ export interface Host {
   details?: string[];
   contact_methods?: string[];
   business_details?: string;
-  co_hosts?: CoHost[];
+  cohosts?: CoHost[];
   other_listings?: OtherListing[];
 }
 
 // Site interfaces -------------------------------------
-interface Site {
-  id: string;
-  host_id: string;
-  type: string;
-  name: string;
-  slug: string;
-  domain: string;
-  theme: string;
-  settings: string;
-}
+// interface Site {
+//   id: string;
+//   host_id: string;
+//   cohosts: CoHost[];
+//   name?: string;
+//   description?: string;
+//   slug?: string;
+//   domain?: string;
+//   theme?: string;
+//   settings?: string;
+// }
 
 // Listing main interface -------------------------------------
 
@@ -225,9 +217,7 @@ export interface Extra {
  * ******* Root listing data interface ********************************
  ******************************************************************* */
 export interface ListingData {
-  user: User;
   host: Host;
-  site: Site;
   listing: ListingMain;
   location: Location;
   house_rules: HouseRules;

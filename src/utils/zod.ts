@@ -6,6 +6,10 @@ export const airbnbUrlPattern =
   /^https?:\/\/(www\.)?airbnb\.[a-z]{2,6}(\/rooms\/[0-9]{6,25}|\/h\/[a-z0-9\-]{3,100})(\?.*)?$/;
 export const activationCodePattern = /^[a-z0-9!@#$%^&*]{10}$/;
 
+export const airbnbUrlIdPattern = /^(?:[0-9]{6,25}|[a-z0-9\-]{3,100})$/; // covers both room and host (slug based) type of id
+export const airbnbUrlIdPatternNumeric = /^[0-9]{6,25}$/;
+export const airbnbUrlIdPatternSlug = /^[a-z0-9\-]{3,100}$/;
+
 export const AuthSchema = z.object({
   email: z
     .email({
@@ -55,4 +59,8 @@ export const AccountVerificationSchema = z.object({
     .regex(activationCodePattern, {
       error: "Activation code must be 10 characters long and contain only letters, numbers, and special characters",
     }),
+});
+
+export const airbnbUrlIdSchema = z.string().trim().regex(airbnbUrlIdPattern, {
+  error: "Valid Airbnb listing URL (e.g., https://www.airbnb.com/rooms/123456) must contain property ID",
 });

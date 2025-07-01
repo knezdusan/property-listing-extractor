@@ -40,10 +40,9 @@ CREATE TABLE sites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     host_id TEXT NOT NULL REFERENCES hosts(id) ON DELETE CASCADE,
     cohosts JSONB, -- JSONB object [{"id": "RGVtYW5kVXNlcjo1NDQxMzcyNA==","name": "Vanesa","photo": "photo_url"}]
-    type TEXT NOT NULL CHECK (type IN ('single', 'multi')), -- single or multiple property listings site
-    name TEXT NOT NULL,
-    slug TEXT UNIQUE NOT NULL,
-    domain TEXT UNIQUE, -- if hosted on domain (e.g., 'jane-single-property.com')
+    name TEXT, -- If single property site, property data will be used (as for the slug, and description below)
+    slug TEXT,
+    domain TEXT, -- if hosted on domain (e.g., 'jane-single-property.com')
     description TEXT,
     theme TEXT, -- e.g., 'modern', 'classic'
     settings JSONB, -- Custom settings (e.g., logo, colors)
@@ -230,26 +229,6 @@ CREATE INDEX IF NOT EXISTS idx_accessibility_listing_id ON accessibility(listing
 
 
 -- ========= TRIGGERS ===============================================================================
--- Enforce single-property sites can only have one listing
-CREATE OR REPLACE FUNCTION enforce_single_site_listing_limit()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Check if the site is of type 'single'
-    IF (SELECT type FROM sites WHERE id = NEW.site_id) = 'single' THEN
-        -- Check if there's already a listing for this site
-        IF (SELECT COUNT(*) FROM listings WHERE site_id = NEW.site_id) >= 1 THEN
-            RAISE EXCEPTION 'Single-property sites can only have one listing. Site ID: %', NEW.site_id;
-        END IF;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_single_site_listing
-BEFORE INSERT ON listings
-FOR EACH ROW
-EXECUTE FUNCTION enforce_single_site_listing_limit();
-
 -- Automatically update the updated_at timestamp when a row is modified
 CREATE OR REPLACE FUNCTION update_modified_timestamp()
 RETURNS TRIGGER AS $$

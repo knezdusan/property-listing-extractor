@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { introAction } from "@/actions/auth/introAction";
 import { useAppContext } from "@/components/contexts/AppContext";
+import { extractListingAction } from "@/actions/extractListingAction";
 
 const initialState = {
   success: false,
@@ -10,25 +10,32 @@ const initialState = {
 };
 
 export default function Intro() {
-  const [state, formAction, isPending] = useActionState(introAction, initialState);
+  const [state, formAction, isPending] = useActionState(extractListingAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const hasRedirected = useRef(false);
+  const hasSubmitted = useRef(false);
   const { setAppModalComponentName } = useAppContext().appModal;
 
   // Submit form once on mount
   useEffect(() => {
-    formRef.current?.requestSubmit();
+    if (!hasSubmitted.current && formRef.current) {
+      hasSubmitted.current = true;
+      formRef.current.requestSubmit();
+    }
   }, []);
 
   // Handle redirect when server action completes successfully
   useEffect(() => {
     if (state.success && !hasRedirected.current) {
       hasRedirected.current = true;
-      
+
+      // Prevent any further form submissions
+      hasSubmitted.current = true;
+
       // Close modal first
       setAppModalComponentName(null);
-      
-      // Then navigate to dashboard
+
+      // Then navigate to dashboard with a delay
       setTimeout(() => {
         window.location.href = "/dashboard";
       }, 100);

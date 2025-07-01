@@ -2,7 +2,8 @@ import { getListingData } from "./getListingData";
 import { getPageData } from "./getPageData";
 import { getWithRetry, saveToFile } from "@/utils/helpers";
 import { LISTING_DATA_PATHS } from "./selectors";
-import { saveListingData, removeNestedValue } from "./helpers";
+import { removeNestedValue } from "./helpers";
+import saveListingData from "./saveListingData";
 
 /**
  * function scrp(url: string): Promise<string | null>
@@ -44,9 +45,11 @@ export async function scrp(url: string): Promise<string | null> {
         console.log("✔ Successfully upserted property listing data to supabase");
       } else {
         console.error("❌ Failed to upsert property listing data to supabase");
+        return null;
       }
     } else {
       console.error("❌ Failed to transform property listing data from apiData JSON to listingData JSON");
+      return null;
     }
 
     return "listing data to be extracted";
