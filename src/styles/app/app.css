@@ -23,11 +23,51 @@
 }
 
 .frm-auth {
+  .form-instructions {
+    margin-bottom: 1.5rem;
+  }
+
   .btn-auth {
     margin: auto;
   }
 
   .btn-auth-sign-up {
     padding-inline: 5rem;
+  }
+}
+
+.frm-auth-recovery {
+  width: 400px;
+}
+
+.auth-progress {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+
+  .auth-phase-box {
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .auth-phase {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      color: var(--clr-txt-drk);
+      border-radius: 50%;
+      border: 1px solid var(--clr-brd);
+      font-size: 1rem;
+      font-weight: bold;
+
+      &.phse-active {
+        background-color: var(--clr-brd);
+      }
+    }
   }
 }

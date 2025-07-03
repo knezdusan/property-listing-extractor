@@ -1,5 +1,6 @@
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
+import { destroyAuthSession } from "./auth";
 
 // Helper function: Slugify a string (no input validation version)
 export function slugify(string: string) {
@@ -146,6 +147,53 @@ export async function readFromFile(filePath: string) {
     console.error(`❌ Failed to read content from ${filePath}:`, error);
     return null;
   }
+}
+
+/**
+ * Checks if a user has reached the retry limit and handles retry logic.
+ * This function:
+ * 1. Resets retries if 24 hours have passed since last attempt
+ * 2. Updates the user's retry count
+ * 3. Applies a progressive delay based on retry count
+ * 4. Determines if the retry limit has been reached
+ *
+ * @param userData The user data object containing updated_at and retries
+ * @param userId The user ID or email to update
+ * @param applyDelay Whether to apply the progressive delay (default: true)
+ * @returns A boolean indicating if the retry limit has been reached
+ */
+export async function checkUserRetryLimit(
+  userData: { updated_at: Date; retries: number },
+  userId: string,
+  applyDelay: boolean = true
+): Promise<boolean> {
+  // Import necessary functions from supabase utils
+  const { updateUserTimestamp, updateRetries } = await import("@/utils/supabase");
+
+  // Reset user retries if 24 hours have passed since last attempt
+  if (userData.updated_at < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
+    userData.retries = 0;
+    await updateUserTimestamp(userId);
+  }
+
+  // Update user retries
+  await updateRetries(userId, userData.retries);
+
+  // Apply progressive delay based on retry count if requested
+  if (applyDelay) {
+    await wait(userData.retries);
+  }
+
+  // Check if user retries limit is reached
+  const maxRetries = Number(process.env.NEXT_PUBLIC_AUTH_MAX_RETRIES ?? 5);
+
+  // If user retries limit is reached, destroy auth session and return true
+  if (userData.retries >= maxRetries) {
+    await destroyAuthSession();
+    return true;
+  }
+
+  return false;
 }
 
 // Check data structure type (object, array, primitive or null)

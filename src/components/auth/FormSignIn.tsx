@@ -31,7 +31,7 @@ export default function FormSignIn() {
   }, [state.success, router, appModal]);
 
   return (
-    <form className="frm-auth frm-auth-sign-up" action={formAction} {...(isPending && { inert: true })}>
+    <form className="frm-auth frm-auth-sign-in" action={formAction} {...(isPending && { inert: true })}>
       <h2>Login</h2>
       <div className="form-group">
         <label htmlFor="email">Email</label>
@@ -70,7 +70,7 @@ export default function FormSignIn() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              appModal.setAppModalComponentName("FormPasswordRecovery");
+              appModal.setAppModalComponentName("FormRecovery");
             }}
           >
             Forgot password?

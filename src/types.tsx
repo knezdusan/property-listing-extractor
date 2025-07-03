@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { AuthSchema, SignUpSchema, AccountVerificationSchema } from "./utils/zod";
+import { AuthSchema, SignUpMainSchema, AccountVerificationSchema } from "./utils/zod";
 
 export type AppModal = {
   appModalComponentName: string | null;
@@ -11,8 +11,19 @@ export type AppContext = {
   appModal: AppModal;
 };
 
+export type CookieConfig = {
+  name: string;
+  options: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "lax" | "strict" | "none";
+    path: string;
+  };
+  duration: number; // in milliseconds
+};
+
 export type Auth = z.infer<typeof AuthSchema>;
-export type SignUpFormData = z.infer<typeof SignUpSchema>;
+export type SignUpFormData = z.infer<typeof SignUpMainSchema>;
 export type AccountVerificationFormData = z.infer<typeof AccountVerificationSchema>;
 
 export type DbUser = {
@@ -39,13 +50,58 @@ export type ActionResponseSignIn = ActionResponse & {
   inputs?: Auth;
 };
 
-export type ActionResponseSignUp = ActionResponse & {
-  inputs?: SignUpFormData;
+// Sign Up -----------------------------
+
+export type SignUpPhase = "signup" | "validate" | "setup" | "finish";
+
+export type SignUpMainFormData = {
+  email: string;
+  password: string;
+  airbnbUrl: string;
+  terms: string | null;
+  phase: SignUpPhase;
 };
 
-export type ActionResponseAccountVerification = ActionResponse & {
-  inputs?: AccountVerificationFormData;
+export type SignUpValidateFormData = {
+  validationCode: string;
+  phase: SignUpPhase;
 };
+
+export type SignUpSetupFormData = {
+  phase: SignUpPhase;
+};
+
+export type ActionResponseSignUp = ActionResponse & {
+  phase: SignUpPhase;
+  inputs?: SignUpMainFormData | SignUpValidateFormData | SignUpSetupFormData;
+};
+
+// Password Recovery --------------------
+
+export type RecoveryPhase = "request" | "validate" | "reset" | "finish";
+
+export type RecoveryRequestFormData = {
+  email: string;
+  phase: RecoveryPhase;
+};
+
+export type RecoveryValidateFormData = {
+  validate: string;
+  phase: RecoveryPhase;
+};
+
+export type RecoveryResetFormData = {
+  password1: string;
+  password2: string;
+  phase: RecoveryPhase;
+};
+
+export type ActionResponseRecovery = ActionResponse & {
+  phase: RecoveryPhase;
+  inputs?: RecoveryRequestFormData | RecoveryValidateFormData | RecoveryResetFormData;
+};
+
+// Email -------------------------------
 
 export type EmailData = {
   to: string;
@@ -57,6 +113,12 @@ export type EmailData = {
 export type EmailSendResult = {
   success: boolean;
   message?: string;
+};
+
+// Account Verification -------------------------------
+
+export type ActionResponseAccountVerification = ActionResponse & {
+  inputs?: AccountVerificationFormData;
 };
 
 export type AuthPayload = {

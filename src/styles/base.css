@@ -9,7 +9,7 @@
     /* grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); */
 
     max-width: 80rem;
-    min-width: 320px;
+    min-width: 280px;
     margin-inline: auto;
 
     /* Ensure focus styles don't get clipped */
@@ -128,14 +128,18 @@
       min-height: 10em;
     }
 
+    &[inert] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
     /* Style for input fields *inside* an inert form */
     /* Note: While you can target them, they won't be interactive */
     &[inert] input,
     &[inert] button,
     &[inert] select,
-    &[inert] textarea {
-      opacity: 0.4;
-      cursor: not-allowed;
+    &[inert] textarea,
+    &[inert] button {
       border-color: var(--clr-brd);
     }
 
@@ -159,36 +163,36 @@
     &.visible {
       opacity: 1;
       pointer-events: auto;
-      transition: opacity 0.2s ease-in-out;
+      transition: opacity 0.5s ease-in-out;
     }
 
     /* Modal variables for consistent styling */
-    --mod-pad: 3rem 1.5rem;
-    --mod-brd: 1px solid var(--clr-brd);
-    --mod-rad: var(--br-lg);
-    --mod-shd: 0 4px 6px hsl(from var(--clr-gry-900) h s l / 0.1);
-    --mod-max-wth: 90vw;
-    --mod-max-hgt: 80vh;
+    --mdl-pad: 3rem 1.5rem;
+    --mdl-brd: 1px solid var(--clr-brd);
+    --mdl-rad: var(--br-lg);
+    --mdl-shd: 0 4px 6px hsl(from var(--clr-gry-900) h s l / 0.1);
+    --mdl-max-wth: 95vw;
+    --mdl-max-hgt: 95vh;
     --mdl-backdrop: rgba(0, 0, 0, 0.4);
 
     /* Core properties */
     overflow: visible;
-    padding: var(--mod-pad);
-    border: var(--mod-brd);
+    padding: var(--mdl-pad);
+    border: var(--mdl-brd);
     color: var(--clr-txt-drk);
     background-color: var(--clr-bck-elm);
-    box-shadow: var(--mod-shd);
-    border-radius: var(--mod-rad);
+    box-shadow: var(--mdl-shd);
+    border-radius: var(--mdl-rad);
 
     /* Size constraints */
-    max-width: var(--mod-max-wth);
+    max-width: var(--mdl-max-wth);
     max-height: var(--mdl-max-hgt);
 
     /* Backdrop styling */
     &::backdrop {
       background-color: var(--mdl-backdrop);
       opacity: 0;
-      transition: opacity 0.2s ease-in-out;
+      transition: opacity 1s ease-in-out;
     }
 
     &.visible::backdrop {
@@ -208,19 +212,14 @@
 
     /* Content container */
     .app-modal-content {
-      max-height: 100%;
+      max-height: 80vh;
       overflow-y: auto;
     }
 
     /* Loading indicator */
-    .loading-indicator {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100px;
-      padding: var(--mod-pad);
-      color: var(--clr-txt-drk);
+    .app-modal-spinner {
       font-size: 1rem;
+      color: var(--clr-txt-drk);
     }
 
     /* Error state */
@@ -231,7 +230,7 @@
       justify-content: center;
       text-align: center;
       gap: 1rem;
-      padding: var(--mod-pad);
+      padding: var(--mdl-pad);
       min-height: 200px;
 
       /* Error icon styling */

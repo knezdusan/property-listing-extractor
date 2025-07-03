@@ -2,26 +2,11 @@
 
 import { scrp } from "@/extractor/scrp";
 import { formatListingUrl } from "@/extractor/helpers";
-import { getAuth } from "@/utils/auth";
 import { airbnbUrlIdSchema } from "@/utils/zod";
 import { ActionResponse } from "@/types";
 
-export async function extractListingAction(): Promise<ActionResponse> {
+export async function extractListingAction(listingId: string): Promise<ActionResponse> {
   console.log("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Extracting listing data...");
-
-  // Check if the user is authenticated and get the property listing id
-  const authPayload = await getAuth();
-
-  if (!authPayload) {
-    console.log("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Failed to get auth payload");
-    return {
-      success: false,
-      message: "Your current session has expired. Please repeat the process.",
-    };
-  }
-
-  // The auth session id is the property listing id
-  const listingId = authPayload.id;
 
   // Validate the listing id
   const validatedListingId = airbnbUrlIdSchema.safeParse(listingId);

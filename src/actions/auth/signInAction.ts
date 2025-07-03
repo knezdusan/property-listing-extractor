@@ -1,8 +1,8 @@
 "use server";
 
-import { updateUserTimestamp, updateRetries, dbGetUserByField } from "@/utils/supabase";
+import { dbGetUserByField } from "@/utils/supabase";
 import { ActionResponseSignIn, Auth, DbUser } from "@/types";
-import { wait } from "@/utils/helpers";
+import { checkUserRetryLimit } from "@/utils/helpers";
 import { activationCodePattern, AuthSchema } from "@/utils/zod";
 import z from "zod/v4";
 import bcrypt from "bcrypt";
@@ -13,7 +13,6 @@ export async function signInAction(
   formData: FormData
 ): Promise<ActionResponseSignIn> {
   // Form inputs validation ----------------------------------------
-  await wait(1);
   const rawData: Auth = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
@@ -54,23 +53,10 @@ export async function signInAction(
 
     // If user with the submitted email exists
 
-    // Progresive protection of the form submission
-    // by following the number of user attempts in one day
-    // and by adding a pause in reference to no of user attempts
+    // Check if user has reached retry limit and apply progressive delay
+    const isRetryLimitReached = await checkUserRetryLimit(userData, validatedData.data.email);
 
-    // Reset user retries if 24 hours have passed since last attempt
-    if (userData.updated_at < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
-      userData.retries = 0;
-      await updateUserTimestamp(validatedData.data.email);
-    }
-
-    // Update user retries
-    await updateRetries(validatedData.data.email, userData.retries);
-
-    // Check if user retries limit is reached
-    const maxRetries = Number(process.env.NEXT_PUBLIC_AUTH_MAX_RETRIES ?? 5);
-
-    if (userData.retries >= maxRetries) {
+    if (isRetryLimitReached) {
       return {
         success: false,
         message: "User retries limit reached. Please contact support for assistance.",
@@ -78,9 +64,6 @@ export async function signInAction(
         inputs: validatedData.data,
       };
     }
-
-    // make the pause based on the number of retries
-    await wait(userData.retries);
 
     // Check if the user with the submitted password exists
     const passwordMatch = await bcrypt.compare(validatedData.data.password, userData.password);
@@ -119,6 +102,7 @@ export async function signInAction(
     await createAuthSession(userData.id);
 
     // Reset user retries
+    const { updateRetries } = await import("@/utils/supabase");
     await updateRetries(validatedData.data.email, 0);
 
     return {

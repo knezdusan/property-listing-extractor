@@ -1,7 +1,6 @@
 "use server";
 
 import { destroyAuthSession } from "@/utils/auth";
-import { updateRetries } from "@/utils/supabase";
 
 export async function signOutAction(email: string) {
   try {
@@ -9,6 +8,7 @@ export async function signOutAction(email: string) {
     await destroyAuthSession();
 
     // Reset user retries
+    const { updateRetries } = await import("@/utils/supabase");
     await updateRetries(email, 0);
     
     // Return a success response that the client can use

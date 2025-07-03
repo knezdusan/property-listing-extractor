@@ -138,3 +138,27 @@ export async function updateUserStatus(userId: string, status: string) {
 
   return data as DbUser | null;
 }
+
+/**
+ * Updates the password of a user in Supabase
+ * @param userId The id of the user to update
+ * @returns The updated user data, or null if an error occurred
+ */
+export async function updatePassword(userId: string, password: string) {
+  const hashedPassword = await bcrypt.hash(password, 12);
+
+  const { data, error } = await supabaseServer
+    .from("users")
+    .update({ password: hashedPassword }) // Set password to the new password
+    .eq("id", userId); // Specify the user id to update
+
+  if (error) {
+    console.error("Error updating password:", error);
+    return null;
+  }
+
+  // Invalidate the cache for all users after an update
+  revalidateTag("users");
+
+  return data as DbUser | null;
+}

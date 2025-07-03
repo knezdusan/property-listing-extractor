@@ -1,10 +1,11 @@
 "use server";
 
-import { updateUserTimestamp, updateRetries, dbGetUserByField, updateUserStatus } from "@/utils/supabase";
+import { dbGetUserByField, updateUserStatus } from "@/utils/supabase";
 import { ActionResponseAccountVerification, DbUser, AccountVerificationFormData } from "@/types";
 import { AccountVerificationSchema } from "@/utils/zod";
 import z from "zod/v4";
 import { destroyAuthSession, getAuth } from "@/utils/auth";
+import { checkUserRetryLimit } from "@/utils/helpers";
 
 export async function accountVerificationAction(
   prevState: ActionResponseAccountVerification | null,
@@ -60,24 +61,11 @@ export async function accountVerificationAction(
 
   // If user with the authId exists -----------------------------
 
-  // Progresive protection of the form submission
-  // by following the number of user attempts in one day
-  // and by adding a pause in reference to no of user attempts
+  // Check if user has reached retry limit and apply progressive delay
+  const isRetryLimitReached = await checkUserRetryLimit(userData, authPayload.email);
 
-  // Reset user retries if 24 hours have passed since last attempt
-  if (userData.updated_at < new Date(Date.now() - 24 * 60 * 60 * 1000)) {
-    userData.retries = 0;
-    await updateUserTimestamp(authPayload.id);
-  }
-
-  // Update user retries
-  await updateRetries(authPayload.email, userData.retries);
-
-  // Check if user retries limit is reached
-  const maxRetries = Number(process.env.NEXT_PUBLIC_AUTH_MAX_RETRIES ?? 5);
-
-  if (userData.retries >= maxRetries) {
-    await destroyAuthSession();
+  if (isRetryLimitReached) {
+    // destroyAuthSession(); this is redundant
     return {
       success: false,
       message: "Activation attempts limit reached. Please contact support for assistance.",
@@ -88,7 +76,7 @@ export async function accountVerificationAction(
 
   // Check if user is inactive
   if (userData.status === "inactive") {
-    await destroyAuthSession();
+    destroyAuthSession();
     return {
       success: false,
       message: "User is inactive. Please contact support for assistance.",
@@ -120,6 +108,7 @@ export async function accountVerificationAction(
 
   // If user with the authEmail submitted the right activation code and it is not expired, activate the user
   // Reset user retries
+  const { updateRetries } = await import("@/utils/supabase");
   await updateRetries(authPayload.email, 0);
 
   // Update user status
