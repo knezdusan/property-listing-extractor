@@ -1,6 +1,7 @@
 import { useActionState, useState, useEffect } from "react";
 import { ActionResponseRecovery } from "@/types";
 import FormNotification from "../ui/FormNotification";
+import FormSpinner from "../ui/FormSpinner";
 import { useAppContext } from "../contexts/AppContext";
 import { recoveryAction } from "@/actions/auth/recoveryAction";
 
@@ -33,7 +34,8 @@ export default function FormRecovery() {
   }, [state.success, state.phase, setAppModalComponentName]);
 
   return (
-    <form className="frm-auth frm-auth-recovery" action={formAction} {...(isPending && { inert: true })}>
+    <div className="form-container">
+      <form className="form-auth form-auth-recovery" action={formAction} {...(isPending && { inert: true })}>
       <h2>Password Reset</h2>
       <div className="form-group auth-progress">
         <div className="auth-phase-box request">
@@ -168,6 +170,8 @@ export default function FormRecovery() {
           Login here
         </a>
       </div>
-    </form>
+      </form>
+      {isPending && <FormSpinner />}
+    </div>
   );
 }

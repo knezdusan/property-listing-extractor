@@ -268,10 +268,7 @@ export async function findReviewsNumber(page: Page): Promise<number | null> {
 
   try {
     return await page.evaluate(() => {
-      // Try multiple patterns that might contain review counts
-      const patterns = [/(\d+)\s+reviews/i, /(\d+)\s+review/i];
-
-      // Get normalized text content with preserved spacing
+      // Case where no reviews for the property
       const textContent = Array.from(document.querySelectorAll("*"))
         .map((el) => {
           // Get the direct text content of this element (not including children)
@@ -286,6 +283,15 @@ export async function findReviewsNumber(page: Page): Promise<number | null> {
         .join("")
         .replace(/\s+/g, " ")
         .trim();
+
+      // Check for "No reviews (yet)" pattern first
+      if (textContent.includes("No reviews (yet)") || textContent.includes("No reviews yet")) {
+        console.warn("⚠ No reviews found as 'No reviews (yet) pattern was matched");
+        return 0; // Return 0 when there are no reviews
+      }
+
+      // Try multiple patterns that might contain review counts
+      const patterns = [/(\d+)\s+reviews/i, /(\d+)\s+review/i];
 
       // Try each pattern
       for (const pattern of patterns) {

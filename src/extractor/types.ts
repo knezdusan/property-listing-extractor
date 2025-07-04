@@ -226,8 +226,8 @@ export interface ListingData {
   amenities: AmenityCategory[];
   gallery: Gallery;
   availability: Availability;
-  category_ratings: CategoryRatings;
-  reviews: Reviews;
+  category_ratings?: CategoryRatings;
+  reviews?: Review[];
   attractions: AttractionResult[];
   accessibility?: Accessibility[];
   extra: Extra;

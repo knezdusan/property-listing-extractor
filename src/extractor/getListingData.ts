@@ -230,15 +230,14 @@ export async function getListingData(apiData: AirbnbApiData): Promise<ListingDat
     "__typename",
     apiResponseNestedSelectors.LISTING_REVIEWS
   );
+  let reviewsData: Record<string, unknown>[] | null = null;
   if (!listingReviewsSection) {
-    console.error("❌ No listing reviews section found");
-    return null;
-  }
-
-  const reviewsData = listingReviewsSection["reviews"] as Record<string, unknown>[] | null;
-  if (!reviewsData) {
-    console.error("❌ No reviews data found");
-    return null;
+    console.warn("⚠ No listing reviews section found");
+  } else {
+    reviewsData = listingReviewsSection["reviews"] as Record<string, unknown>[];
+    if (!reviewsData) {
+      console.warn("⚠ No reviews data found");
+    }
   }
 
   // Accessiblity last Section object array
@@ -387,18 +386,12 @@ export async function getListingData(apiData: AirbnbApiData): Promise<ListingDat
   }
 
   // Extract category ratings data ------------------------------------------------------------------- :
-  const category_ratings = extractCategoryRatingsData(categoryRatings);
-  if (!category_ratings) {
-    console.error("❌ Failed to extract category ratings data");
-    return null;
-  }
+  const category_ratings = extractCategoryRatingsData(categoryRatings ?? {});
+  // It's okay if category_ratings is undefined - we've made it optional in the ListingData type
 
   // Extract reviews data ----------------------------------------------------------------------------- :
-  const reviews = extractReviewsData(reviewsData);
-  if (!reviews) {
-    console.error("❌ Failed to extract reviews data");
-    return null;
-  }
+  const reviews = extractReviewsData(reviewsData ?? []);
+  // It's okay if reviews is undefined - we've made it optional in the ListingData type
 
   // Extract accessibility data ---------------------------------------------------------------------- :
   // Ensure we're passing an array to extractAccessibilityData
@@ -1004,6 +997,9 @@ export function extractAvailabilityData(
 
 // Extract category ratings data from API response ApiData object segment
 export function extractCategoryRatingsData(categoryRatings: Record<string, unknown>) {
+  if (!categoryRatings) {
+    return undefined;
+  }
   const accuracy = (categoryRatings["accuracyRating"] as number) || 0;
   const check_in = (categoryRatings["checkinRating"] as number) || 0;
   const cleanliness = (categoryRatings["cleanlinessRating"] as number) || 0;
@@ -1012,8 +1008,11 @@ export function extractCategoryRatingsData(categoryRatings: Record<string, unkno
   const value = (categoryRatings["valueRating"] as number) || 0;
   const guest_satisfaction = (categoryRatings["guestSatisfactionOverall"] as number) || 0;
 
-  if (!accuracy || !check_in || !cleanliness || !communication || !location || !value || !guest_satisfaction) {
-    return null;
+  // Allow zero values for ratings
+  if (accuracy === undefined || check_in === undefined || cleanliness === undefined || 
+      communication === undefined || location === undefined || value === undefined || 
+      guest_satisfaction === undefined) {
+    return undefined;
   }
 
   return {
@@ -1028,9 +1027,9 @@ export function extractCategoryRatingsData(categoryRatings: Record<string, unkno
 }
 
 // Extract reviews data from API response ApiData object segment
-function extractReviewsData(reviews: Record<string, unknown>[]) {
-  if (!reviews) {
-    return null;
+export function extractReviewsData(reviews: Record<string, unknown>[]) {
+  if (!reviews || reviews.length === 0) {
+    return undefined;
   }
 
   const reviewsData = reviews.map((review) => {
@@ -1087,7 +1086,7 @@ function extractReviewsData(reviews: Record<string, unknown>[]) {
 }
 
 // Extract accessibility data from accessibilityDataGroupArray
-function extractAccessibilityData(
+export function extractAccessibilityData(
   accessibilityDataGroupsArray: Record<string, unknown>[]
 ): Accessibility[] | undefined {
   if (!accessibilityDataGroupsArray || accessibilityDataGroupsArray.length === 0) {
@@ -1141,7 +1140,7 @@ function extractAccessibilityData(
 }
 
 // Extract property intro title from listing and location data (eg. "Beautiful Apartment in Praha 4, Czechia")
-function getIntroTitle(type: string, city: string, state: string, country: string) {
+export function getIntroTitle(type: string, city: string, state: string, country: string) {
   const adjectives = [
     "Stunning",
     "Cozy",
@@ -1200,7 +1199,7 @@ function getIntroTitle(type: string, city: string, state: string, country: strin
 }
 
 // Generate intro text for listing using LLM function generateAiText
-async function generateIntroText(title: string, description: string, tags: string[]) {
+export async function generateIntroText(title: string, description: string, tags: string[]) {
   const prompt = `You are a creative copywriter tasked with generating a one-sentence introductory text for a property listing website's header section, based on the provided title, description, and tags. The intro text must:
 - Be a single, concise sentence (15-20 words).
 - Be affirmative and engaging, acting as a teaser to encourage visitors to stay on the page.

@@ -150,6 +150,22 @@
       gap: 0.5rem;
       font-size: 0.8rem;
     }
+
+    .form-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 3rem;
+      color: var(--clr-txt-drk);
+      z-index: 1;
+    }
   }
 
   /* Standard modal dialog */

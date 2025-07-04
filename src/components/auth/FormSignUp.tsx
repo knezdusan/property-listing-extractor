@@ -2,6 +2,7 @@ import { useEffect, useActionState, useState, useRef } from "react";
 import { signUpAction } from "@/actions/auth/signUpAction";
 import { ActionResponseSignUp } from "@/types";
 import FormNotification from "../ui/FormNotification";
+import FormSpinner from "../ui/FormSpinner";
 import { useAppContext } from "../contexts/AppContext";
 
 const initialState: ActionResponseSignUp = {
@@ -69,7 +70,8 @@ export default function FormSignUp() {
   }
 
   return (
-    <form className="frm-auth frm-auth-sign-up" ref={formRef} action={formAction} {...(isPending && { inert: true })}>
+    <div className="form-container">
+      <form className="form-auth form-auth-sign-up" ref={formRef} action={formAction} {...(isPending && { inert: true })}>
       <h2>Build Your Custom Airbnb Property Website</h2>
 
       <div className="form-group auth-progress">
@@ -172,7 +174,7 @@ export default function FormSignUp() {
       )}
 
       {state.phase === "validate" && (
-        <div className="frm-auth-content-validate">
+        <div className="form-auth-content-validate">
           <p className="form-instructions">
             We’ve sent a verification code to your email.
             <br />
@@ -201,7 +203,7 @@ export default function FormSignUp() {
       )}
 
       {state.phase === "setup" && (
-        <div className="frm-auth-content-setup">
+        <div className="form-auth-content-setup">
           <p>Sit back and enjoy while your custom web site is being built for you.</p>
           <input type="hidden" name="autoSubmit" value="true" />
         </div>
@@ -234,6 +236,8 @@ export default function FormSignUp() {
           Login Here
         </a>
       </div>
-    </form>
+      </form>
+      {isPending && <FormSpinner />}
+    </div>
   );
 }

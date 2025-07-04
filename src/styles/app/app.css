@@ -22,7 +22,7 @@
   }
 }
 
-.frm-auth {
+.form-auth {
   .form-instructions {
     margin-bottom: 1.5rem;
   }
@@ -36,8 +36,36 @@
   }
 }
 
-.frm-auth-recovery {
+.form-auth-recovery {
   width: 400px;
+}
+
+.form-container {
+  position: relative;
+
+  .form-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    color: var(--clr-prm);
+    font-size: 3rem;
+  }
+
+  .form-spinner svg {
+    animation: spin 1s linear infinite;
+    display: block;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .auth-progress {

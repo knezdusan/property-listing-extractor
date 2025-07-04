@@ -9,14 +9,12 @@ import { useFocusTrap } from "@/hooks/useFocusTrap";
 import ErrorBoundary from "../ui/ErrorBoundary";
 
 // Define allowed modal component names as a type
-type AppModalComponentName = "FormSignIn" | "FormSignUp" | "FormAccountVerification" | "Intro" | "FormRecovery";
+type AppModalComponentName = "FormSignIn" | "FormSignUp" | "FormRecovery";
 
 // Lazy load all modal components with type safety
 const modalComponents: Record<AppModalComponentName, React.ComponentType> = {
   FormSignIn: dynamic(() => import("@/components/auth/FormSignIn"), { ssr: false }),
   FormSignUp: dynamic(() => import("@/components/auth/FormSignUp"), { ssr: false }),
-  FormAccountVerification: dynamic(() => import("@/components/auth/FormAccountVerification"), { ssr: false }),
-  Intro: dynamic(() => import("@/components/auth/Intro"), { ssr: false }),
   FormRecovery: dynamic(() => import("@/components/auth/FormRecovery"), { ssr: false }),
   // Add more modals here as needed
 };

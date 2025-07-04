@@ -235,13 +235,13 @@ export async function getPageData(url: string): Promise<Record<string, unknown> 
     // Find the reviews number on page and log it
     console.log("\n➜➜➜➜➜ Extracting listing reviews...");
 
-    const reviewsNumber = await findReviewsNumber(page);
-    if (!reviewsNumber) {
-      console.log("❌ Reviews number not found");
-      return null;
+    let reviewsNumber = await findReviewsNumber(page);
+    if (!reviewsNumber || reviewsNumber === 0) {
+      reviewsNumber = 0;
+      console.warn("⚠ Reviews number not found, setting to 0");
+    } else {
+      console.log(`✔ Found reviews number: ${reviewsNumber}`);
     }
-
-    console.log(`✔ Found reviews number: ${reviewsNumber}`);
 
     // As we catch all the reviws under 24 with initial API call
     // we proceed extracting reviews from the reviews modal only if reviewsNumber > 24
