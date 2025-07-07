@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState } from "react";
-import { useAppContext } from "@/components/contexts/AppContext";
+import { useAppContext } from "@/contexts/AppContext";
 import dynamic from "next/dynamic";
 import { MdClose, MdErrorOutline } from "react-icons/md";
 import IconTooltip from "../ui/IconTooltip";

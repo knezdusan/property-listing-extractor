@@ -4,7 +4,7 @@ import "@/styles/global.css";
 import "@/styles/app/app.css";
 import AppHeader from "@/components/app/AppHeader";
 import AppModal from "@/components/app/AppModal";
-import { AppContextProvider } from "@/components/contexts/AppContext";
+import { AppContextProvider } from "@/contexts/AppContext";
 import { getAuth } from "@/utils/auth";
 
 // Initialize fonts

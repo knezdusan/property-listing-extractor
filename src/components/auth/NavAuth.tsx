@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppContext } from "../contexts/AppContext";
+import { useAppContext } from "../../contexts/AppContext";
 import { MdLogout, MdPerson, MdPersonAdd } from "react-icons/md";
 import { signOutAction } from "@/actions/auth/signOutAction";
 import { useRouter } from "next/navigation";

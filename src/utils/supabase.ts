@@ -3,8 +3,6 @@ import { DbUser } from "@/types";
 import bcrypt from "bcrypt";
 import { unstable_cache, revalidateTag } from "next/cache";
 
-// Initialize Supabase client
-export const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 // Initialize Supabase client for server-side admin operations
 export const supabaseServer = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);

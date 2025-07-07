@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    domains: ["places.googleapis.com", "a0.muscache.com"],
+    domains: ["places.googleapis.com", "a0.muscache.com", "images.unsplash.com"],
   },
 };
 

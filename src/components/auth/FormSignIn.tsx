@@ -2,7 +2,7 @@ import { useActionState, useState, useEffect } from "react";
 import { signInAction } from "@/actions/auth/signInAction";
 import { ActionResponseSignIn } from "@/types";
 import FormNotification from "../ui/FormNotification";
-import { useAppContext } from "../contexts/AppContext";
+import { useAppContext } from "../../contexts/AppContext";
 import { useRouter } from "next/navigation";
 import FormSpinner from "../ui/FormSpinner";
 
