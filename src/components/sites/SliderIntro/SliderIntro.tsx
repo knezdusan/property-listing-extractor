@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
 import IntroSliderThumbs from "./SliderIntroThumbs";
 import IntroSliderMain from "./SliderIntroMain";
+import { useState } from "react";
 
 interface SliderIntroProps {
   images: string[];
