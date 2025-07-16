@@ -1,0 +1,7 @@
+.site-wrapper {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  min-height: 100vh;
+}

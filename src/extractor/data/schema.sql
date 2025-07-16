@@ -4,7 +4,7 @@ CREATE TABLE users (
     id TEXT PRIMARY KEY, -- Using Airbnb's property listing ID eg. '898017173185586261'
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    main_url TEXT, -- For tracking purposes
+    main_url TEXT, -- (one that he registered with) For tracking purposes
     status TEXT NOT NULL CHECK (status IN ('active', 'inactive') OR length(status) = 10),
     retries INTEGER DEFAULT 0,
     comment TEXT,

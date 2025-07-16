@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import "@/styles/global.css";
-import "@/styles/reset.css";
+import "@/styles/sites/base.css";
 
 export const metadata: Metadata = {
   title: "Site homepage",
@@ -12,9 +11,5 @@ export default function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+  return <div className="site-wrapper">{children}</div>;
 }

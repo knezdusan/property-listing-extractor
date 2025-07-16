@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "@/styles/global.css";
-import "@/styles/app/app.css";
-import AppHeader from "@/components/app/AppHeader";
 import AppModal from "@/components/app/AppModal";
 import { AppContextProvider } from "@/contexts/AppContext";
 import { getAuth } from "@/utils/auth";
@@ -42,11 +40,8 @@ export default async function RootLayout({
     <html lang="en" className={`${inter.variable} ${interHeading.variable} ${playfair.variable}`}>
       <body>
         <AppContextProvider auth={auth}>
-          <div className="app-wrapper">
-            <AppHeader />
-            {children}
-            <AppModal />
-          </div>
+          {children}
+          <AppModal />
         </AppContextProvider>
       </body>
     </html>
