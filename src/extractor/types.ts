@@ -70,6 +70,13 @@ export interface ListingMain {
   tags: string[];
 }
 
+export interface ListingBrand {
+  title: string;
+  subtitle: string;
+  description: string;
+  tags: string;
+}
+
 // Location interfaces -------------------------------------
 interface LocationDetail {
   title: string;
@@ -195,7 +202,7 @@ export interface AttractionResult {
   id: string;
   name: string;
   types: string[];
-  location: { lat: number; lng: number };
+  location: { lat: number; lng: number } | { latitude: number; longitude: number };
   description: string;
   photos: string[];
 }
@@ -230,5 +237,54 @@ export interface ListingData {
   reviews?: Review[];
   attractions: AttractionResult[];
   accessibility?: Accessibility[];
-  extra: Extra;
+}
+
+/* ********************************************************************
+ * Refined Listing Data Interfaces
+ * Represents a refined version of the Airbnb listing data
+ * e.g Brand Identity, Listing description, Top reviews etc.
+ * to upsert the refines table.
+ ******************************************************************* */
+
+// AI Prompt Template interface
+export interface TemplateData {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | TemplateData
+    | TemplateData[]
+    | string[]
+    | number[]
+    | boolean[]
+    | null[]
+    | undefined[];
+}
+export interface TopReviews {
+  text: string;
+  name: string;
+  photo: string;
+}
+
+export interface BrandingIdentity {
+  brandName: string;
+  tagline: string;
+  brandVibe: string;
+  keywords: string[];
+}
+
+// This is the return type of the getRefinedData function.
+export interface RefinedData {
+  brandingIdentity: BrandingIdentity;
+  topReviews: TopReviews[];
+  description: string | null;
+}
+
+/* ********************************************************************
+ * ******* Root pages data interface ********************************
+ ******************************************************************* */
+export interface PagesData {
+  type: string;
 }

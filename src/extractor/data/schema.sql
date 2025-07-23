@@ -40,12 +40,14 @@ CREATE TABLE sites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     host_id TEXT NOT NULL REFERENCES hosts(id) ON DELETE CASCADE,
     cohosts JSONB, -- JSONB object [{"id": "RGVtYW5kVXNlcjo1NDQxMzcyNA==","name": "Vanesa","photo": "photo_url"}]
-    name TEXT, -- If single property site, property data will be used (as for the slug, and description below)
-    slug TEXT,
+    name TEXT UNIQUE, -- If single property site, property data will be used (as for the slug, and description below)
+    slug TEXT UNIQUE,
+    logo_url TEXT, -- URL to the Brand logo image
+    logo_text TEXT, -- Short Brand Text if Logo image is missing
     domain TEXT, -- if hosted on domain (e.g., 'jane-single-property.com')
     description TEXT,
     theme TEXT, -- e.g., 'modern', 'classic'
-    settings JSONB, -- Custom settings (e.g., logo, colors)
+    settings JSONB, -- Custom settings (e.g., pages, logo, colors)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
@@ -56,16 +58,14 @@ CREATE INDEX IF NOT EXISTS idx_sites_host_id ON sites(host_id);
 CREATE TABLE listings (
     id TEXT PRIMARY KEY, -- Using Airbnb's Listing ID '44517879'
     site_id UUID NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
-    url TEXT,
+    url TEXT, -- 'https://www.airbnb.com/rooms/44517879'
     type TEXT, -- 'apartment'
     privacy TEXT, -- 'entire_home'
-    title TEXT,
-    subtitle TEXT,
-    description TEXT,
+    title TEXT, -- Original title from AirBnb (e.g., 'Luxury Beach Apartment with Sea View')
+    subtitle TEXT, -- Original subtitle from AirBnb (e.g., 'Stunning 2-bedroom apartment with panoramic sea views')
+    description TEXT, -- Original description from AirBnb
     highlights JSONB, -- JSONB object [{"title": "Self check-in", "subtitle": "Check yourself by keypad."}]
     hero TEXT, -- '1696883311' (references photos table later, or just stores the ID)
-    intro_title TEXT,
-    intro_text TEXT,
     average_daily_rate NUMERIC(10, 5),
     min_nights INTEGER DEFAULT 1,
     capacity_summary TEXT[], -- Array-like ['2 guests', 'Studio', '1 bed', '1 bath']
@@ -92,6 +92,18 @@ CREATE TABLE listings (
 CREATE INDEX IF NOT EXISTS idx_listings_site_id ON listings(site_id);
 CREATE INDEX IF NOT EXISTS idx_listings_url ON listings(url);
 
+
+-- ========= REFINED LISTING DATA =========
+CREATE TABLE refines (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id TEXT NOT NULL UNIQUE REFERENCES listings(id) ON DELETE CASCADE,
+    branding JSONB, -- {"brand_name": "The Grove Garden Bungalow", "tagline": "Your private, leafy hideaway in the heart of Miami.", "brand_vibe": "Tranquil, Central, Renovated, Pet-Friendly", "keywords": ["Miami vacation rental", "Coconut Grove bungalow", "pet-friendly Miami", "private backyard home", "walkable Miami stay"]}
+    description TEXT, -- Enriched description if original listing description under 150 words
+    top_reviews TEXT, -- Top reviews for the listing (if any)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+CREATE INDEX IF NOT EXISTS idx_refines_listing_id ON refines(listing_id);
 
 -- ========= LOCATION DETAILS (e.g., Getting around) =========
 CREATE TABLE location_details (
@@ -227,6 +239,24 @@ CREATE TABLE accessibility (
 );
 CREATE INDEX IF NOT EXISTS idx_accessibility_listing_id ON accessibility(listing_id);
 
+-- ========= PAGES =========
+CREATE TABLE pages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id TEXT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+    type INTEGER, -- 0 = Site Home, 1 = Property Home, 2 = Gallery, 3 = Amenities, 4 = Location, 5 = Reviews, 6 = About, 7 = Extra Site, 8 = Extra Property
+    meta_title TEXT,
+    meta_description TEXT,
+    intro_title TEXT,
+    intro_text TEXT,
+    slug TEXT,
+    title TEXT,
+    description TEXT,
+    content TEXT,
+    settings JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+CREATE INDEX IF NOT EXISTS idx_pages_listing_id ON pages(listing_id);
 
 -- ========= TRIGGERS ===============================================================================
 -- Automatically update the updated_at timestamp when a row is modified
@@ -259,6 +289,11 @@ CREATE TRIGGER update_listings_timestamp
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_timestamp();
 
+CREATE TRIGGER update_refines_timestamp
+    BEFORE UPDATE ON refines
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
 CREATE TRIGGER update_location_details_timestamp
     BEFORE UPDATE ON location_details
     FOR EACH ROW
@@ -281,5 +316,10 @@ CREATE TRIGGER update_attractions_timestamp
 
 CREATE TRIGGER update_accessibility_timestamp
     BEFORE UPDATE ON accessibility
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_timestamp();
+
+CREATE TRIGGER update_pages_timestamp
+    BEFORE UPDATE ON pages
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_timestamp();

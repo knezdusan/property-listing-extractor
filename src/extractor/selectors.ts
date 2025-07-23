@@ -14,6 +14,8 @@ export const EXTRACTION_API_ENDPOINTS_ARRAY = Object.values(EXTRACTION_API_ENDPO
 export const LISTING_DATA_PATHS = {
   apiData: "src/extractor/data/api-data.json",
   listingData: "src/extractor/data/listing-data.json",
+  refinedData: "src/extractor/data/refined-data.json",
+  pagesData: "src/extractor/data/pages-data.json",
 };
 
 // Html selectors ****************************************

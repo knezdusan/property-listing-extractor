@@ -21,7 +21,6 @@ export default async function saveListingData(listingData: ListingData): Promise
     reviews,
     attractions,
     accessibility,
-    extra,
   } = listingData;
   // Track which tables were written to for compensation
   const completed: { [key: string]: boolean } = {};
@@ -80,8 +79,6 @@ export default async function saveListingData(listingData: ListingData): Promise
         description: listing.description,
         highlights: listing.highlights ?? [],
         hero: listing.hero,
-        intro_title: extra.intro_title,
-        intro_text: extra.intro_text,
         average_daily_rate: listing.average_daily_rate,
         min_nights: availability.minNights,
         capacity_summary: listing.capacity,

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Site homepage",
 };
 
-export default function Layout({
+export default function SiteMainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

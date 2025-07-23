@@ -1,40 +1,82 @@
-// Documentation Vercel: https://ai-sdk.js.org/docs/ai-sdk-openai
-// Documentation Vercel: https://ai-sdk.dev/docs/guides/openai-responses
-// Documentation OpenAI: https://platform.openai.com/docs/guides/text?api-mode=responses
+export const dynamic = "force-dynamic";
 
-import { generateAiText } from "@/utils/ai";
+// Testing the getBrandingIdentity helper function
 
-const title = "Apartment in a new house";
-const description = `Forget your worries in this spacious, private space.
+import listingData from "@/extractor/data/listing-data.json";
+import { getBrandingIdentity } from "@/extractor/helpers";
+import { BrandingIdentity, ListingBrand } from "@/extractor/types";
 
-a separate new 1kk apartment in a quiet area of Prague 4, Budějovická metro. There is also a bus stop Hadovitá nearby.
+// Create a ListingBrand object from the listing data
+const listingBrand: ListingBrand = {
+  title: listingData.listing.title,
+  subtitle: listingData.listing.subtitle,
+  description: listingData.listing.description,
+  tags: listingData.listing.tags.join(", "),
+};
 
-The apartment has everything basic and necessary for a long and short stay of one or two guests.
+// Generate branding identity using AI
+let brandingIdentity: BrandingIdentity | null = null;
+let errorMessage: string | null = null;
 
-I can send a video of the apartment to telegram @apart7prague
-The space
-This is a separate place, you will be in it yourself`;
-
-const prompt = `You are a creative copywriter tasked with generating a one-sentence introductory text for a property listing website's header section, based on the provided title and description. The intro text must:
-- Be a single, concise sentence (15-25 words).
-- Be affirmative and engaging, acting as a teaser to encourage visitors to stay on the page.
-- Avoid using personal names, brand names, or specific details (e.g., locations, metro stations, or contact information) from the title or description to prevent repetition.
-- Be original, focusing on the general appeal or vibe of the property (e.g., comfort, relaxation, or suitability for guests) without repeating specific details like "spacious," "private," "quiet area," or "basic necessities" from the description.
-- Highlight the property’s inviting nature for a short or long stay.
-
-Input:
-Title: ${title}
-Description: ${description}
-
-Output a single sentence that meets these criteria.`;
-
-const introText = await generateAiText(prompt);
+// Process the result
+try {
+  brandingIdentity = await getBrandingIdentity(listingBrand);
+  console.log("✔ Successfully generated branding identity:", brandingIdentity);
+} catch (e) {
+  errorMessage = e instanceof Error ? e.message : "Unknown error";
+  console.error("❌ Failed to generate branding identity:", errorMessage);
+}
 
 export default function AiTestPage() {
   return (
-    <div>
-      <h1>AI Test</h1>
-      <p>{introText}</p>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">AI Test - Branding Identity Generation</h1>
+
+      {errorMessage ? (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h2 className="font-semibold text-red-800 mb-2">Error</h2>
+          <p className="text-red-700">{errorMessage}</p>
+        </div>
+      ) : brandingIdentity ? (
+        <div className="space-y-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h2 className="font-semibold text-green-800 mb-2">Branding Identity</h2>
+            <ul className="text-sm space-y-2">
+              <li>
+                <span className="font-medium">Evocative Name:</span> {brandingIdentity.brandName}
+              </li>
+              <li>
+                <span className="font-medium">Tagline:</span> {brandingIdentity.tagline}
+              </li>
+              <li>
+                <span className="font-medium">Personality Vibe:</span> {brandingIdentity.brandVibe}
+              </li>
+              <li>
+                <span className="font-medium">Keywords:</span> {brandingIdentity.keywords.join(", ")}
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h2 className="font-semibold mb-4">Original Listing Data</h2>
+            <ul className="text-sm space-y-2">
+              <li>
+                <span className="font-medium">Title:</span> {listingBrand.title}
+              </li>
+              <li>
+                <span className="font-medium">Subtitle:</span> {listingBrand.subtitle}
+              </li>
+              <li>
+                <span className="font-medium">Tags:</span> {listingBrand.tags}
+              </li>
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-700">No branding identity was generated.</p>
+        </div>
+      )}
     </div>
   );
 }

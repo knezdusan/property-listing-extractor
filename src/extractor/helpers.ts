@@ -1,6 +1,11 @@
 import { Page, Locator } from "playwright";
 import { randomDelay } from "@/utils/helpers";
 import { airbnbUrlIdPatternNumeric, airbnbUrlIdPatternSlug } from "@/utils/zod";
+import { BrandingIdentity, ListingBrand, ListingMain, Review, TemplateData, TopReviews } from "./types";
+import fs from "fs";
+import path from "path";
+import { generateAIObject, generateAiText } from "@/utils/ai";
+import { z } from "zod";
 
 /**
  * Validates and extracts the Airbnb listing ID from a given URL string.
@@ -761,4 +766,186 @@ export function findFirstNestedObjectNotNullOrUndefined(
 
   // If the queue is empty and no non-null/undefined target was found.
   return null;
+}
+
+/**
+ * Analyzes a list of reviews to extract top guest feedback.
+ *
+ * @param reviewsData - An array of Review objects containing guest reviews.
+ * @returns An array of TopReviews objects containing the top guest feedback, or null if no reviews are provided.
+ */
+export function getTopGuestReviews(reviewsData: Review[], topReviewsCount = 5): TopReviews[] | null {
+  if (!reviewsData || reviewsData.length === 0) {
+    return null;
+  }
+
+  // Expanded keyword list
+  const reviewKeywords = [
+    // Location & Vibe
+    "location",
+    "walk",
+    "quiet",
+    "private",
+    "neighborhood",
+    "central",
+    "close",
+    "view",
+    "peaceful",
+    "vibe",
+    // Cleanliness & Comfort
+    "clean",
+    "comfortable",
+    "cozy",
+    "spotless",
+    "immaculate",
+    "beds",
+    // Host
+    "host",
+    "responsive",
+    "helpful",
+    "communication",
+    "friendly",
+    "welcoming",
+    // Property & Amenities
+    "garden",
+    "patio",
+    "kitchen",
+    "beautiful",
+    "modern",
+    "charming",
+    // Guest Type
+    "family",
+    "pet",
+    "kids",
+    "couple",
+    "work",
+    "group",
+  ];
+
+  // Handle cases with just a few reviews
+  const keywordCounts: Record<string, number> = reviewKeywords.reduce((acc, key) => {
+    acc[key] = 0;
+    return acc;
+  }, {} as Record<string, number>);
+  const topReviews: import("./types").TopReviews[] = [];
+
+  for (const review of reviewsData) {
+    if (!review.comments) continue;
+    const comment = review.comments;
+
+    for (const key of reviewKeywords) {
+      if (comment.includes(key)) {
+        keywordCounts[key]++;
+      }
+    }
+
+    // Loosen criteria slightly for smaller review counts
+    const topReviewsTreshold = reviewsData.length < 10 ? 100 : 150;
+    if (
+      review.rating >= 4 &&
+      comment.length > topReviewsTreshold &&
+      topReviews.length < topReviewsCount &&
+      review.reviewer
+    ) {
+      topReviews.push({
+        text: review.comments.trim(),
+        name: review.reviewer.name || "Anonymous",
+        photo: review.reviewer.photo || "",
+      });
+    }
+  }
+
+  return topReviews;
+}
+
+/**
+ * Takes an array of TopReviews objects and returns a string containing the top reviews in the format "Reviewer: [name], Review: [review]".
+ * @param topReviews The array of TopReviews objects to process.
+ * @returns A string containing the top reviews in the format "Reviewer: [name], Review: [review];".
+ */
+export function getTopReviewsText(topReviews: TopReviews[]): string {
+  if (!topReviews || topReviews.length === 0) {
+    return "";
+  }
+  return topReviews.map((r) => `“Reviewer: ${r.name}, Review: ${r.text}”`).join("; ");
+}
+
+/**
+ * Reads an AI prompt template markdown file and returns its content as a string.
+ * @param pathToPromptTemplateMd The path to the markdown file, eg. "src/extractor/prompts/listing_description.md".
+ * @returns The content of the markdown file as a string.
+ */
+export function getPromptTemplate(pathToPromptMd: string): string {
+  const promptPath = path.join(process.cwd(), pathToPromptMd);
+  return fs.readFileSync(promptPath, "utf8");
+}
+
+/**
+ * Fills a template string with values from a data object.
+ * Placeholders must be in the form {key}.
+ * Example: fillPromptTemplate('Hello {name}', { name: 'Alice' }) => 'Hello Alice'
+ */
+export function fillPromptTemplate(template: string, data: TemplateData): string {
+  return template.replace(/\{([\w.]+)\}/g, (_match: string, key: string) => {
+    const value = key.split(".").reduce<unknown>((obj: unknown, prop: string) => {
+      if (obj && typeof obj === "object" && prop in obj) {
+        return (obj as Record<string, unknown>)[prop];
+      }
+      return undefined;
+    }, data);
+    return value !== undefined && value !== null ? String(value) : "";
+  });
+}
+
+/**
+ * Enriches a listing description using AI if it's under 150 words
+ * @param listing The listing data containing description and other details
+ * @param topReviewsText Text containing top reviews for the listing
+ * @returns Promise resolving to the enriched description or null if generation fails
+ */
+export async function getEnrichedDescription(listingMain: ListingMain, topReviewsText: string): Promise<string | null> {
+  const promptTemplate = getPromptTemplate("src/extractor/prompts/description-enrichement.md");
+
+  // Create template data with the correct type assertion
+  const templateData = {
+    listingMain,
+    top_reviews: topReviewsText,
+  } as unknown as TemplateData;
+
+  const filledPromptTemplate = fillPromptTemplate(promptTemplate, templateData);
+
+  return generateAiText(filledPromptTemplate, 2048);
+}
+
+/**
+ * Generates a branding identity for a property listing using AI
+ * @param listingBrand The listing data needed for brand identity generation
+ * @returns Promise resolving to the branding identity object or null if generation fails
+ */
+export async function getBrandingIdentity(listingBrand: ListingBrand): Promise<BrandingIdentity | null> {
+  // Define the schema for the branding identity object
+  const brandingSchema = z.object({
+    brandName: z.string().describe("An evocative and memorable name for the property"),
+    tagline: z.string().describe("A short, catchy, and benefit-driven tagline"),
+    brandVibe: z.string().describe("3-5 descriptive words that define the personality of the property"),
+    keywords: z.array(z.string()).describe("4-5 primary keywords crucial for SEO and marketing"),
+  });
+
+  const promptTemplate = getPromptTemplate("src/extractor/prompts/brand-identity.md");
+
+  // Create template data with the correct type assertion
+  const templateData = {
+    listing: listingBrand,
+  } as unknown as TemplateData;
+
+  const filledPromptTemplate = fillPromptTemplate(promptTemplate, templateData);
+
+  // Pass both the prompt and schema to generateAIObject
+  return generateAIObject(
+    filledPromptTemplate,
+    brandingSchema,
+    "BrandingIdentity",
+    "Property listing branding identity",
+    1024
+  );
 }

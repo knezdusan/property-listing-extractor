@@ -5,11 +5,16 @@ import { closePopups, locateAndScrollToReviewsButton, findReviewsNumber, loadAll
 import { EXTRACTION_API_ENDPOINTS_ARRAY, HTML_SELECTORS, EXTRACTION_API_ENDPOINTS } from "./selectors";
 
 /**
- * Setup Playwright with proxy and extract API data from AirBnB listing API endpoints responses
+ * Setup Playwright with proxy and extract raw API data (apiData) from AirBnB listing API endpoints responses:
+ *  dataLayer: "/api/v2/get-data-layer-variables",
+ *  dataMain: "/api/v3/StaysPdpSections",
+ *  availabilityCalendar: "/api/v3/PdpAvailabilityCalendar",
+ *  reviews: "/api/v3/StaysPdpReviewsQuery"
  * @param url URL of the listing
  * @returns apiData - intercepted API response data
+ * apiData is saved and can be reviewed at data/api-data.json
  */
-export async function getPageData(url: string): Promise<Record<string, unknown> | null> {
+export async function getApiData(url: string): Promise<Record<string, unknown> | null> {
   console.log("\n➜➜➜➜➜ Setting up Playwright amd Proxies ...");
 
   // Get proxy data { server, username, password, language, locale, timezone, acceptLanguage } ---------

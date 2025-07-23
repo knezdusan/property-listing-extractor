@@ -8,10 +8,15 @@ import { generateAiText } from "@/utils/ai";
 import { fetchAttractions } from "@/utils/google";
 
 /**
- * Transforms raw Airbnb API data into structured property listing data
- * following the schema.json blueprint
+ * Transforms raw Airbnb API data returned from getApiData into structured property listingData object
+ * matching the schema.sql blueprint by:
+ * - It extracts, combines, and normalizes information from multiple endpoints
+ * (like host info, listing details, amenities, reviews, etc.),
+ *  handling missing or nested data,
+ * - and returns a single, easy-to-use object.
  * @param apiData The raw API data from Airbnb endpoints
- * @returns Structured property listing data matching our schema.json or null if transformation fails
+ * @returns Structured property listingData object matching our schema.sql or null if transformation fails
+ * listingData is saved and can be reviewed at data/listing-data.json
  */
 export async function getListingData(apiData: AirbnbApiData): Promise<ListingData | null> {
   // ApiData nested objects and selectors used for extraction -------------------------------------------- :
@@ -430,7 +435,7 @@ export async function getListingData(apiData: AirbnbApiData): Promise<ListingDat
   }
 
   /* ***********************************************************************************************
-   ********** Extra Inherited Data (like site main tile, and intro text..) *************************
+   ********** AI LLM Generated Data (like logo text and page content elements text) ****************
    *********************************************************************************************** */
 
   // Intro Title
@@ -447,11 +452,6 @@ export async function getListingData(apiData: AirbnbApiData): Promise<ListingDat
     return null;
   }
 
-  const extra = {
-    intro_title: introTitle,
-    intro_text: introText,
-  };
-
   const listingData: ListingData = {
     host: hostData,
     listing: mainListing,
@@ -466,7 +466,6 @@ export async function getListingData(apiData: AirbnbApiData): Promise<ListingDat
     reviews,
     attractions,
     accessibility,
-    extra,
   };
 
   return listingData;
@@ -1009,9 +1008,15 @@ export function extractCategoryRatingsData(categoryRatings: Record<string, unkno
   const guest_satisfaction = (categoryRatings["guestSatisfactionOverall"] as number) || 0;
 
   // Allow zero values for ratings
-  if (accuracy === undefined || check_in === undefined || cleanliness === undefined || 
-      communication === undefined || location === undefined || value === undefined || 
-      guest_satisfaction === undefined) {
+  if (
+    accuracy === undefined ||
+    check_in === undefined ||
+    cleanliness === undefined ||
+    communication === undefined ||
+    location === undefined ||
+    value === undefined ||
+    guest_satisfaction === undefined
+  ) {
     return undefined;
   }
 
